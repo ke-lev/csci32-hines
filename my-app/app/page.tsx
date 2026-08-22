@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 const links = [
@@ -36,13 +37,27 @@ export default function Home() {
   return (
     <main className="homepage">
       <header className="site-header">
-        <a className="wordmark" href="#" aria-label="Northstar home">
-          -k-<span aria-hidden="true">/</span>
-        </a>
-        <p className="availability">
-          <span className="status-dot" aria-hidden="true" />
-          experiencing interruptions?
-        </p>
+        <nav className="wordmark" aria-label="Breadcrumb">
+          <Link href="/">Users</Link>
+          <span aria-hidden="true">/</span>
+          <Link href="/" aria-current="page">
+            kelev
+          </Link>
+          <span aria-hidden="true">/</span>
+        </nav>
+        <nav className="header-links" aria-label="External links">
+          <a
+            className="header-pill"
+            href="https://github.com/ke-lev"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            github
+          </a>
+          <span className="header-pill header-pill--inactive" aria-disabled="true">
+            info
+          </span>
+        </nav>
       </header>
 
       <section className="hero" aria-labelledby="hero-title">
@@ -69,7 +84,7 @@ export default function Home() {
           </div>
         </div>
 
-        <nav className="link-list" aria-label="Explore Northstar">
+        <nav className="link-list" aria-label="Explore links">
           {links.map((link) => (
             <a className="link-card" href="#" key={link.number}>
               <span className="card-number">{link.number}</span>
@@ -86,8 +101,11 @@ export default function Home() {
       </section>
 
       <footer className="site-footer">
-        <p>git init</p>
-        <p>© 1991</p>
+        <p className="availability" title="us too">
+          <span className="status-dot" aria-hidden="true" />
+          experiencing interruptions?
+        </p>
+        <p>git innit © 2026</p>
       </footer>
     </main>
   )

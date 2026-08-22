@@ -56,6 +56,9 @@ a {
 }
 
 .wordmark {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.76rem;
   font-weight: 650;
@@ -63,8 +66,56 @@ a {
 }
 
 .wordmark span {
-  margin-left: 5px;
   color: var(--muted);
+}
+
+.wordmark a {
+  transition: color 180ms ease;
+}
+
+.wordmark a:hover,
+.wordmark a:focus-visible {
+  color: var(--muted);
+}
+
+.wordmark a:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid #cbff4a;
+  outline-offset: 4px;
+}
+
+.header-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-pill {
+  padding: 9px 15px;
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+a.header-pill:hover {
+  transform: translateY(-2px);
+}
+
+a.header-pill:focus-visible {
+  outline: 2px solid #cbff4a;
+  outline-offset: 3px;
+}
+
+.header-pill--inactive {
+  cursor: default;
+  opacity: 0.62;
 }
 
 .availability {
@@ -265,10 +316,6 @@ h1 {
     padding: 20px;
   }
 
-  .availability {
-    font-size: 0;
-  }
-
   .hero {
     gap: 64px;
     padding: 68px 0 60px;
@@ -296,19 +343,16 @@ h1 {
     padding-left: 10px;
   }
 
-  .site-footer p:first-child {
-    display: none;
-  }
-
   .site-footer {
-    justify-content: flex-end;
+    gap: 20px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .link-card,
   .card-arrow,
-  .thursday-button {
+  .thursday-button,
+  .header-pill {
     transition: none;
   }
 }

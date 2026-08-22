@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Northstar — Less noise. More momentum.',
+  title: 'gitting init',
   description: 'A calm workspace for ambitious teams to plan, build, and ship.',
 }
 
