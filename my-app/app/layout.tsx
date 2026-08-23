@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'gitting init',
+  title: "git'n init",
   description: 'A calm workspace for ambitious teams to plan, build, and ship.',
 }
 

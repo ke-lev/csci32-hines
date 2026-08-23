@@ -2,24 +2,29 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { PageIntro } from './components/page-intro'
+import { PageShell } from './components/page-shell'
 
 const links = [
   {
-    number: '01',
-    title: 'dummy 1',
-    description: 'lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    href: '/buttons/',
+    label: '/buttons',
+    description: 'i heard you like buttons, so i put some buttons in your buttons so you can button while you button',
   },
   {
-    number: '02',
-    title: 'dummy 2',
+    href: '#',
+    label: 'dummy link two',
     description: 'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
-    number: '03',
-    title: 'dummy 3',
+    href: '#',
+    label: 'dummy link three',
     description: 'ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
   },
 ]
+
+const thursdayButton =
+  'cursor-pointer rounded-full border border-foreground px-[18px] py-[11px] font-mono text-[0.72rem] leading-none font-semibold tracking-[0.04em] lowercase transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
 export default function Home() {
   const [thursdayAnswer, setThursdayAnswer] = useState<string | null>(null)
@@ -35,78 +40,61 @@ export default function Home() {
   }
 
   return (
-    <main className="homepage">
-      <header className="site-header">
-        <nav className="wordmark" aria-label="Breadcrumb">
-          <Link href="/">Users</Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/" aria-current="page">
-            kelev
-          </Link>
-          <span aria-hidden="true">/</span>
-        </nav>
-        <nav className="header-links" aria-label="External links">
-          <a
-            className="header-pill"
-            href="https://github.com/ke-lev"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            github
-          </a>
-          <span className="header-pill header-pill--inactive" aria-disabled="true">
-            info
-          </span>
-        </nav>
-      </header>
-
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <h1 id="hero-title">
-            wuddup
-            <br />
-            my dudes?
-          </h1>
-          <p className="subhead">next app successfully built - ezpz</p>
-          <div className="thursday-actions">
+    <PageShell
+      breadcrumbs={[
+        { label: 'Users', href: '/' },
+        { label: 'kelev', href: '/' },
+      ]}
+      titleId="hero-title"
+      left={
+        <PageIntro
+          title={
+            <>
+              <span className="block">wuddup</span>
+              <span className="block translate-x-2">my dudes?</span>
+            </>
+          }
+          titleId="hero-title"
+          subhead="wecome home, if you wanna know if it's thursday, click the button below"
+        >
+          <div className="mt-[22px] flex items-center gap-2.5">
             <button
-              className={`thursday-button${thursdayAnswer ? ' thursday-button--checked' : ''}`}
+              className={`${thursdayButton} ${
+                thursdayAnswer ? 'bg-background text-foreground' : 'bg-foreground text-background'
+              }`}
               type="button"
               onClick={checkThursday}
             >
               {thursdayAnswer ?? (hasReset ? 'is it thursday yet?' : 'is it thursday?')}
             </button>
             {thursdayAnswer && (
-              <button className="thursday-button ok-button" type="button" onClick={resetThursday}>
+              <button
+                className={`${thursdayButton} min-w-12 bg-foreground text-background`}
+                type="button"
+                onClick={resetThursday}
+              >
                 ok
               </button>
             )}
           </div>
-        </div>
-
-        <nav className="link-list" aria-label="Explore links">
+        </PageIntro>
+      }
+      right={
+        <nav className="flex flex-1 flex-col" aria-label="dummy links">
           {links.map((link) => (
-            <a className="link-card" href="#" key={link.number}>
-              <span className="card-number">{link.number}</span>
-              <span className="card-content">
-                <span className="card-title">{link.title}</span>
-                <span className="card-description">{link.description}</span>
+            <Link
+              className="group flex min-h-22 flex-1 flex-col items-end justify-center gap-3.5 border-b border-line px-[clamp(18px,2vw,28px)] py-6 transition-colors duration-180 last:border-b-0 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_#cbff4a] motion-reduce:transition-none"
+              href={link.href}
+              key={link.label}
+            >
+              <span className="inline-flex rounded-full bg-foreground px-[15px] py-2.5 font-mono text-[0.72rem] leading-none font-[650] tracking-[0.02em] text-background transition-transform duration-180 group-hover:-translate-x-1 group-focus-visible:-translate-x-1 motion-reduce:transition-none">
+                {link.label}
               </span>
-              <span className="card-arrow" aria-hidden="true">
-                ↗
-              </span>
-            </a>
+              <span className="max-w-[42ch] text-right text-[0.88rem] leading-6 text-muted">{link.description}</span>
+            </Link>
           ))}
         </nav>
-      </section>
-
-      <footer className="site-footer">
-        <p className="availability" title="us too">
-          <span className="status-dot" aria-hidden="true" />
-          experiencing interruptions?
-        </p>
-        <p>git innit © 2026</p>
-      </footer>
-    </main>
+      }
+    />
   )
 }
