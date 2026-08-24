@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { PageIntro } from './components/page-intro'
 import { PageShell } from './components/page-shell'
+import { NowPlaying } from './components/now-playing'
 
 const links = [
   {
@@ -42,45 +43,52 @@ export default function Home() {
   return (
     <PageShell
       breadcrumbs={[
-        { label: 'Users', href: '/' },
+        { label: 'users', href: '/' },
         { label: 'kelev', href: '/' },
       ]}
       titleId="hero-title"
       left={
-        <PageIntro
-          title={
-            <>
-              <span className="block">wuddup</span>
-              <span className="block translate-x-2">my dudes?</span>
-            </>
-          }
-          titleId="hero-title"
-          subhead="wecome home, if you wanna know if it's thursday, click the button below"
-        >
-          <div className="mt-[22px] flex items-center gap-2.5">
-            <button
-              className={`${thursdayButton} ${
-                thursdayAnswer ? 'bg-background text-foreground' : 'bg-foreground text-background'
-              }`}
-              type="button"
-              onClick={checkThursday}
+        <div className="home-intro-frame flex h-[var(--panel-h)] min-w-0 flex-col max-[900px]:h-auto">
+          <div className="shrink-0">
+            <PageIntro
+              title={
+                <>
+                  <span className="block">wuddup</span>
+                  <span className="block translate-x-2">my dudes?</span>
+                </>
+              }
+              titleId="hero-title"
+              subhead="wecome home, if you wanna know if it's thursday, click the button below"
             >
-              {thursdayAnswer ?? (hasReset ? 'is it thursday yet?' : 'is it thursday?')}
-            </button>
-            {thursdayAnswer && (
-              <button
-                className={`${thursdayButton} min-w-12 bg-foreground text-background`}
-                type="button"
-                onClick={resetThursday}
-              >
-                ok
-              </button>
-            )}
+              <div className="mt-[22px] flex items-center gap-2.5">
+                <button
+                  className={`${thursdayButton} ${
+                    thursdayAnswer ? 'bg-background text-foreground' : 'bg-foreground text-background'
+                  }`}
+                  type="button"
+                  onClick={checkThursday}
+                >
+                  {thursdayAnswer ?? (hasReset ? 'is it thursday yet?' : 'is it thursday?')}
+                </button>
+                {thursdayAnswer && (
+                  <button
+                    className={`${thursdayButton} min-w-12 bg-foreground text-background`}
+                    type="button"
+                    onClick={resetThursday}
+                  >
+                    ok
+                  </button>
+                )}
+              </div>
+            </PageIntro>
           </div>
-        </PageIntro>
+          <div className="mt-auto pt-6 max-[900px]:mt-8 max-[900px]:pt-0">
+            <NowPlaying />
+          </div>
+        </div>
       }
       right={
-        <nav className="flex flex-1 flex-col" aria-label="dummy links">
+        <nav className="flex min-h-0 flex-1 flex-col" aria-label="homepage links">
           {links.map((link) => (
             <Link
               className="group flex min-h-22 flex-1 flex-col items-end justify-center gap-3.5 border-b border-line px-[clamp(18px,2vw,28px)] py-6 transition-colors duration-180 last:border-b-0 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_#cbff4a] motion-reduce:transition-none"

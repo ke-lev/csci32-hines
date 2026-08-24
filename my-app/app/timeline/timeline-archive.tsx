@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
-import { useEffect, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { PageShell } from '../components/page-shell'
 import type { TimelinePost } from './posts'
 
@@ -13,6 +13,8 @@ type TimelineArchiveProps = {
 
 export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
   const [activePost, setActivePost] = useState(selectedPost)
+  const [canScrollPost, setCanScrollPost] = useState(false)
+  const postRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     function handleHistoryChange() {
@@ -30,6 +32,29 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
     return () => window.removeEventListener('popstate', handleHistoryChange)
   }, [posts, selectedPost])
 
+  useEffect(() => {
+    const post = postRef.current
+
+    if (!post) {
+      return
+    }
+
+    function updateScrollHint() {
+      if (!post) {
+        return
+      }
+
+      const hasMoreContent = post.scrollTop + post.clientHeight < post.scrollHeight - 2
+      setCanScrollPost(hasMoreContent)
+    }
+
+    updateScrollHint()
+    const resizeObserver = new ResizeObserver(updateScrollHint)
+    resizeObserver.observe(post)
+
+    return () => resizeObserver.disconnect()
+  }, [activePost.slug])
+
   function selectPost(event: MouseEvent<HTMLAnchorElement>, post: TimelinePost) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return
@@ -45,25 +70,42 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
     window.history.pushState(null, '', `/timeline/${post.slug}/`)
   }
 
+  function scrollPostDown() {
+    const post = postRef.current
+
+    if (!post) {
+      return
+    }
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    post.scrollBy({
+      top: post.clientHeight * 0.72,
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    })
+  }
+
   return (
     <PageShell
       activeNav="timeline"
       breadcrumbs={[
-        { label: 'Users', href: '/' },
+        { label: 'users', href: '/' },
         { label: 'kelev', href: '/' },
         { label: 'timeline', href: '/timeline/' },
       ]}
       titleId="timeline-title"
       left={
         <div className="w-full self-center">
-          <h1
-            className="m-0 max-w-[900px] text-[clamp(4.1rem,8.7vw,9rem)] leading-[0.84] font-[520] tracking-[-0.078em] max-[900px]:text-[clamp(4rem,14vw,7rem)] max-[560px]:text-[clamp(3.65rem,18vw,5.5rem)] max-[560px]:leading-[0.88]"
-            id="timeline-title"
-          >
-            so what had
-            <br />
-            happened was . . .
-          </h1>
+          <div key={activePost.slug} aria-live="polite">
+            <h1
+              className="page-intro-title m-0 min-h-[1.68em] max-w-[580px] text-[clamp(4.1rem,8.7vw,9rem)] leading-[0.84] font-[520] tracking-[-0.078em] max-[900px]:text-[clamp(4rem,14vw,7rem)] max-[560px]:min-h-[1.76em] max-[560px]:text-[clamp(3.65rem,18vw,5.5rem)] max-[560px]:leading-[0.88]"
+              id="timeline-title"
+            >
+              {activePost.title}
+            </h1>
+            <p className="page-intro-description mt-8 max-w-[46ch] text-[clamp(1rem,1.3vw,1.2rem)] leading-[1.55] text-subhead text-balance">
+              {activePost.description}
+            </p>
+          </div>
 
           <nav
             className="timeline-scroll mt-[clamp(52px,7vh,78px)] overflow-x-auto pt-8 max-[560px]:-mx-5 max-[560px]:px-5 max-[560px]:pt-12"
@@ -109,25 +151,42 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
         </div>
       }
       right={
-        <article
-          className="timeline-post h-full overflow-y-auto px-[clamp(14px,2vw,26px)] py-[clamp(18px,2.4vw,34px)]"
-          key={activePost.slug}
-          aria-live="polite"
-        >
-          <header className="mb-10 border-b border-line pb-8">
-            <time
-              className="font-mono text-[0.72rem] font-[650] tracking-[0.06em] text-muted"
-              dateTime={activePost.date}
+        <div className="relative min-h-0 flex-1">
+          <article
+            className="timeline-post h-full overflow-y-auto px-[clamp(14px,2vw,26px)] py-[clamp(18px,2.4vw,34px)]"
+            key={activePost.slug}
+            ref={postRef}
+            aria-live="polite"
+            aria-label={`${activePost.title} post content`}
+            onScroll={() => {
+              const post = postRef.current
+              if (post) {
+                setCanScrollPost(post.scrollTop + post.clientHeight < post.scrollHeight - 2)
+              }
+            }}
+          >
+            <ReactMarkdown>{activePost.content}</ReactMarkdown>
+          </article>
+
+          <button
+            className={`group absolute right-3 bottom-3 flex size-10 items-center justify-center rounded-full border border-line bg-background text-foreground transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none ${
+              canScrollPost ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'
+            }`}
+            type="button"
+            aria-label="Scroll down in this post"
+            disabled={!canScrollPost}
+            onClick={scrollPostDown}
+          >
+            <svg
+              className="size-4 transition-transform duration-200 group-hover:translate-y-0.5 motion-reduce:transition-none"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
             >
-              {activePost.dateLabel}
-            </time>
-            <h2 className="mt-4 text-[clamp(2.25rem,4vw,3.8rem)] leading-[0.94] font-[540] tracking-[-0.055em]">
-              {activePost.title}
-            </h2>
-            <p className="mt-5 max-w-[46ch] text-[0.95rem] leading-6 text-subhead">{activePost.description}</p>
-          </header>
-          <ReactMarkdown>{activePost.content}</ReactMarkdown>
-        </article>
+              <path d="M4 7.5 10 13l6-5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
       }
     />
   )

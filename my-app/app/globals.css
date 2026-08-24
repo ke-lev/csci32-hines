@@ -30,6 +30,30 @@
 }
 
 @layer components {
+  @keyframes page-intro-title-reveal {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+      transform: translate3d(-0.14em, 0.08em, 0);
+    }
+  }
+
+  @keyframes page-intro-description-reveal {
+    from {
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+      transform: translate3d(0, 0.65rem, 0);
+    }
+  }
+
+  .page-intro-title {
+    animation: page-intro-title-reveal 950ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .page-intro-description {
+    animation: page-intro-description-reveal 760ms 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
   .timeline-scroll {
     scrollbar-width: none;
   }
@@ -41,6 +65,10 @@
   .timeline-post {
     scrollbar-color: var(--color-line) transparent;
     scrollbar-width: thin;
+  }
+
+  .timeline-post > :first-child {
+    margin-top: 0;
   }
 
   .timeline-post > h2 {
@@ -85,6 +113,34 @@
   @media (max-width: 560px) {
     .timeline-post > h2 {
       margin-top: 2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-intro-title,
+    .page-intro-description {
+      animation-name: page-intro-fade;
+      animation-duration: 160ms;
+      animation-delay: 0ms;
+    }
+
+    @keyframes page-intro-fade {
+      from {
+        opacity: 0;
+      }
+    }
+  }
+
+  @media (min-width: 901px) and (max-height: 760px) {
+    .home-intro-frame #hero-title {
+      font-size: clamp(4rem, 10vh, 5.5rem) !important;
+      line-height: 0.86 !important;
+    }
+
+    .home-intro-frame #hero-title + p {
+      margin-top: 1.5rem !important;
+      font-size: 1rem !important;
+      line-height: 1.45 !important;
     }
   }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import { TimelineArchive } from './timeline-archive'
-import { getTimelinePosts } from './posts'
+import { getClosestTimelinePost, getTimelinePosts } from './posts'
 
 export const metadata: Metadata = {
   title: "timeline | git'n init",
@@ -8,8 +9,10 @@ export const metadata: Metadata = {
 }
 
 export default async function TimelinePage() {
+  await connection()
+
   const posts = await getTimelinePosts()
-  const selectedPost = posts.at(-1)
+  const selectedPost = getClosestTimelinePost(posts, new Date())
 
   if (!selectedPost) {
     throw new Error('No timeline posts found')

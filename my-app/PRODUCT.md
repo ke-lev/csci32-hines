@@ -12,11 +12,18 @@ Inferred from the current project and brief: visitors exploring kelev's personal
 
 ## Product Purpose
 
-A personal web space for small experiments and pages.
+A personal developer site for small experiments, course work, and a dated semester devlog.
 
 ## Operating Context
 
-The site currently presents a single homepage. Path-style breadcrumbs provide navigation context if more pages are added later.
+The site currently has three primary surfaces:
+
+- `/` is the homepage and route index.
+- The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
+- `/buttons` is a small interaction experiment.
+- `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
+
+All pages use path-style breadcrumbs and a shared two-column shell that collapses to one column on smaller screens.
 
 ## Capabilities and Constraints
 
@@ -24,19 +31,37 @@ The site currently presents a single homepage. Path-style breadcrumbs provide na
 - Preserve the existing homepage unless a request explicitly changes it.
 - New routes should remain responsive and keyboard accessible.
 - Do not fabricate destinations for links that have not been assigned yet.
+- Reuse `PageShell` and `PageIntro` where their existing layout fits.
+- Timeline posts are Markdown files stored in `app/timeline/posts` with `title` and `description` frontmatter.
+- A timeline post filename must use `M-D.md`, such as `8-23.md`. The filename supplies both its slug and its 2026 date.
+- Timeline dates must fall between August 17 and December 18, 2026. Invalid names or out-of-range dates intentionally fail the build.
+- Timeline points are positioned proportionally within that fixed semester range, not distributed evenly.
+- Visiting `/timeline` selects the post whose date is closest to the request date. Direct `/timeline/[slug]` links select the requested post instead.
+- Selecting a timeline point updates the left-side post metadata, the reading card body, and the URL. Preserve the no-reload interaction, direct-link behavior, modified-click behavior, and browser Back/Forward support.
+- The timeline is file-backed and statically generated. There is no database or CMS.
 
 ## Brand Commitments
 
 - Casual, lowercase voice.
 - Minimal black interface with off-white text, thin borders, Geist typography, and pill-shaped controls.
-- Path-style page headers beginning with `Users/kelev/`.
+- Path-style page headers beginning with `users/kelev/`.
+- Oversized, tightly tracked headings and an acid-green keyboard focus color.
+- Timeline dates appear horizontally above their points. The selected point uses an off-white fill.
+- The timeline's left side displays the selected post title and description. The right card contains only the Markdown body.
+- The timeline title reserves two lines of vertical space so short titles do not shift the timeline upward.
 
 ## Evidence on Hand
 
-- Existing implementation in `app/page.tsx` and `app/globals.css`.
+- Global styling and tokens: `app/globals.css` and `app/layout.tsx`.
+- Shared layout components: `app/components/page-shell.tsx` and `app/components/page-intro.tsx`.
+- Homepage and buttons experiment: `app/page.tsx` and `app/buttons/page.tsx`.
+- Timeline loading, parsing, routing, and interaction: `app/timeline/`.
 
 ## Product Principles
 
 - Keep navigation simple as routes grow.
 - Make interactive states visible and tactile.
 - Prefer direct, functional copy over invented product claims.
+- Keep the casual voice intentional without sacrificing technical clarity.
+- Prefer file-based content and static generation while the project remains small.
+- Keep third-party credentials server-only and make optional integrations fail quietly.

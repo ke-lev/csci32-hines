@@ -65,11 +65,11 @@ export function PageShell({ activeNav, breadcrumbs, left, right, titleId }: Page
       </header>
 
       <section
-        className="grid flex-1 grid-cols-2 items-center gap-[clamp(40px,5vw,80px)] py-[clamp(72px,10vh,132px)] max-[900px]:grid-cols-1 max-[900px]:gap-18 max-[900px]:py-20 max-[560px]:gap-16 max-[560px]:py-[68px] max-[560px]:pb-[60px]"
+        className="grid flex-1 grid-cols-2 items-center gap-[clamp(40px,5vw,80px)] py-[clamp(72px,10vh,132px)] [--panel-h:clamp(420px,62vh,650px)] max-[900px]:grid-cols-1 max-[900px]:gap-18 max-[900px]:py-20 max-[560px]:gap-16 max-[560px]:py-[68px] max-[560px]:pb-[60px]"
         aria-labelledby={titleId}
       >
         {left}
-        <div className="flex h-[clamp(420px,62vh,650px)] w-full max-w-[620px] justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background max-[900px]:h-[min(520px,62svh)] max-[900px]:max-w-none max-[560px]:h-[420px]">
+        <div className="flex h-[var(--panel-h)] w-full max-w-[620px] justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background max-[900px]:h-[min(520px,62svh)] max-[900px]:max-w-none max-[560px]:h-[420px]">
           <div className="flex min-w-0 flex-1 flex-col p-[clamp(12px,1.4vw,20px)]">{right}</div>
         </div>
       </section>

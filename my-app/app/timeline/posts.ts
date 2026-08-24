@@ -103,3 +103,22 @@ export async function getTimelinePost(slug: string) {
   const posts = await getTimelinePosts()
   return posts.find((post) => post.slug === slug)
 }
+
+export function getClosestTimelinePost(posts: TimelinePost[], accessDate: Date) {
+  const accessDay = Date.UTC(
+    accessDate.getUTCFullYear(),
+    accessDate.getUTCMonth(),
+    accessDate.getUTCDate(),
+  )
+
+  return posts.reduce<TimelinePost | undefined>((closest, post) => {
+    if (!closest) {
+      return post
+    }
+
+    const postDistance = Math.abs(Date.parse(post.date) - accessDay)
+    const closestDistance = Math.abs(Date.parse(closest.date) - accessDay)
+
+    return postDistance < closestDistance ? post : closest
+  }, undefined)
+}

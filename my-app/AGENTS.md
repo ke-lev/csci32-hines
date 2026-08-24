@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Product context
+
+Read `PRODUCT.md` before making product-facing changes. Treat it as the source of truth for the site's purpose, routes, brand commitments, content conventions, and interaction constraints. Update it when those product-level facts change.
