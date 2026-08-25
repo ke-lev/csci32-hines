@@ -11,10 +11,11 @@ type PageShellProps = {
   breadcrumbs: Breadcrumb[]
   left: ReactNode
   right: ReactNode
+  rightInset?: boolean
   titleId: string
 }
 
-export function PageShell({ activeNav, breadcrumbs, left, right, titleId }: PageShellProps) {
+export function PageShell({ activeNav, breadcrumbs, left, right, rightInset = true, titleId }: PageShellProps) {
   return (
     <main className="flex min-h-svh flex-col overflow-hidden px-8 py-7 max-[900px]:p-6 max-[560px]:p-5">
       <header className="flex items-center justify-between border-b border-line pb-6">
@@ -70,14 +71,18 @@ export function PageShell({ activeNav, breadcrumbs, left, right, titleId }: Page
       >
         {left}
         <div className="flex h-[var(--panel-h)] w-full max-w-[620px] justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background max-[900px]:h-[min(520px,62svh)] max-[900px]:max-w-none max-[560px]:h-[420px]">
-          <div className="flex min-w-0 flex-1 flex-col p-[clamp(12px,1.4vw,20px)]">{right}</div>
+          <div
+            className={`flex min-w-0 flex-1 flex-col ${rightInset ? 'p-[clamp(12px,1.4vw,20px)]' : ''}`}
+          >
+            {right}
+          </div>
         </div>
       </section>
 
       <footer className="flex items-center justify-between gap-5 border-t border-line pt-5 font-mono text-[0.66rem] tracking-[0.08em] text-footer lowercase">
         <p className="m-0 flex items-center gap-[9px] text-[0.68rem] tracking-[0.08em] text-muted" title="us too">
           <span
-            className="size-1.5 rounded-full bg-accent shadow-[0_0_12px_rgba(203,255,74,0.55)]"
+            className="size-1.5 rounded-full bg-accent shadow-[0_0_12px_rgba(142,197,255,0.5)]"
             aria-hidden="true"
           />
           experiencing interruptions?

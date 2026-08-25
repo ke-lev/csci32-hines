@@ -20,7 +20,7 @@ export default function ButtonsPage() {
   return (
     <PageShell
       breadcrumbs={[
-        { label: 'users', href: '/' },
+        { label: 'users', href: '/users/' },
         { label: 'kelev', href: '/' },
         { label: 'buttons', href: '/buttons/' },
       ]}

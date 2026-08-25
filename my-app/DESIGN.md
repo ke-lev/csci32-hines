@@ -6,7 +6,7 @@ colors:
   paper: "#f4f4ef"
   muted-copy: "#92928b"
   hairline: "#292927"
-  acid-signal: "#cbff4a"
+  soft-signal: "#8ec5ff"
   supporting-copy: "#aaa9a3"
   footer-copy: "#64645f"
   row-hover: "#0d0d0c"
@@ -97,7 +97,7 @@ components:
 
 The interface feels like a personal terminal made welcoming: near-black space, warm off-white type, precise hairlines, and a casual lowercase voice. Large, tightly tracked display type establishes personality while compact monospace metadata gives paths, controls, and live status a functional rhythm.
 
-The system stays sparse and flat. Personality comes from scale contrast, tiny positional shifts, tactile hover movement, and rare acid-green signals—not decorative layers. Dense utility belongs inside the rounded right-hand panel; the surrounding canvas stays spacious enough for the work to breathe.
+The system stays sparse and flat. Personality comes from scale contrast, tiny positional shifts, tactile hover movement, and rare soft-blue signals—not decorative layers. Dense utility belongs inside the rounded right-hand panel; the surrounding canvas stays spacious enough for the work to breathe.
 
 **Key Characteristics:**
 
@@ -105,15 +105,15 @@ The system stays sparse and flat. Personality comes from scale contrast, tiny po
 - Oversized Geist headlines paired with compact Geist Mono metadata.
 - Thin borders, pill controls, and one large rounded utility panel.
 - Casual lowercase copy with direct, state-aware language.
-- Acid green reserved for keyboard focus, active playback, and tiny system signals.
+- Soft sky blue reserved for keyboard focus, active playback, and tiny system signals.
 
 ## Colors
 
-The palette is intentionally narrow: warm monochrome carries the interface, while acid green appears only when the system needs to signal life or focus.
+The palette is intentionally narrow: warm monochrome carries the interface, while soft sky blue appears only when the system needs to signal life or focus.
 
 ### Primary
 
-- **Acid Signal:** The sole chromatic accent. Use it for keyboard focus outlines, active equalizer bars, selection, and tiny live-status indicators.
+- **Soft Signal:** The sole chromatic accent. Use it for keyboard focus outlines, active equalizer bars, selection, and tiny live-status indicators.
 
 ### Neutral
 
@@ -127,7 +127,7 @@ The palette is intentionally narrow: warm monochrome carries the interface, whil
 
 ### Named Rules
 
-**The Rare Signal Rule.** Acid green is a state color, not a decorative fill; keep it confined to focus, active playback, selection, and tiny live indicators.
+**The Rare Signal Rule.** Soft sky blue is a state color, not a decorative fill; keep it confined to focus, active playback, selection, and tiny live indicators.
 
 **The Warm Contrast Rule.** Use warm paper rather than pure white for primary foregrounds so the interface remains stark without feeling clinical.
 
@@ -167,12 +167,12 @@ When the shell collapses to one column, source order remains meaningful: the com
 
 ## Elevation & Depth
 
-The system is flat by default and uses no ambient card shadows. Depth comes from borders, tonal shifts, clipped rounded containers, small hover translations, and inset focus outlines. The only glow is a restrained acid-green halo around the tiny footer status dot.
+The system is flat by default and uses no ambient card shadows. Depth comes from borders, tonal shifts, clipped rounded containers, small hover translations, and inset focus outlines. The only glow is a restrained soft-blue halo around the tiny footer status dot.
 
 ### Shadow Vocabulary
 
-- **Inset Focus:** A two-pixel acid-green inset ring for full-row links where an external outline would be clipped by the panel.
-- **Live Halo:** A soft 12px acid-green glow used only on the tiny footer system indicator.
+- **Inset Focus:** A two-pixel soft-blue inset ring for full-row links where an external outline would be clipped by the panel.
+- **Live Halo:** A soft 12px blue glow used only on the tiny footer system indicator.
 
 ### Named Rules
 
@@ -191,7 +191,7 @@ The page combines two geometric registers. The main utility panel and compact Sp
 - **Shape:** Full capsule with a one-pixel warm-paper border.
 - **Primary:** Warm-paper fill with ink text and compact mono labeling.
 - **Secondary:** Ink fill with warm-paper text; used for inactive or alternate actions.
-- **Hover / Focus:** Lift by 2px on hover; use an acid-green two-pixel focus outline with visible offset. Remove transform motion when reduced motion is requested.
+- **Hover / Focus:** Lift by 2px on hover; use a soft-blue two-pixel focus outline with visible offset. Remove transform motion when reduced motion is requested.
 
 ### Navigation
 
@@ -220,7 +220,7 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Unavailable:** Fail quietly in place with “spotify is offline.”
 - **Paused:** Show real track data and muted, still equalizer bars with “paused on.”
 - **Recent:** When nothing is actively playing, show the latest track with muted, still equalizer bars and “recently played.”
-- **Playing:** Show real track data and staggered pulsing acid-green equalizer bars with “currently listening to.”
+- **Playing:** Show real track data and staggered pulsing soft-blue equalizer bars with “currently listening to.”
 - **Interaction:** Any state with real track data—recent, paused, or playing—becomes a link. Open the supplied Spotify URL in a new tab, expose the full action in the accessible name, use the shared tonal hover and inset acid focus ring, and keep non-track states non-interactive.
 - **Accessibility and resilience:** Keep one persistent polite, atomic live region around every state so updates are announced without remounting the status container; retain visible text alongside animation; stop animation when reduced motion is requested; refresh only while the document is visible.
 
@@ -232,12 +232,12 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Do** use one-pixel hairlines and tonal row shifts to organize dense panel content.
 - **Do** keep Spotify beneath the Thursday controls, bottom-aligned with the route panel on desktop, and before route navigation in mobile source order.
 - **Do** keep live and fallback Spotify artwork at the same 64px size and radius.
-- **Do** make complete interactive rows keyboard-visible with the acid-green inset focus treatment.
+- **Do** make complete interactive rows keyboard-visible with the soft-blue inset focus treatment.
 - **Do** keep state copy casual, lowercase, and specific about what is happening.
 
 ### Don't:
 
-- **Don't** use acid green as a large background, decorative gradient, or routine text color.
+- **Don't** use soft blue as a large background, decorative gradient, or routine text color.
 - **Don't** add ambient card shadows or stack rounded cards inside the main rounded panel.
 - **Don't** make idle, unavailable, or loading Spotify states look clickable.
 - **Don't** let long track metadata widen the row; truncate it within the flexible text column.

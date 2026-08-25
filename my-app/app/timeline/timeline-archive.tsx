@@ -88,7 +88,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
     <PageShell
       activeNav="timeline"
       breadcrumbs={[
-        { label: 'users', href: '/' },
+        { label: 'users', href: '/users/' },
         { label: 'kelev', href: '/' },
         { label: 'timeline', href: '/timeline/' },
       ]}

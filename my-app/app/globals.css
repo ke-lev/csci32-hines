@@ -5,7 +5,7 @@
   --color-foreground: #f4f4ef;
   --color-muted: #92928b;
   --color-line: #292927;
-  --color-accent: #cbff4a;
+  --color-accent: #8ec5ff;
   --color-subhead: #aaa9a3;
   --color-footer: #64645f;
   --color-row-hover: #0d0d0c;
@@ -63,6 +63,11 @@
   }
 
   .timeline-post {
+    scrollbar-color: var(--color-line) transparent;
+    scrollbar-width: thin;
+  }
+
+  .terminal-log {
     scrollbar-color: var(--color-line) transparent;
     scrollbar-width: thin;
   }

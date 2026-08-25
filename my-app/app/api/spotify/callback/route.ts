@@ -29,7 +29,7 @@ function htmlPage(title: string, body: string, status = 200) {
       body { max-width: 760px; margin: 0 auto; padding: 64px 24px; background: #050505; color: #f4f4ef; }
       h1 { margin: 0 0 24px; font: 600 clamp(2.5rem, 8vw, 5rem)/.9 system-ui, sans-serif; letter-spacing: -.05em; }
       p { color: #aaa9a3; line-height: 1.65; }
-      code { display: block; overflow-wrap: anywhere; margin: 24px 0; padding: 18px; border: 1px solid #292927; border-radius: 12px; color: #cbff4a; }
+      code { display: block; overflow-wrap: anywhere; margin: 24px 0; padding: 18px; border: 1px solid #292927; border-radius: 12px; color: #8ec5ff; }
     </style>
   </head>
   <body>${body}</body>

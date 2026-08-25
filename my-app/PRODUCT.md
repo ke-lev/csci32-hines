@@ -16,12 +16,14 @@ A personal developer site for small experiments, course work, and a dated semest
 
 ## Operating Context
 
-The site currently has three primary surfaces:
+The site currently has five primary surfaces:
 
 - `/` is the homepage and route index.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
 - `/buttons` is a small interaction experiment.
 - `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
+- `/users` is a programmer-facing easter egg: a local zsh-style guest session can theatrically elevate into a project explorer with safe navigation and local session stats.
+- `/admin` is the hidden payoff to the users shell: a conventional local-only admin console reached through `sudo admin`.
 
 All pages use path-style breadcrumbs and a shared two-column shell that collapses to one column on smaller screens.
 
@@ -45,7 +47,7 @@ All pages use path-style breadcrumbs and a shared two-column shell that collapse
 - Casual, lowercase voice.
 - Minimal black interface with off-white text, thin borders, Geist typography, and pill-shaped controls.
 - Path-style page headers beginning with `users/kelev/`.
-- Oversized, tightly tracked headings and an acid-green keyboard focus color.
+- Oversized, tightly tracked headings and a soft-blue keyboard focus color.
 - Timeline dates appear horizontally above their points. The selected point uses an off-white fill.
 - The timeline's left side displays the selected post title and description. The right card contains only the Markdown body.
 - The timeline title reserves two lines of vertical space so short titles do not shift the timeline upward.
@@ -56,6 +58,8 @@ All pages use path-style breadcrumbs and a shared two-column shell that collapse
 - Shared layout components: `app/components/page-shell.tsx` and `app/components/page-intro.tsx`.
 - Homepage and buttons experiment: `app/page.tsx` and `app/buttons/page.tsx`.
 - Timeline loading, parsing, routing, and interaction: `app/timeline/`.
+- Users terminal interaction and route metadata: `app/users/`.
+- Admin console, local privilege gate, route table, and simulated controls: `app/admin/`.
 
 ## Product Principles
 

@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <PageShell
       breadcrumbs={[
-        { label: 'users', href: '/' },
+        { label: 'users', href: '/users/' },
         { label: 'kelev', href: '/' },
       ]}
       titleId="hero-title"
@@ -91,7 +91,7 @@ export default function Home() {
         <nav className="flex min-h-0 flex-1 flex-col" aria-label="homepage links">
           {links.map((link) => (
             <Link
-              className="group flex min-h-22 flex-1 flex-col items-end justify-center gap-3.5 border-b border-line px-[clamp(18px,2vw,28px)] py-6 transition-colors duration-180 last:border-b-0 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_#cbff4a] motion-reduce:transition-none"
+              className="group flex min-h-22 flex-1 flex-col items-end justify-center gap-3.5 border-b border-line px-[clamp(18px,2vw,28px)] py-6 transition-colors duration-180 last:border-b-0 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_#8ec5ff] motion-reduce:transition-none"
               href={link.href}
               key={link.label}
             >
