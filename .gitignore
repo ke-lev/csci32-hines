@@ -1,2 +1,8 @@
-/.codex
-/.impeccable
+.codex/
+.impeccable/
+node_modules/
+.turbo/
+dist/
+
+# Turborepo
+.turbo
