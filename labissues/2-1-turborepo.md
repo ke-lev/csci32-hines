@@ -8,8 +8,7 @@ workaround: change `my-turborepo/package.json` (line 13) from `"node": ">=24"` t
 
 ## the provided `tsconfig.json` is outdated
 
-compatibility: replacing the app's current `tsconfig.json` with the lab version removes newer next.js settings, including the `@/*` path alias and next 16 type paths
-(codex thought this was an issue but i think it's only because i've developed my-app quite a bit)
+compatibility: replacing the app's current `tsconfig.json` with the lab version removes a bunch of newer next.js settings, including the `@/*` path alias and next 16 type paths. copypasting from the lab deletes a lot, and only adds a single line
 
 workaround: add `"extends": "@repo/typescript-config/nextjs.json"` to the top of the current `tsconfig.json` and keep the rest of it as is
 

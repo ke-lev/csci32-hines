@@ -1,5 +1,8 @@
 'use client'
 
+import { Button } from '@repo/ui/button'
+import { Size } from '@repo/ui/size'
+import { Variant } from '@repo/ui/variant'
 import Link from 'next/link'
 import { useState } from 'react'
 import { PageIntro } from './components/page-intro'
@@ -23,9 +26,6 @@ const links = [
     description: 'ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
   },
 ]
-
-const thursdayButton =
-  'cursor-pointer rounded-full border border-foreground px-[18px] py-[11px] font-mono text-[0.72rem] leading-none font-semibold tracking-[0.04em] lowercase transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
 export default function Home() {
   const [thursdayAnswer, setThursdayAnswer] = useState<string | null>(null)
@@ -61,23 +61,17 @@ export default function Home() {
               subhead="wecome home, if you wanna know if it's thursday, click the button below"
             >
               <div className="mt-[22px] flex items-center gap-2.5">
-                <button
-                  className={`${thursdayButton} ${
-                    thursdayAnswer ? 'bg-background text-foreground' : 'bg-foreground text-background'
-                  }`}
-                  type="button"
+                <Button
+                  size={Size.LARGE}
+                  variant={thursdayAnswer ? Variant.SECONDARY : Variant.PRIMARY}
                   onClick={checkThursday}
                 >
                   {thursdayAnswer ?? (hasReset ? 'is it thursday yet?' : 'is it thursday?')}
-                </button>
+                </Button>
                 {thursdayAnswer && (
-                  <button
-                    className={`${thursdayButton} min-w-12 bg-foreground text-background`}
-                    type="button"
-                    onClick={resetThursday}
-                  >
+                  <Button size={Size.LARGE} onClick={resetThursday}>
                     ok
-                  </button>
+                  </Button>
                 )}
               </div>
             </PageIntro>

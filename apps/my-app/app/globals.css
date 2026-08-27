@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@repo/tailwind-config';
 
 @theme inline {
   --color-background: #050505;
@@ -52,6 +53,218 @@
 
   .page-intro-description {
     animation: page-intro-description-reveal 760ms 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pupil-tracker {
+    transform: translate3d(var(--pupil-x, 0), var(--pupil-y, 0), 0);
+    transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pupil-dot,
+  .pupil-mark,
+  .pupil-mark-cross {
+    transition:
+      opacity 120ms ease-out,
+      transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pupil-mark {
+    opacity: 0;
+    transform: scale(0.55) rotate(-12deg);
+  }
+
+  .pupil-mark-cross {
+    opacity: 0;
+  }
+
+  .pupil-button:hover .pupil-tracker,
+  .pupil-button:focus-visible .pupil-tracker,
+  .pupil-button:active .pupil-tracker {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .pupil-button:hover .pupil-dot,
+  .pupil-button:focus-visible .pupil-dot,
+  .pupil-button:active .pupil-dot {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+
+  .pupil-button:hover .pupil-mark,
+  .pupil-button:focus-visible .pupil-mark,
+  .pupil-button:active .pupil-mark {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .pupil-button:active .pupil-mark {
+    transform: scale(1) rotate(45deg);
+  }
+
+  .pupil-button:active .pupil-mark-cross {
+    opacity: 1;
+  }
+
+  .nuclear-label {
+    transition:
+      opacity 90ms ease-out,
+      transform 130ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nuclear-button {
+    scale: 0.72;
+    transform-origin: left center;
+    transition:
+      scale 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      translate 150ms ease-out,
+      background-color 150ms ease-out;
+  }
+
+  .nuclear-button:hover,
+  .nuclear-button:focus-visible,
+  .nuclear-button:active,
+  .nuclear-button[data-nuclear-state='detonated'],
+  .nuclear-button[data-nuclear-state='recoverable'] {
+    scale: 1;
+  }
+
+  .nuclear-button:hover,
+  .nuclear-button:focus-visible {
+    background-color: #df352a;
+    translate: 0 -2px;
+  }
+
+  .nuclear-button:active {
+    translate: 0 0;
+  }
+
+  .nuclear-label-hover,
+  .nuclear-label-pressed {
+    opacity: 0;
+    transform: translate3d(0, 0.25rem, 0);
+  }
+
+  .nuclear-button:hover .nuclear-label-warning,
+  .nuclear-button:focus-visible .nuclear-label-warning {
+    opacity: 0;
+    transform: translate3d(0, -0.25rem, 0);
+  }
+
+  .nuclear-button:hover .nuclear-label-hover,
+  .nuclear-button:focus-visible .nuclear-label-hover {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .nuclear-button:active .nuclear-label-hover {
+    opacity: 0;
+    transform: translate3d(0, -0.25rem, 0);
+  }
+
+  .nuclear-button:active .nuclear-label-pressed {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  @keyframes nuclear-shockwave {
+    0% {
+      opacity: 0.95;
+      transform: translate3d(-50%, -50%, 0) scale(0.4);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(-50%, -50%, 0) scale(56);
+    }
+  }
+
+  @keyframes nuclear-impact {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    12% {
+      translate: -14px 3px;
+    }
+    28% {
+      translate: 11px -5px;
+    }
+    46% {
+      translate: -7px 4px;
+    }
+    68% {
+      translate: 4px -2px;
+    }
+  }
+
+  @keyframes nuclear-flash {
+    0% {
+      opacity: 0;
+    }
+    7% {
+      opacity: 0.88;
+    }
+    19% {
+      opacity: 0.08;
+    }
+    32% {
+      opacity: 0.42;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .nuclear-button[data-nuclear-state='detonated'] .nuclear-shockwave {
+    animation: nuclear-shockwave 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .nuclear-button[data-nuclear-state='detonated'] .nuclear-result-label {
+    animation: nuclear-result-arrival 240ms 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes nuclear-result-arrival {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+  }
+
+  main[data-reactor-state='meltdown']::before {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    background: #ff2f20;
+    content: '';
+    pointer-events: none;
+    mix-blend-mode: screen;
+    animation: nuclear-flash 820ms ease-out both;
+  }
+
+  main[data-reactor-state='meltdown'] > * {
+    animation: nuclear-impact 460ms ease-out both;
+  }
+
+  main[data-reactor-state='meltdown'] > header {
+    transform: translate3d(-2px, 1px, 0) rotate(-0.28deg);
+  }
+
+  main[data-reactor-state='meltdown'] > section > :first-child {
+    transform: translate3d(-3px, 2px, 0) rotate(0.45deg);
+  }
+
+  main[data-reactor-state='meltdown'] > section > :last-child {
+    border-color: rgb(201 43 34 / 72%);
+    transform: translate3d(4px, -2px, 0) rotate(-0.52deg);
+  }
+
+  main[data-reactor-state='meltdown'] > footer {
+    color: #ff6b61;
+    transform: translate3d(2px, 1px, 0) rotate(0.2deg);
+  }
+
+  main[data-reactor-state='meltdown'] > footer span {
+    background: #ff3b30;
+    box-shadow: 0 0 12px rgb(255 59 48 / 55%);
   }
 
   .timeline-scroll {
@@ -127,6 +340,47 @@
       animation-name: page-intro-fade;
       animation-duration: 160ms;
       animation-delay: 0ms;
+    }
+
+    .pupil-tracker {
+      transform: translate3d(0, 0, 0);
+      transition: none;
+    }
+
+    .pupil-dot,
+    .pupil-mark,
+    .pupil-mark-cross {
+      transition-duration: 80ms;
+    }
+
+    .nuclear-label {
+      transition-duration: 80ms;
+    }
+
+    .nuclear-button {
+      transition: none;
+    }
+
+    .nuclear-button[data-nuclear-state='detonated'] .nuclear-shockwave {
+      display: none;
+    }
+
+    .nuclear-button[data-nuclear-state='detonated'] .nuclear-result-label {
+      animation: none;
+    }
+
+    main[data-reactor-state='meltdown']::before {
+      animation-duration: 160ms;
+      mix-blend-mode: normal;
+      opacity: 0;
+    }
+
+    main[data-reactor-state='meltdown'] > *,
+    main[data-reactor-state='meltdown'] > section > :first-child,
+    main[data-reactor-state='meltdown'] > section > :last-child,
+    main[data-reactor-state='meltdown'] > footer {
+      transform: none;
+      animation: none;
     }
 
     @keyframes page-intro-fade {

@@ -1,0 +1,7 @@
+# tailwind typescript button lab issues
+
+## TypeScript 7 requires an explicit `rootDir`
+
+compatibility: keeping the current `create-turbo@latest` TypeScript 7.0.2 version while adding the lab's `outDir` setting causes `yarn workspace @repo/ui build` to exit with `TS5011`. TypeScript no longer infers `src` as the common source directory when a project uses `tsconfig.json`
+
+workaround: add `"rootDir": "src"` beside `"outDir": "dist"` in `packages/ui/tsconfig.json`, then rerun `yarn workspace @repo/ui build`
