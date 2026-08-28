@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 type PageIntroProps = {
   body?: string
   children?: ReactNode
-  subhead: string
+  subhead: ReactNode
   title: ReactNode
   titleId: string
 }

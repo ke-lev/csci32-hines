@@ -86,7 +86,6 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
 
   return (
     <PageShell
-      activeNav="timeline"
       breadcrumbs={[
         { label: 'users', href: '/users/' },
         { label: 'kelev', href: '/' },
@@ -111,7 +110,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
             className="timeline-scroll mt-[clamp(52px,7vh,78px)] overflow-x-auto pt-8 max-[560px]:-mx-5 max-[560px]:px-5 max-[560px]:pt-12"
             aria-label="Post timeline"
           >
-            <ol className="relative mx-6 h-12 before:absolute before:top-1/2 before:right-0 before:left-0 before:h-px before:bg-foreground max-[560px]:min-w-[620px]">
+            <ol className="relative mx-6 h-12 before:absolute before:top-1/2 before:right-0 before:left-0 before:h-px before:bg-foreground">
               {posts.map((post) => {
                 const selected = post.slug === activePost.slug
 

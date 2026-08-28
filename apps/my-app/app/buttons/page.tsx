@@ -52,11 +52,11 @@ export default function ButtonsPage() {
         </PageIntro>
       }
       right={
-        <div className="flex flex-1 flex-col">
+        <div className="min-h-0 flex flex-1 flex-col overflow-y-auto overscroll-contain [scrollbar-color:var(--color-line)_transparent] [scrollbar-width:thin]">
           {variants.map((item) => (
             <section
               aria-labelledby={`${item.name}-buttons`}
-              className="relative flex min-h-24 flex-1 flex-col justify-center gap-2 overflow-hidden border-b border-line px-[clamp(18px,2vw,28px)] py-5 last:border-b-0"
+              className="relative flex min-h-24 flex-1 flex-col justify-center gap-2 overflow-hidden border-b border-line px-[clamp(18px,2vw,28px)] py-5 last:border-b-0 max-[900px]:flex-none"
               key={item.name}
             >
               <div className="relative z-10 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">

@@ -196,7 +196,7 @@ The page combines two geometric registers. The main utility panel and compact Sp
 ### Navigation
 
 - **Breadcrumbs:** Path-style mono text with slash separators; hover and focus soften toward muted copy.
-- **Site Links:** Compact pill controls. The current route inverts to warm paper, while external and available routes retain explicit interaction feedback.
+- **Site Links:** The shared header keeps GitHub as its sole compact pill control. The timeline link lives in the homepage intro as a secondary pill rather than persistent navigation.
 - **Responsive Treatment:** Header navigation remains compact at all widths; surrounding frame padding contracts rather than replacing the pattern.
 
 ### Cards / Containers

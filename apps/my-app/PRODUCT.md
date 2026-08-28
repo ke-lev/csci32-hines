@@ -18,7 +18,7 @@ A personal developer site for small experiments, course work, and a dated semest
 
 The site currently has six primary surfaces:
 
-- `/` is the homepage and route index.
+- `/` is the homepage and route index. Its intro links to the timeline with a dedicated pill control.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
 - `/buttons` is a small interaction experiment.
 - `/input` deterministically turns a first and last name into a locally drawn SVG face; normalized names reproduce the same checksum and landmark geometry without network or random-data dependencies.

@@ -7,7 +7,6 @@ type Breadcrumb = {
 }
 
 type PageShellProps = {
-  activeNav?: 'timeline'
   breadcrumbs: Breadcrumb[]
   left: ReactNode
   right: ReactNode
@@ -15,7 +14,7 @@ type PageShellProps = {
   titleId: string
 }
 
-export function PageShell({ activeNav, breadcrumbs, left, right, rightInset = true, titleId }: PageShellProps) {
+export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId }: PageShellProps) {
   return (
     <main className="flex min-h-svh flex-col overflow-hidden px-8 py-7 max-[900px]:p-6 max-[560px]:p-5">
       <header className="flex items-center justify-between border-b border-line pb-6">
@@ -51,17 +50,6 @@ export function PageShell({ activeNav, breadcrumbs, left, right, rightInset = tr
           >
             github
           </a>
-          <Link
-            className={`rounded-full border border-foreground px-[15px] py-[9px] font-mono text-[0.68rem] leading-none font-[650] tracking-[0.04em] transition duration-180 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none ${
-              activeNav === 'timeline'
-                ? 'cursor-default bg-foreground text-background'
-                : 'bg-background text-foreground'
-            }`}
-            href="/timeline/"
-            aria-current={activeNav === 'timeline' ? 'page' : undefined}
-          >
-            timeline
-          </Link>
         </nav>
       </header>
 

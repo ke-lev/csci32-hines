@@ -58,7 +58,11 @@ export default function Home() {
                 </>
               }
               titleId="hero-title"
-              subhead="wecome home, if you wanna know if it's thursday, click the button below"
+              subhead={
+                <Button href="/timeline/" variant={Variant.SECONDARY}>
+                  timeline
+                </Button>
+              }
             >
               <div className="mt-[22px] flex items-center gap-2.5">
                 <Button
