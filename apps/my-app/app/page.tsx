@@ -16,9 +16,9 @@ const links = [
     description: 'i heard you like buttons, so i put some buttons in your buttons so you can button while you button',
   },
   {
-    href: '#',
-    label: 'dummy link two',
-    description: 'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    href: '/input/',
+    label: '/input',
+    description: 'three inputs, three buttons, and three aggressively native browser alerts',
   },
   {
     href: '#',

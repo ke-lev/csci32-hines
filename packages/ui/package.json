@@ -11,6 +11,7 @@
   ],
   "exports": {
     "./styles.css": "./dist/index.css",
+    "./input": "./dist/input.js",
     "./*": "./dist/*.js"
   },
   "scripts": {
