@@ -16,11 +16,12 @@ A personal developer site for small experiments, course work, and a dated semest
 
 ## Operating Context
 
-The site currently has five primary surfaces:
+The site currently has six primary surfaces:
 
 - `/` is the homepage and route index.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
 - `/buttons` is a small interaction experiment.
+- `/input` deterministically turns a first and last name into a locally drawn SVG face; normalized names reproduce the same checksum and landmark geometry without network or random-data dependencies.
 - `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
 - `/users` is a programmer-facing easter egg: a local zsh-style guest session can theatrically elevate into a project explorer with safe navigation and local session stats.
 - `/admin` is the hidden payoff to the users shell: a conventional local-only admin console reached through `sudo admin`.
@@ -56,7 +57,7 @@ All pages use path-style breadcrumbs and a shared two-column shell that collapse
 
 - Global styling and tokens: `app/globals.css` and `app/layout.tsx`.
 - Shared layout components: `app/components/page-shell.tsx` and `app/components/page-intro.tsx`.
-- Homepage and buttons experiment: `app/page.tsx` and `app/buttons/page.tsx`.
+- Homepage, buttons, and input experiments: `app/page.tsx`, `app/buttons/page.tsx`, and `app/input/`.
 - Timeline loading, parsing, routing, and interaction: `app/timeline/`.
 - Users terminal interaction and route metadata: `app/users/`.
 - Admin console, local privilege gate, route table, and simulated controls: `app/admin/`.
