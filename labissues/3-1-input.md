@@ -1,10 +1,12 @@
 # input lab issues
 
-## the instructed `src/app` page is ignored
+## the instructed `src/app` page is not the current turbo route
 
-compatibility: the lab tells students to add `src/app/input/page.tsx`, but the current app already uses `apps/my-app/app`. Next.js 16 ignores `src/app` when a root `app` directory exists, so following the path literally does not create the `/input` route
+discrepancy: previous turborepo lab had us move the contents of `src/app/` (`./src/app/my-app`) into the turbo scaffold (`./apps/my-app`) - so at this point we basically cut out src/app/ altogether
 
-workaround: add the page at `apps/my-app/app/input/page.tsx`
+compatibility: the lab says to add `src/app/input/page.tsx`, but the current app already uses `apps/my-app/app`. Next.js 16 ignores `src/app` when a root `app` directory exists, so following the path literally does not create the `/input` route
+
+workaround: add the page at the new scaffold route: `apps/my-app/app/input/page.tsx`
 
 ## the required `any` props fail lint
 

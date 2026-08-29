@@ -16,7 +16,7 @@ A personal developer site for small experiments, course work, and a dated semest
 
 ## Operating Context
 
-The site currently has six primary surfaces:
+The site currently has seven primary surfaces:
 
 - `/` is the homepage and route index. Its intro links to the timeline with a dedicated pill control.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
@@ -25,6 +25,7 @@ The site currently has six primary surfaces:
 - `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
 - `/users` is a programmer-facing easter egg: a local zsh-style guest session can theatrically elevate into a project explorer with safe navigation and local session stats.
 - `/admin` is the hidden payoff to the users shell: a conventional local-only admin console reached through `sudo admin`.
+- `/games/random-number-guesser` is a configurable higher-or-lower game. It narrows the valid interval after every guess, recommends the current midpoint, and offers replay or full reconfiguration after the round.
 
 All pages use path-style breadcrumbs and a shared two-column shell that collapses to one column on smaller screens.
 
@@ -33,6 +34,7 @@ All pages use path-style breadcrumbs and a shared two-column shell that collapse
 - Built with the existing Next.js App Router project.
 - Preserve the existing homepage unless a request explicitly changes it.
 - New routes should remain responsive and keyboard accessible.
+- Random-number games use the shared `@repo/math/getRandomInt` helper, whose bounds are inclusive.
 - Do not fabricate destinations for links that have not been assigned yet.
 - Reuse `PageShell` and `PageIntro` where their existing layout fits.
 - Timeline posts are Markdown files stored in `app/timeline/posts` with `title` and `description` frontmatter.

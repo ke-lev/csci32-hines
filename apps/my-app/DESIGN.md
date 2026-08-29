@@ -10,6 +10,10 @@ colors:
   supporting-copy: "#aaa9a3"
   footer-copy: "#64645f"
   row-hover: "#0d0d0c"
+  danger-panel: "#160908"
+  success-panel: "#07140c"
+  error-copy: "#ff8f86"
+  danger-copy: "#ffb0aa"
 typography:
   display:
     fontFamily: "Geist, Arial, sans-serif"
@@ -109,11 +113,21 @@ The system stays sparse and flat. Personality comes from scale contrast, tiny po
 
 ## Colors
 
-The palette is intentionally narrow: warm monochrome carries the interface, while soft sky blue appears only when the system needs to signal life or focus.
+The palette is intentionally narrow: warm monochrome carries the interface, soft sky blue signals life or focus, and muted red and green appear only as semantic game-state feedback.
 
 ### Primary
 
 - **Soft Signal:** The sole chromatic accent. Use it for keyboard focus outlines, active equalizer bars, selection, and tiny live-status indicators.
+
+### Secondary
+
+- **Danger Panel:** A restrained dark-red panel wash for a final available guess or a lost round.
+- **Error Copy:** A brighter coral reserved for concise validation errors.
+- **Danger Copy:** A softer warning red for last-chance guidance inside the danger panel.
+
+### Tertiary
+
+- **Success Panel:** A restrained dark-green panel wash for a won round.
 
 ### Neutral
 
@@ -130,6 +144,8 @@ The palette is intentionally narrow: warm monochrome carries the interface, whil
 **The Rare Signal Rule.** Soft sky blue is a state color, not a decorative fill; keep it confined to focus, active playback, selection, and tiny live indicators.
 
 **The Warm Contrast Rule.** Use warm paper rather than pure white for primary foregrounds so the interface remains stark without feeling clinical.
+
+**The Semantic Wash Rule.** Dark red and green are full-panel state shifts, not decorative accents: red marks danger or loss, green marks a win, and visible text must always name the state.
 
 ## Typography
 
@@ -217,6 +233,12 @@ The `/input` experiment keeps the shared form-and-preview composition and follow
 
 Every valid submission remounts the artwork and replays its drawing sequence, even when the normalized seed is unchanged. The visible identity beside the checksum uses that same lowercase, whitespace-normalized seed. Reduced-motion users receive the complete drawing immediately rather than a shortened path animation. A circular download control is inset into the portrait's lower-right corner using the same geometry and interaction treatment as the timeline's scroll control. It downloads the current portrait as a standalone 1024-by-1024 SVG with an explicit ink background and static warm-white path; the export never depends on the page's animation classes.
 
+### Narrowing Interval Board
+
+The random-number game turns its current inclusive interval into the primary board. Show the lower and upper endpoints on one hairline, keep the midpoint as the dominant recommended guess, and tighten the applicable endpoint after every valid miss. The recommendation and endpoint values update together so the visual model never trails the actual set of legal guesses.
+
+Keep setup, guessing, replay, and reconfiguration inside the shared right panel with existing inputs and pill controls. During play, remaining guesses and explicit higher-or-lower copy carry the status. A final available guess shifts the full panel to Danger Panel; a loss keeps that wash, while a win shifts to Success Panel. Terminal copy and the revealed number remain explicit so color is never the only outcome signal. State-color transitions last 300ms and are removed when reduced motion is requested.
+
 ### Spotify Listening Status
 
 The listening status is a compact rounded card beneath the Thursday controls in the homepage intro. It is 304px wide—slightly more than twice the Thursday pill—with a 96px silhouette, 2rem radius, and fixed 64px artwork. On desktop its bottom edge shares the right route panel's datum through the shell's panel-height token; below 900px it returns to natural flow. A flexible, truncating text stack sits between the artwork and 20px Spotify mark. Status metadata is small, tracked Geist Mono with compact tracking that keeps every known state on one line; the track title is stronger Geist sans; the artist returns to muted body text. Below 760px viewport height, the homepage headline and subhead contract so the shared bottom datum remains intact without overlap.
@@ -239,6 +261,8 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Do** keep Spotify beneath the Thursday controls, bottom-aligned with the route panel on desktop, and before route navigation in mobile source order.
 - **Do** keep live and fallback Spotify artwork at the same 64px size and radius.
 - **Do** keep the procedural portrait deterministic and preserve its one-path drawing rule.
+- **Do** make the current inclusive interval the number game's board, tighten the correct endpoint after every valid miss, and recommend its midpoint.
+- **Do** reserve the dark-red and dark-green panel washes for danger and terminal game states, with explicit outcome text alongside them.
 - **Do** make complete interactive rows keyboard-visible with the soft-blue inset focus treatment.
 - **Do** keep state copy casual, lowercase, and specific about what is happening.
 
@@ -249,4 +273,6 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Don't** make idle, unavailable, or loading Spotify states look clickable.
 - **Don't** let long track metadata widen the row; truncate it within the flexible text column.
 - **Don't** communicate playback solely through motion or color.
+- **Don't** accept a guess outside the currently narrowed interval or let the visual endpoints lag behind the legal range.
+- **Don't** use the number game's semantic red or green as routine decoration elsewhere.
 - **Don't** add independent random state, network assets, or interchangeable avatar-part kits to the procedural portrait.
