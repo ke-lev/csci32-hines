@@ -211,6 +211,12 @@ The page combines two geometric registers. The main utility panel and compact Sp
 
 Route rows are broad, right-aligned targets. A filled mono pill carries the route name; supporting copy sits beneath it at a readable 42ch maximum. Hover and keyboard focus shift the row surface, and the label nudges 4px left unless reduced motion is requested.
 
+### Procedural Portrait Panel
+
+The `/input` experiment keeps the shared form-and-preview composition and follows one explicit drawing rule: exactly one visible SVG path with one starting command and no pen lifts. A deterministic exaggeration layer independently widens cranium, cheeks, jaw, chin, face height, eye spacing, eye width, eye height, eye skew, eye openness, brow lift, nose length, nose width, mouth width, mouth height, ears, neck spread, tilt, and line weight while the underlying landmark generator preserves coherent attachment points.
+
+Every valid submission remounts the artwork and replays its drawing sequence, even when the normalized seed is unchanged. The visible identity beside the checksum uses that same lowercase, whitespace-normalized seed. Reduced-motion users receive the complete drawing immediately rather than a shortened path animation. A circular download control is inset into the portrait's lower-right corner using the same geometry and interaction treatment as the timeline's scroll control. It downloads the current portrait as a standalone 1024-by-1024 SVG with an explicit ink background and static warm-white path; the export never depends on the page's animation classes.
+
 ### Spotify Listening Status
 
 The listening status is a compact rounded card beneath the Thursday controls in the homepage intro. It is 304px wide—slightly more than twice the Thursday pill—with a 96px silhouette, 2rem radius, and fixed 64px artwork. On desktop its bottom edge shares the right route panel's datum through the shell's panel-height token; below 900px it returns to natural flow. A flexible, truncating text stack sits between the artwork and 20px Spotify mark. Status metadata is small, tracked Geist Mono with compact tracking that keeps every known state on one line; the track title is stronger Geist sans; the artist returns to muted body text. Below 760px viewport height, the homepage headline and subhead contract so the shared bottom datum remains intact without overlap.
@@ -232,6 +238,7 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Do** use one-pixel hairlines and tonal row shifts to organize dense panel content.
 - **Do** keep Spotify beneath the Thursday controls, bottom-aligned with the route panel on desktop, and before route navigation in mobile source order.
 - **Do** keep live and fallback Spotify artwork at the same 64px size and radius.
+- **Do** keep the procedural portrait deterministic and preserve its one-path drawing rule.
 - **Do** make complete interactive rows keyboard-visible with the soft-blue inset focus treatment.
 - **Do** keep state copy casual, lowercase, and specific about what is happening.
 
@@ -242,3 +249,4 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Don't** make idle, unavailable, or loading Spotify states look clickable.
 - **Don't** let long track metadata widen the row; truncate it within the flexible text column.
 - **Don't** communicate playback solely through motion or color.
+- **Don't** add independent random state, network assets, or interchangeable avatar-part kits to the procedural portrait.

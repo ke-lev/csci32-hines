@@ -1,6 +1,6 @@
 'use client'
 
-import type { HTMLInputTypeAttribute } from 'react'
+import type { HTMLInputTypeAttribute, MouseEvent } from 'react'
 import { getInputSizeStyles, Size } from './size'
 import { getCommonStyles } from './tokens'
 import { getVariantBorderStyles, getVariantInputTextStyles, getVariantOutlineStyles, Variant } from './variant'
@@ -14,6 +14,7 @@ export interface InputProps {
   id: string
   maxLength?: number
   name: string
+  placeCaretAtEndOnEdgeClick?: boolean
   placeholder?: string
   required?: boolean
   setValue?: (newValue: string) => void
@@ -33,6 +34,7 @@ export function Input({
   id,
   maxLength,
   name,
+  placeCaretAtEndOnEdgeClick = false,
   placeholder,
   required,
   setValue,
@@ -53,6 +55,31 @@ export function Input({
     .filter(Boolean)
     .join(' ')
 
+  function handleClick(event: MouseEvent<HTMLInputElement>) {
+    if (!placeCaretAtEndOnEdgeClick || event.detail === 0) return
+
+    const input = event.currentTarget
+    const bounds = input.getBoundingClientRect()
+    const styles = window.getComputedStyle(input)
+    const fontSize = Number.parseFloat(styles.fontSize)
+    const parsedLineHeight = Number.parseFloat(styles.lineHeight)
+    const lineHeight = Number.isNaN(parsedLineHeight) ? fontSize : parsedLineHeight
+    const textTop = bounds.top + (bounds.height - lineHeight) / 2
+    const textBottom = textTop + lineHeight
+    const textLeft = bounds.left + input.clientLeft + Number.parseFloat(styles.paddingLeft)
+    const textRight = bounds.right - input.clientLeft - Number.parseFloat(styles.paddingRight)
+    const clickedChrome =
+      event.clientX < textLeft ||
+      event.clientX > textRight ||
+      event.clientY < textTop ||
+      event.clientY > textBottom
+
+    if (clickedChrome) {
+      const end = input.value.length
+      input.setSelectionRange(end, end)
+    }
+  }
+
   return (
     <input
       autoComplete={autoComplete}
@@ -62,6 +89,7 @@ export function Input({
       maxLength={maxLength}
       name={name}
       onChange={setValue ? (event) => setValue(event.currentTarget.value) : undefined}
+      onClick={handleClick}
       placeholder={placeholder}
       required={required}
       type={type}

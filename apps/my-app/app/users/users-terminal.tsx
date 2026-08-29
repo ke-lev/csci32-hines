@@ -433,6 +433,7 @@ export function UsersTerminal() {
           title="shell"
           titleId="users-title"
           subhead="let's hope you know what you're doing"
+          body="<in development>"
         >
           <Link
             className="mt-8 inline-flex rounded-full border border-foreground bg-foreground px-[18px] py-[11px] font-mono text-[0.72rem] leading-none font-semibold tracking-[0.04em] text-background no-underline transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0"
@@ -454,9 +455,7 @@ export function UsersTerminal() {
               <span className="size-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
               <span className="size-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
             </span>
-            <span className="truncate px-3 text-center">
-              guest@kelev: /users — zsh
-            </span>
+            <span className="truncate px-3 text-center">guest@kelev: /users — zsh</span>
             <span className="justify-self-end text-[#686864] max-[560px]:hidden">80×24</span>
           </header>
 
@@ -496,7 +495,10 @@ export function UsersTerminal() {
               >
                 <div className="mb-2 flex items-center justify-between gap-4 text-[0.68rem] tracking-[0.04em]">
                   <span className="text-accent">score {String(snakeGame.score).padStart(3, '0')}</span>
-                  <span className={snakeGame.status === 'game-over' ? 'text-[#ff8b7c]' : 'text-muted'} aria-live="polite">
+                  <span
+                    className={snakeGame.status === 'game-over' ? 'text-[#ff8b7c]' : 'text-muted'}
+                    aria-live="polite"
+                  >
                     {snakeGame.status === 'game-over' ? 'game over · space to restart' : 'q / esc to quit'}
                   </span>
                 </div>
@@ -527,12 +529,42 @@ export function UsersTerminal() {
                 </div>
                 <div className="mt-3 hidden grid-cols-3 gap-1.5 max-[560px]:grid" aria-label="Touch controls">
                   <span />
-                  <button className="min-h-10 border border-line text-subhead active:bg-row-hover" type="button" onClick={() => queueDirection('up')}>w</button>
+                  <button
+                    className="min-h-10 border border-line text-subhead active:bg-row-hover"
+                    type="button"
+                    onClick={() => queueDirection('up')}
+                  >
+                    w
+                  </button>
                   <span />
-                  <button className="min-h-10 border border-line text-subhead active:bg-row-hover" type="button" onClick={() => queueDirection('left')}>a</button>
-                  <button className="min-h-10 border border-line text-subhead active:bg-row-hover" type="button" onClick={() => queueDirection('down')}>s</button>
-                  <button className="min-h-10 border border-line text-subhead active:bg-row-hover" type="button" onClick={() => queueDirection('right')}>d</button>
-                  <button className="col-span-3 min-h-10 border border-line text-muted active:bg-row-hover" type="button" onClick={stopSnake}>q · quit</button>
+                  <button
+                    className="min-h-10 border border-line text-subhead active:bg-row-hover"
+                    type="button"
+                    onClick={() => queueDirection('left')}
+                  >
+                    a
+                  </button>
+                  <button
+                    className="min-h-10 border border-line text-subhead active:bg-row-hover"
+                    type="button"
+                    onClick={() => queueDirection('down')}
+                  >
+                    s
+                  </button>
+                  <button
+                    className="min-h-10 border border-line text-subhead active:bg-row-hover"
+                    type="button"
+                    onClick={() => queueDirection('right')}
+                  >
+                    d
+                  </button>
+                  <button
+                    className="col-span-3 min-h-10 border border-line text-muted active:bg-row-hover"
+                    type="button"
+                    onClick={stopSnake}
+                  >
+                    q · quit
+                  </button>
                 </div>
               </div>
             ) : (

@@ -21,7 +21,7 @@ The site currently has six primary surfaces:
 - `/` is the homepage and route index. Its intro links to the timeline with a dedicated pill control.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
 - `/buttons` is a small interaction experiment.
-- `/input` deterministically turns a first and last name into a locally drawn SVG face; normalized names reproduce the same checksum and landmark geometry without network or random-data dependencies.
+- `/input` deterministically turns a first and last name into one live-drawn, uninterrupted SVG face path; normalized names reproduce the same checksum and exaggerated landmark geometry without network or random-data dependencies, and the current portrait can be downloaded as a standalone square SVG.
 - `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
 - `/users` is a programmer-facing easter egg: a local zsh-style guest session can theatrically elevate into a project explorer with safe navigation and local session stats.
 - `/admin` is the hidden payoff to the users shell: a conventional local-only admin console reached through `sudo admin`.
