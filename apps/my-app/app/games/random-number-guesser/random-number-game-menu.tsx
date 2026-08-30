@@ -112,7 +112,7 @@ export function RandomNumberGameMenu({ onStart }: RandomNumberGameMenuProps) {
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t border-line px-[clamp(18px,2vw,28px)] py-4">
-        <p className="m-0 font-mono text-[0.62rem] tracking-[0.06em] text-muted lowercase">no peeking</p>
+        <p className="m-0 font-mono text-[0.62rem] tracking-[0.06em] text-muted lowercase">good luck!</p>
         <Button type="submit" variant={Variant.PRIMARY}>
           start game
         </Button>
@@ -140,10 +140,45 @@ function NumberSetting({ describedBy, error, id, label, max, min, name, setValue
       htmlFor={id}
     >
       {label}
-      <Input
+      <NumberStepper
         ariaDescribedBy={describedBy}
         ariaInvalid={error}
-        className="w-full"
+        id={id}
+        max={max}
+        min={min}
+        name={name}
+        setValue={setValue}
+        value={value}
+      />
+    </label>
+  )
+}
+
+type NumberStepperProps = {
+  ariaDescribedBy: string
+  ariaInvalid: boolean
+  id: string
+  max?: number
+  min?: number
+  name: string
+  setValue: (value: string) => void
+  value: string
+}
+
+function NumberStepper({ ariaDescribedBy, ariaInvalid, id, max, min, name, setValue, value }: NumberStepperProps) {
+  function stepBy(amount: number) {
+    const currentValue = Number(value)
+    const startingValue = Number.isFinite(currentValue) ? currentValue : (min ?? 0)
+    const nextValue = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, startingValue + amount))
+    setValue(String(nextValue))
+  }
+
+  return (
+    <div className="group/stepper relative">
+      <Input
+        ariaDescribedBy={ariaDescribedBy}
+        ariaInvalid={ariaInvalid}
+        className="w-full pr-[3.75rem] [appearance:textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
         id={id}
         inputMode="numeric"
         max={max}
@@ -156,6 +191,38 @@ function NumberSetting({ describedBy, error, id, label, max, min, name, setValue
         value={value}
         variant={Variant.SECONDARY}
       />
-    </label>
+      <div className="absolute top-1.5 right-2 bottom-1.5 flex w-10 flex-col overflow-hidden rounded-full border border-line bg-row-hover transition-colors duration-180 group-focus-within/stepper:border-accent motion-reduce:transition-none">
+        <button
+          aria-label={`increase ${name}`}
+          className="flex flex-1 items-center justify-center border-b border-line text-muted transition-colors duration-180 hover:bg-foreground hover:text-background focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] motion-reduce:transition-none"
+          onClick={() => stepBy(1)}
+          type="button"
+        >
+          <Chevron direction="up" />
+        </button>
+        <button
+          aria-label={`decrease ${name}`}
+          className="flex flex-1 items-center justify-center text-muted transition-colors duration-180 hover:bg-foreground hover:text-background focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] motion-reduce:transition-none"
+          onClick={() => stepBy(-1)}
+          type="button"
+        >
+          <Chevron direction="down" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function Chevron({ direction }: { direction: 'up' | 'down' }) {
+  return (
+    <svg aria-hidden="true" className="size-3" fill="none" viewBox="0 0 12 12">
+      <path
+        d={direction === 'up' ? 'M2.5 7.5 6 4l3.5 3.5' : 'm2.5 4.5 3.5 3.5 3.5-3.5'}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
   )
 }

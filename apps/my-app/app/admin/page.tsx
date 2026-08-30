@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { AdminConsole } from './admin-console'
 
 export const metadata: Metadata = {
-  title: "admin console | git'n init",
+  title: 'admin console | kelev',
   description: "here's the real stats, chief",
 }
 

@@ -429,12 +429,7 @@ export function UsersTerminal() {
       rightInset={false}
       titleId="users-title"
       left={
-        <PageIntro
-          title="shell"
-          titleId="users-title"
-          subhead="let's hope you know what you're doing"
-          body="<in development>"
-        >
+        <PageIntro title="shell" titleId="users-title" subhead="let's hope you know what you're doing" body="">
           <Link
             className="mt-8 inline-flex rounded-full border border-foreground bg-foreground px-[18px] py-[11px] font-mono text-[0.72rem] leading-none font-semibold tracking-[0.04em] text-background no-underline transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             href="/"
@@ -580,6 +575,7 @@ export function UsersTerminal() {
                   id="terminal-command"
                   ref={inputRef}
                   value={input}
+                  autoFocus
                   autoComplete="off"
                   autoCapitalize="none"
                   aria-keyshortcuts="Control+C Control+L"

@@ -99,7 +99,7 @@ components:
 
 **Creative North Star: "The Midnight Workbench"**
 
-The interface feels like a personal terminal made welcoming: near-black space, warm off-white type, precise hairlines, and a casual lowercase voice. Large, tightly tracked display type establishes personality while compact monospace metadata gives paths, controls, and live status a functional rhythm.
+The interface is a minimalist, almost-brutalist workspace: near-black space, warm off-white type, precise hairlines, and a casual lowercase voice. Large, tightly tracked display type establishes personality while compact monospace metadata gives paths, controls, and live status a functional rhythm. Terminal styling is a supporting accent only and must recede whenever it competes with the system's restraint.
 
 The system stays sparse and flat. Personality comes from scale contrast, tiny positional shifts, tactile hover movement, and rare soft-blue signals—not decorative layers. Dense utility belongs inside the rounded right-hand panel; the surrounding canvas stays spacious enough for the work to breathe.
 
@@ -181,6 +181,8 @@ Inside the right panel, exactly three route rows are full-width and divided by o
 
 When the shell collapses to one column, source order remains meaningful: the complete intro, including Spotify status, appears before the right-panel route navigation.
 
+The right-panel silhouette is shared across every route and must not change size for individual experiments. The Game of Life render runs full-bleed inside that standard panel; its 24-by-18 field adapts to the available dimensions, and concise interaction guidance belongs in the left intro rather than over or around the field.
+
 ## Elevation & Depth
 
 The system is flat by default and uses no ambient card shadows. Depth comes from borders, tonal shifts, clipped rounded containers, small hover translations, and inset focus outlines. The only glow is a restrained soft-blue halo around the tiny footer status dot.
@@ -212,7 +214,7 @@ The page combines two geometric registers. The main utility panel and compact Sp
 ### Navigation
 
 - **Breadcrumbs:** Path-style mono text with slash separators; hover and focus soften toward muted copy.
-- **Site Links:** The shared header keeps GitHub as its sole compact pill control. The timeline link lives in the homepage intro as a secondary pill rather than persistent navigation.
+- **Site Links:** The shared header keeps the primary `tips?` control on the right. GitHub moves to the far-right footer as a compact secondary `gh` control after the copyright. The timeline link lives in the homepage intro as a secondary pill rather than persistent navigation.
 - **Responsive Treatment:** Header navigation remains compact at all widths; surrounding frame padding contracts rather than replacing the pattern.
 
 ### Cards / Containers
@@ -238,6 +240,12 @@ Every valid submission remounts the artwork and replays its drawing sequence, ev
 The random-number game turns its current inclusive interval into the primary board. Show the lower and upper endpoints on one hairline, keep the midpoint as the dominant recommended guess, and tighten the applicable endpoint after every valid miss. The recommendation and endpoint values update together so the visual model never trails the actual set of legal guesses.
 
 Keep setup, guessing, replay, and reconfiguration inside the shared right panel with existing inputs and pill controls. During play, remaining guesses and explicit higher-or-lower copy carry the status. A final available guess shifts the full panel to Danger Panel; a loss keeps that wash, while a win shifts to Success Panel. Terminal copy and the revealed number remain explicit so color is never the only outcome signal. State-color transitions last 300ms and are removed when reduced motion is requested.
+
+### Game of Life Field
+
+The `/games/game-of-life` panel is a silent, full-bleed render: a black field, warm-white cells, and a muted hairline grid that remains quieter than the shared panel border. It uses the same panel dimensions as every other route. The simulation starts and runs automatically. Do not place visible labels, buttons, telemetry, status, helper copy, empty-state feedback, or decorative terminal treatment inside the panel.
+
+Click or keyboard activation plants a stable 2-by-2 colony in dead space and erases the same footprint from a living cell. A captured pointer drag repeats the gesture's initial paint-or-erase intent continuously across the field. Keep concise visible interaction guidance in the left intro and preserve accessible cell names and instructions without adding visible panel chrome.
 
 ### Spotify Listening Status
 
@@ -265,6 +273,7 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Do** reserve the dark-red and dark-green panel washes for danger and terminal game states, with explicit outcome text alongside them.
 - **Do** make complete interactive rows keyboard-visible with the soft-blue inset focus treatment.
 - **Do** keep state copy casual, lowercase, and specific about what is happening.
+- **Do** keep every route's right panel the same size and let the full-bleed Game of Life field adapt inside it with warm-white cells and a muted hairline grid.
 
 ### Don't:
 
@@ -276,3 +285,4 @@ The listening status is a compact rounded card beneath the Thursday controls in 
 - **Don't** accept a guess outside the currently narrowed interval or let the visual endpoints lag behind the legal range.
 - **Don't** use the number game's semantic red or green as routine decoration elsewhere.
 - **Don't** add independent random state, network assets, or interchangeable avatar-part kits to the procedural portrait.
+- **Don't** add visible controls, labels, telemetry, feedback, helper copy, empty states, or terminal decoration to the Game of Life panel.

@@ -4,7 +4,7 @@ import { TimelineArchive } from './timeline-archive'
 import { getClosestTimelinePost, getTimelinePosts } from './posts'
 
 export const metadata: Metadata = {
-  title: "timeline | git'n init",
+  title: 'timeline | kelev',
   description: 'Notes, experiments, and small updates from the build.',
 }
 

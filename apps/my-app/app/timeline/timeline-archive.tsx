@@ -101,7 +101,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
             >
               {activePost.title}
             </h1>
-            <p className="page-intro-description mt-8 max-w-[46ch] text-[clamp(1rem,1.3vw,1.2rem)] leading-[1.55] text-subhead text-balance">
+            <p className="page-intro-description mt-8 max-w-[46ch] text-[clamp(1.1rem,1.5vw,1.4rem)] leading-[1.55] text-subhead text-balance">
               {activePost.description}
             </p>
           </div>

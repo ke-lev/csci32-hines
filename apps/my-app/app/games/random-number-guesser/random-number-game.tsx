@@ -29,6 +29,10 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
   const recommendedGuess = useMemo(() => Math.floor((lowerBound + upperBound) / 2), [lowerBound, upperBound])
   const danger = result === 'playing' && guessesRemaining === 1
   const panelTone = result === 'won' ? 'bg-[#07140c]' : result === 'lost' || danger ? 'bg-[#160908]' : 'bg-background'
+  const rangeSpan = config.max - config.min
+  const narrowedRangeStart = ((lowerBound - config.min) / rangeSpan) * 100
+  const narrowedRangeWidth = ((upperBound - lowerBound) / rangeSpan) * 100
+  const hasNarrowedRange = lowerBound !== config.min || upperBound !== config.max
 
   function submitGuess(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -106,7 +110,7 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
             {message}
           </p>
         </div>
-        <Button className="shrink-0" onClick={onNewGame} variant={Variant.SECONDARY}>
+        <Button className="shrink-0" onClick={onNewGame} variant={Variant.GLASS}>
           new game
         </Button>
       </div>
@@ -131,6 +135,10 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
         </div>
 
         <div className="relative mt-7 h-px bg-line" aria-hidden="true">
+          <span
+            className={`absolute top-0 h-px bg-[#8cbf9a] transition-[left,width,opacity] duration-300 ease-out motion-reduce:transition-none ${hasNarrowedRange ? 'opacity-100' : 'opacity-0'}`}
+            style={{ left: `${narrowedRangeStart}%`, width: `${narrowedRangeWidth}%` }}
+          />
           <span className="absolute top-1/2 left-0 size-2 -translate-y-1/2 rounded-full bg-foreground" />
           <span className="absolute top-1/2 right-0 size-2 -translate-y-1/2 rounded-full bg-foreground" />
           <span
@@ -139,11 +147,9 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
           />
         </div>
 
-        {guesses.length > 0 && (
-          <p className="mt-5 line-clamp-2 font-mono text-[0.64rem] leading-[1.7] tracking-[0.04em] text-muted lowercase">
-            tried: {guesses.join(' · ')}
-          </p>
-        )}
+        <p className="mt-5 line-clamp-2 font-mono text-[0.64rem] leading-[1.7] tracking-[0.04em] text-muted lowercase">
+          tried: {guesses.join(' · ')}
+        </p>
       </div>
 
       <div className="border-t border-line px-[clamp(18px,2vw,28px)] py-4">
@@ -154,9 +160,8 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
                 your guess
               </label>
               <Input
-                ariaDescribedBy="guess-feedback"
                 ariaInvalid={Boolean(error)}
-                className="w-full"
+                className="w-full placeholder:text-muted"
                 id="number-guess"
                 inputMode="numeric"
                 max={config.max}
@@ -170,13 +175,6 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
                 value={guess}
                 variant={Variant.SECONDARY}
               />
-              <p
-                className={`mt-2 min-h-4 font-mono text-[0.62rem] tracking-[0.03em] lowercase ${error ? 'text-[#ff8f86]' : danger ? 'text-[#ffb0aa]' : 'text-muted'}`}
-                id="guess-feedback"
-                aria-live="polite"
-              >
-                {error || (danger ? 'last guess — make it count' : 'whole numbers only')}
-              </p>
             </div>
             <Button type="submit" variant={Variant.PRIMARY}>
               guess

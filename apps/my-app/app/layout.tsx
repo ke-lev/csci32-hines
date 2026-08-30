@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "git'n init",
+  title: 'kelev',
   description: 'A calm workspace for ambitious teams to plan, build, and ship.',
 }
 

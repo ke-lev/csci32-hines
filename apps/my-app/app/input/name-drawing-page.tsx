@@ -184,7 +184,6 @@ export function NameDrawingPage() {
                   maxLength={40}
                   name="firstName"
                   placeCaretAtEndOnEdgeClick
-                  placeholder="first name"
                   required
                   setValue={setFirstName}
                   size={Size.MEDIUM}
@@ -205,7 +204,6 @@ export function NameDrawingPage() {
                   maxLength={40}
                   name="lastName"
                   placeCaretAtEndOnEdgeClick
-                  placeholder="last name"
                   setValue={setLastName}
                   size={Size.MEDIUM}
                   value={lastName}

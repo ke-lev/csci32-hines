@@ -15,6 +15,7 @@ export function RandomNumberGuesserPage() {
       breadcrumbs={[
         { label: 'users', href: '/users/' },
         { label: 'kelev', href: '/' },
+        { label: 'games', href: '/games/' },
         { label: 'rng', href: '/games/random-number-guesser/' },
       ]}
       left={

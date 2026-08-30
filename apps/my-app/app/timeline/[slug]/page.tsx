@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: TimelinePostPageProps): Promi
 
   return post
     ? {
-        title: `${post.title} | git'n init`,
+        title: `${post.title} | kelev`,
         description: post.description,
       }
     : {}

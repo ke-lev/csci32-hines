@@ -1,8 +1,8 @@
 'use client'
 
 import { Button } from '@repo/ui/button'
-import { Size } from '@repo/ui/size'
-import { Variant } from '@repo/ui/variant'
+import { getButtonSizeStyles, Size } from '@repo/ui/size'
+import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
 import Link from 'next/link'
 import { useState } from 'react'
 import { PageIntro } from './components/page-intro'
@@ -18,14 +18,21 @@ const links = [
   {
     href: '/input/',
     label: '/input',
-    description: 'three inputs, three buttons, and three aggressively native browser alerts',
+    description: 'my favorite: live art!',
   },
   {
-    href: '#',
-    label: 'dummy link three',
-    description: 'ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+    href: '/games/',
+    label: '/games',
+    description: 'tiny things to click, guess, and probably lose at',
   },
 ]
+
+const routePillClasses = [
+  'inline-flex rounded-full border font-mono leading-none font-semibold lowercase',
+  getButtonSizeStyles(Size.MEDIUM),
+  getVariantBackgroundStyles(Variant.PRIMARY),
+  'transition-transform duration-180 group-hover:-translate-x-1 group-focus-visible:-translate-x-1 motion-reduce:transition-none',
+].join(' ')
 
 export default function Home() {
   const [thursdayAnswer, setThursdayAnswer] = useState<string | null>(null)
@@ -92,7 +99,7 @@ export default function Home() {
               href={link.href}
               key={link.label}
             >
-              <span className="inline-flex rounded-full bg-foreground px-[15px] py-2.5 font-mono text-[0.72rem] leading-none font-[650] tracking-[0.02em] text-background transition-transform duration-180 group-hover:-translate-x-1 group-focus-visible:-translate-x-1 motion-reduce:transition-none">
+              <span className={routePillClasses}>
                 {link.label}
               </span>
               <span className="max-w-[42ch] text-right text-[0.88rem] leading-6 text-muted">{link.description}</span>

@@ -1,5 +1,10 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { Button } from '@repo/ui/button'
+import { Size } from '@repo/ui/size'
+import { Variant } from '@repo/ui/variant'
+import { TermsModal } from './terms-modal'
+import { TipsModal } from './tips-modal'
 
 type Breadcrumb = {
   href: string
@@ -42,14 +47,7 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
         </nav>
 
         <nav className="flex items-center gap-2" aria-label="Site links">
-          <a
-            className="rounded-full border border-foreground bg-foreground px-[15px] py-[9px] font-mono text-[0.68rem] leading-none font-[650] tracking-[0.04em] text-background transition duration-180 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
-            href="https://github.com/ke-lev"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            github
-          </a>
+          <TipsModal />
         </nav>
       </header>
 
@@ -59,23 +57,26 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
       >
         {left}
         <div className="flex h-[var(--panel-h)] w-full max-w-[620px] justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background max-[900px]:h-[min(520px,62svh)] max-[900px]:max-w-none max-[560px]:h-[420px]">
-          <div
-            className={`flex min-w-0 flex-1 flex-col ${rightInset ? 'p-[clamp(12px,1.4vw,20px)]' : ''}`}
-          >
+          <div className={`flex min-w-0 flex-1 flex-col ${rightInset ? 'p-[clamp(12px,1.4vw,20px)]' : ''}`}>
             {right}
           </div>
         </div>
       </section>
 
-      <footer className="flex items-center justify-between gap-5 border-t border-line pt-5 font-mono text-[0.66rem] tracking-[0.08em] text-footer lowercase">
-        <p className="m-0 flex items-center gap-[9px] text-[0.68rem] tracking-[0.08em] text-muted" title="us too">
-          <span
-            className="size-1.5 rounded-full bg-accent shadow-[0_0_12px_rgba(142,197,255,0.5)]"
-            aria-hidden="true"
-          />
-          experiencing interruptions?
-        </p>
-        <p className="m-0">git&apos;n init © 2026</p>
+      <footer className="flex items-center justify-between gap-5 border-t border-line pt-5 font-mono text-[0.66rem] tracking-[0.08em] text-foreground lowercase">
+        <TermsModal />
+        <div className="flex items-center gap-2.5">
+          <p className="m-0">git&apos;n init © 2026</p>
+          <Button
+            href="https://github.com/ke-lev"
+            rel="noopener noreferrer"
+            size={Size.SMALL}
+            target="_blank"
+            variant={Variant.SECONDARY}
+          >
+            gh
+          </Button>
+        </div>
       </footer>
     </main>
   )

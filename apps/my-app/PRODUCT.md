@@ -16,12 +16,14 @@ A personal developer site for small experiments, course work, and a dated semest
 
 ## Operating Context
 
-The site currently has seven primary surfaces:
+The site currently has nine primary surfaces:
 
 - `/` is the homepage and route index. Its intro links to the timeline with a dedicated pill control.
 - The homepage intro places a compact rounded Spotify listening-status card beneath the Thursday control. Its bottom aligns with the route panel on desktop, and the most recently played track is its inactive fallback.
 - `/buttons` is a small interaction experiment.
 - `/input` deterministically turns a first and last name into one live-drawn, uninterrupted SVG face path; normalized names reproduce the same checksum and exaggerated landmark geometry without network or random-data dependencies, and the current portrait can be downloaded as a standalone square SVG.
+- `/games` is an index of small interactive experiments, beginning with the random-number guesser.
+- `/games/game-of-life` is an auto-running Conway’s Game of Life field. Click or keyboard activation plants or erases a stable 2-by-2 colony, and captured pointer drag continuously paints or erases.
 - `/timeline` is the semester devlog. Each entry also has a shareable `/timeline/[slug]` URL.
 - `/users` is a programmer-facing easter egg: a local zsh-style guest session can theatrically elevate into a project explorer with safe navigation and local session stats.
 - `/admin` is the hidden payoff to the users shell: a conventional local-only admin console reached through `sudo admin`.
@@ -49,6 +51,8 @@ All pages use path-style breadcrumbs and a shared two-column shell that collapse
 
 - Casual, lowercase voice.
 - Minimal black interface with off-white text, thin borders, Geist typography, and pill-shaped controls.
+- Minimalist, almost-brutalist restraint is the durable visual priority; terminal styling is secondary and must recede whenever the two compete.
+- The shared right-panel card keeps one consistent responsive silhouette across every route; individual experiments adapt inside it rather than changing its dimensions.
 - Path-style page headers beginning with `users/kelev/`.
 - Oversized, tightly tracked headings and a soft-blue keyboard focus color.
 - Timeline dates appear horizontally above their points. The selected point uses an off-white fill.

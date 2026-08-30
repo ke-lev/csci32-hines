@@ -17,7 +17,7 @@ export function PageIntro({ body, children, subhead, title, titleId }: PageIntro
       >
         {title}
       </h1>
-      <p className="page-intro-description mt-11 max-w-[530px] text-[clamp(1rem,1.3vw,1.2rem)] leading-[1.55] text-subhead text-balance max-[900px]:mt-[34px]">
+      <p className="page-intro-description mt-8 max-w-[530px] text-[clamp(1.1rem,1.5vw,1.4rem)] leading-[1.55] text-subhead text-balance">
         {subhead}
       </p>
       {body && <p className="mt-5 max-w-[52ch] whitespace-pre-line text-sm leading-[1.6] text-muted">{body}</p>}
