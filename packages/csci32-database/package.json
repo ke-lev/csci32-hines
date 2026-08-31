@@ -1,0 +1,15 @@
+{
+  "name": "csci32-database",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "prisma": "6.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.0"
+  }
+}
