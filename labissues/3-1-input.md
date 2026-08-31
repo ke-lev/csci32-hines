@@ -2,7 +2,7 @@
 
 ## the instructed `src/app` page is not the current turbo route
 
-discrepancy: previous turborepo lab had us move the contents of `src/app/` (`./src/app/my-app`) into the turbo scaffold (`./apps/my-app`) - so at this point we basically cut out src/app/ altogether
+discrepancy: previous turborepo lab had us move my-app (`./src/app/my-app`) into the turbo scaffold (`./apps/my-app`) - so at this point we basically cut out src/app/ altogether
 
 compatibility: lab says to add `src/app/input/page.tsx`, but the current app already uses `apps/my-app/app`. i guess Next.js 16 ignores `src/app` when a root `app` directory exists, so following the path won't create the intended `/input` route
 

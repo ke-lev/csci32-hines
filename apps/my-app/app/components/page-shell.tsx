@@ -21,7 +21,7 @@ type PageShellProps = {
 
 export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId }: PageShellProps) {
   return (
-    <main className="flex min-h-svh flex-col overflow-hidden px-8 py-7 max-[900px]:p-6 max-[560px]:p-5">
+    <main className="flex h-svh flex-col overflow-hidden px-8 py-7 max-[900px]:h-auto max-[900px]:min-h-svh max-[900px]:p-6 max-[560px]:p-5">
       <header className="flex items-center justify-between border-b border-line pb-6">
         <nav
           className="flex items-center font-mono text-[0.76rem] font-[650] tracking-[0.15em]"
@@ -52,7 +52,7 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
       </header>
 
       <section
-        className="grid flex-1 grid-cols-2 items-center gap-[clamp(40px,5vw,80px)] py-[clamp(72px,10vh,132px)] [--panel-h:clamp(420px,62vh,650px)] max-[900px]:grid-cols-1 max-[900px]:gap-18 max-[900px]:py-20 max-[560px]:gap-16 max-[560px]:py-[68px] max-[560px]:pb-[60px]"
+        className="grid min-h-0 flex-1 grid-cols-2 items-center gap-[clamp(40px,5vw,80px)] py-[clamp(72px,10vh,132px)] [--panel-h:clamp(420px,62vh,650px)] max-[900px]:grid-cols-1 max-[900px]:gap-18 max-[900px]:py-20 max-[560px]:gap-16 max-[560px]:py-[68px] max-[560px]:pb-[60px]"
         aria-labelledby={titleId}
       >
         {left}
@@ -68,13 +68,14 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
         <div className="flex items-center gap-2.5">
           <p className="m-0">git&apos;n init © 2026</p>
           <Button
+            className="size-8 min-h-0 border-0 bg-black p-0 text-white hover:border-0 hover:bg-black"
             href="https://github.com/ke-lev"
             rel="noopener noreferrer"
             size={Size.SMALL}
             target="_blank"
             variant={Variant.SECONDARY}
           >
-            gh
+            <img alt="GitHub" className="size-6" src="/github-white-icon.webp" />
           </Button>
         </div>
       </footer>

@@ -1,51 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kelev
 
-## Getting Started
+the Next.js app behind [csci32-hines.vercel.app](https://csci32-hines.vercel.app): a personal space for small experiments, games, and a dated semester devlog.
 
-First, run the development server:
+## routes
+
+- `/` — homepage and route index
+- `/buttons` — button experiments
+- `/input` — deterministic name-to-portrait drawing
+- `/games` — game index
+- `/games/random-number-guesser` — configurable higher-or-lower game
+- `/games/game-of-life` — interactive Conway’s Game of Life
+- `/timeline` — dated Markdown devlog
+- `/users` — zsh-style guest shell with a hidden admin-console path
+
+the interface is intentionally minimal: lowercase copy, a black-and-off-white palette, path-style breadcrumbs, and a shared responsive two-column shell.
+
+## local development
+
+from the repository root:
 
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+or run the app directly from this directory:
+
+```bash
+yarn dev
+```
+
+open [http://localhost:3000](http://localhost:3000) after the server starts.
+
+use these checks before shipping:
+
+```bash
+yarn lint
+yarn check-types
+yarn build
+```
 
 ## Spotify now playing
 
-The homepage can show the track currently playing on the site owner's Spotify account.
+Spotify is an optional server-side integration used by the homepage card. start with [`.env.example`](.env.example):
 
-1. Create a Spotify developer app with the Web API enabled.
-2. Register `http://127.0.0.1:3000/api/spotify/callback` and `https://csci32-hines.vercel.app/api/spotify/callback` as redirect URIs.
-3. Copy `.env.example` to `.env.local`, then add a newly rotated client ID and client secret. Do not commit this file.
-4. Start the app and visit [http://127.0.0.1:3000/api/spotify/login](http://127.0.0.1:3000/api/spotify/login).
-5. After approving the `user-read-currently-playing` and `user-read-recently-played` permissions, copy the displayed refresh token into `SPOTIFY_REFRESH_TOKEN`.
-6. Restart the local server. Add the same four variables to the Vercel project, using `https://csci32-hines.vercel.app/api/spotify/callback` for the production `SPOTIFY_REDIRECT_URI`, then redeploy.
+```bash
+cp .env.example .env.local
+```
 
-Spotify refresh tokens expire after six months, so repeat the authorization step when the card reports that Spotify is offline.
+create a Spotify developer app, add `http://127.0.0.1:3000/api/spotify/callback` as a redirect URI, fill in the client ID and secret, then visit [the local login route](http://127.0.0.1:3000/api/spotify/login) to generate a refresh token. store it as `SPOTIFY_REFRESH_TOKEN`.
 
-When music is actively playing, the card shows the current track. Otherwise it falls back to the most recently played track. Existing installations must authorize again after adding the recently-played permission.
+for production, configure the same four variables in Vercel and set `SPOTIFY_REDIRECT_URI` to `https://csci32-hines.vercel.app/api/spotify/callback`. keep `.env.local` and all secrets out of version control. the card is disabled gracefully when Spotify is not configured.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## content and structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+timeline posts live in [`app/timeline/posts`](app/timeline/posts) as Markdown files named `M-D.md`. the filename determines the 2026 date and slug; valid dates fall between August 17 and December 18.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+shared layout and styling live in [`app/components`](app/components), [`app/globals.css`](app/globals.css), and the workspace UI package. route-specific experiments stay close to their route under `app/`.

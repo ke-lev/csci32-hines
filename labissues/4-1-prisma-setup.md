@@ -6,7 +6,7 @@ compatibility: the lab uses `npm init -y`, `npx tsc --init`, `npx prisma init`, 
 
 workaround: use the Yarn versions throughout the lab: `yarn init -y`, `yarn tsc --init`, `yarn prisma init`, and `yarn prisma migrate dev`
 
-## the unpinned Prisma install gets an incompatible new version
+## unpinned Prisma install gets an incompatible new version
 
 compatibility: the lab runs `yarn add -D prisma` without a version, which currently installs Prisma 8. Prisma 8 has breaking changes to its setup, configuration, schema, client, and migration workflow, so the rest of the lab's Prisma commands and files no longer match
 

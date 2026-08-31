@@ -77,10 +77,6 @@
     scrollbar-width: thin;
   }
 
-  .terms-modal {
-    font-family: 'Times New Roman', Times, serif;
-  }
-
   .terms-scroll::-webkit-scrollbar {
     width: 8px;
   }

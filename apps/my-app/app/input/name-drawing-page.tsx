@@ -9,6 +9,7 @@ import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { normalizeFaceSeed } from './generate-face'
 import { generateSingleLineFace } from './generate-single-line-face'
+import { SingleLineCat } from './single-line-cat'
 import { SingleLineFace } from './single-line-face'
 
 type DrawingName = {
@@ -92,14 +93,16 @@ function splitLuckyName(fullName: string): DrawingName {
 }
 
 export function NameDrawingPage() {
-  const faceSvgRef = useRef<SVGSVGElement>(null)
+  const drawingSvgRef = useRef<SVGSVGElement>(null)
   const luckyNameRef = useRef<DrawingName | null>(null)
   const [firstName, setFirstName] = useState(initialName.first)
   const [lastName, setLastName] = useState(initialName.last)
   const [drawingName, setDrawingName] = useState(initialName)
   const [drawRevision, setDrawRevision] = useState(0)
+  const [catMode, setCatMode] = useState(false)
   const seed = useMemo(() => normalizeFaceSeed(drawingName.first, drawingName.last), [drawingName])
   const face = useMemo(() => generateSingleLineFace(seed), [seed])
+  const drawingKind = catMode ? 'cat' : 'face'
   const displayName = seed || 'anonymous visitor'
 
   function draw(event: FormEvent<HTMLFormElement>) {
@@ -117,8 +120,13 @@ export function NameDrawingPage() {
     setLastName(luckyName.last)
   }
 
-  function downloadFace() {
-    const source = faceSvgRef.current
+  function toggleCatMode() {
+    setCatMode((isCatMode) => !isCatMode)
+    setDrawRevision((revision) => revision + 1)
+  }
+
+  function downloadDrawing() {
+    const source = drawingSvgRef.current
 
     if (!source) return
 
@@ -145,7 +153,7 @@ export function NameDrawingPage() {
     const downloadUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
 
-    link.download = `one-line-face-${face.checksum}.svg`
+    link.download = `one-line-${drawingKind}-${face.checksum}.svg`
     link.href = downloadUrl
     document.body.appendChild(link)
     link.click()
@@ -164,13 +172,13 @@ export function NameDrawingPage() {
       left={
         <PageIntro
           body={
-            'name is normalized, used to seed for some hashes, converted into decimals, mapped onto ranges, and used to generate a deterministic vector path that draws a face locally and in real time - just proof of concept\n\n- same name == same face\n- you can download the resulting svg'
+            'name is normalized, used to seed for some hashes, converted into decimals, mapped onto ranges, and used to generate a deterministic vector path that draws locally and in real time - just proof of concept\n\n- same name == same drawing\n- cat-mode remixes the portrait as a cat face lol\n- you can download the svg'
           }
           subhead="like one of your french girls"
           title="draw me"
           titleId="input-title"
         >
-          <form className="mt-9 max-w-[440px]" onSubmit={draw}>
+          <form className="mt-8 max-w-[440px]" onSubmit={draw}>
             <div className="grid grid-cols-2 gap-3 max-[560px]:grid-cols-1">
               <label
                 className="flex min-w-0 flex-col gap-2 font-mono text-[0.68rem] font-semibold tracking-[0.04em] lowercase"
@@ -219,7 +227,19 @@ export function NameDrawingPage() {
               <Button onClick={fillLuckyName} type="submit" variant={Variant.SECONDARY}>
                 i’m feeling lucky
               </Button>
-              <p className="m-0 font-mono text-[0.64rem] tracking-[0.04em] text-muted lowercase"></p>
+              <Button
+                className={
+                  catMode
+                    ? 'border-[#8cbf9a] bg-[#8cbf9a] text-[#050505] hover:border-[#8cbf9a] hover:bg-[#8cbf9a]'
+                    : undefined
+                }
+                onClick={toggleCatMode}
+                size={Size.MEDIUM}
+                type="button"
+                variant={catMode ? Variant.PRIMARY : Variant.SECONDARY}
+              >
+                cat-mode
+              </Button>
             </div>
           </form>
         </PageIntro>
@@ -228,16 +248,25 @@ export function NameDrawingPage() {
       right={
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="relative min-h-0 flex-1 overflow-hidden bg-background">
-            <SingleLineFace
-              config={face}
-              key={`${face.checksum}-${drawRevision}`}
-              name={displayName}
-              svgRef={faceSvgRef}
-            />
+            {catMode ? (
+              <SingleLineCat
+                config={face}
+                key={`${face.checksum}-cat-${drawRevision}`}
+                name={displayName}
+                svgRef={drawingSvgRef}
+              />
+            ) : (
+              <SingleLineFace
+                config={face}
+                key={`${face.checksum}-${drawRevision}`}
+                name={displayName}
+                svgRef={drawingSvgRef}
+              />
+            )}
             <button
-              aria-label="Download this face as SVG"
+              aria-label={`Download this ${drawingKind} as SVG`}
               className="group absolute right-3 bottom-3 flex size-10 items-center justify-center rounded-full border border-line bg-background text-foreground transition duration-300 hover:border-muted focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
-              onClick={downloadFace}
+              onClick={downloadDrawing}
               type="button"
             >
               <svg aria-hidden="true" className="size-4" fill="none" viewBox="0 0 20 20">
@@ -273,7 +302,7 @@ export function NameDrawingPage() {
             aria-live="polite"
             className="flex items-center justify-between gap-4 border-t border-line px-[clamp(18px,2vw,28px)] py-4 font-mono text-[0.66rem] tracking-[0.06em] lowercase"
           >
-            <p className="m-0 min-w-0 flex-1 truncate text-foreground">{displayName}</p>
+            <p className="m-0 min-w-0 flex-1 truncate text-foreground">{`${displayName}`}</p>
             <p className="m-0 shrink-0 text-muted">checksum={face.checksum}</p>
           </div>
         </div>

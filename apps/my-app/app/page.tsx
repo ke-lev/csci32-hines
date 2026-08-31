@@ -18,12 +18,12 @@ const links = [
   {
     href: '/input/',
     label: '/input',
-    description: 'my favorite: live art!',
+    description: "ever wonder what you'd look like if you were a line? \nwell, wonder no more- live art!",
   },
   {
     href: '/games/',
     label: '/games',
-    description: 'tiny things to click, guess, and probably lose at',
+    description: "i don't usually play games, but when i do, i play these\nplay responsibly",
   },
 ]
 
@@ -99,10 +99,10 @@ export default function Home() {
               href={link.href}
               key={link.label}
             >
-              <span className={routePillClasses}>
-                {link.label}
+              <span className={routePillClasses}>{link.label}</span>
+              <span className="max-w-[42ch] whitespace-pre-line text-right text-[0.88rem] leading-6 text-muted">
+                {link.description}
               </span>
-              <span className="max-w-[42ch] text-right text-[0.88rem] leading-6 text-muted">{link.description}</span>
             </Link>
           ))}
         </nav>
