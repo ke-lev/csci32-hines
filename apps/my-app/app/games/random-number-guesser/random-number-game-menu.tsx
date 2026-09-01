@@ -98,7 +98,7 @@ export function RandomNumberGameMenu({ onStart }: RandomNumberGameMenuProps) {
         <div className="col-span-2 min-h-5" aria-live="polite">
           {error ? (
             <p
-              className="m-0 font-mono text-[0.66rem] tracking-[0.03em] text-[#ff8f86] lowercase"
+              className="m-0 font-mono text-[0.66rem] tracking-[0.03em] text-danger lowercase"
               id="game-settings-error"
             >
               {error}

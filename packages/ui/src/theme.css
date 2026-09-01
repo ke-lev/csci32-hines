@@ -1,0 +1,65 @@
+:root {
+  color-scheme: light;
+
+  --ui-background: #f4f4ef;
+  --ui-foreground: #111110;
+  --ui-foreground-muted: #64645f;
+  --ui-foreground-subtle: #4d4d49;
+  --ui-foreground-faint: #6e6e68;
+  --ui-border: #cfcfc7;
+  --ui-surface: #ffffff;
+  --ui-surface-hover: #e9e9e3;
+  --ui-accent: #27699f;
+  --ui-success: #2f7250;
+  --ui-success-surface: #e2f2e8;
+  --ui-danger: #b73d34;
+  --ui-danger-surface: #f8e5e2;
+  --ui-glass: rgb(255 255 255 / 72%);
+  --ui-glass-hover: rgb(255 255 255 / 90%);
+  --ui-glass-border: rgb(17 17 16 / 18%);
+  --ui-glass-border-hover: rgb(17 17 16 / 34%);
+  --ui-glass-shadow: 0 8px 24px rgb(17 17 16 / 10%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ui-background: #050505;
+  --ui-foreground: #f4f4ef;
+  --ui-foreground-muted: #92928b;
+  --ui-foreground-subtle: #aaa9a3;
+  --ui-foreground-faint: #777770;
+  --ui-border: #292927;
+  --ui-surface: #0d0d0c;
+  --ui-surface-hover: #151514;
+  --ui-accent: #8ec5ff;
+  --ui-success: #8cbf9a;
+  --ui-success-surface: #07140c;
+  --ui-danger: #ff8f86;
+  --ui-danger-surface: #160908;
+  --ui-glass: rgb(255 255 255 / 8%);
+  --ui-glass-hover: rgb(255 255 255 / 12%);
+  --ui-glass-border: rgb(255 255 255 / 25%);
+  --ui-glass-border-hover: rgb(255 255 255 / 40%);
+  --ui-glass-shadow: 0 8px 24px rgb(0 0 0 / 22%);
+}
+
+@theme inline {
+  --color-background: var(--ui-background);
+  --color-foreground: var(--ui-foreground);
+  --color-muted: var(--ui-foreground-muted);
+  --color-subhead: var(--ui-foreground-subtle);
+  --color-footer: var(--ui-foreground-faint);
+  --color-line: var(--ui-border);
+  --color-surface: var(--ui-surface);
+  --color-row-hover: var(--ui-surface-hover);
+  --color-accent: var(--ui-accent);
+  --color-success: var(--ui-success);
+  --color-success-surface: var(--ui-success-surface);
+  --color-danger: var(--ui-danger);
+  --color-danger-surface: var(--ui-danger-surface);
+  --color-glass: var(--ui-glass);
+  --color-glass-hover: var(--ui-glass-hover);
+  --color-glass-border: var(--ui-glass-border);
+  --color-glass-border-hover: var(--ui-glass-border-hover);
+}

@@ -2,9 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { getButtonSizeStyles, Size } from '@repo/ui/size'
+import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
+import { useReactorMeltdown } from '../components/use-reactor-meltdown'
+import { countCommand, recordSnakeScore } from '../lib/session-stats'
 
 type Line = {
   id: number
@@ -116,8 +120,18 @@ const routeMap: Record<string, string> = {
 
 const prompt = 'guest@kelev ~ /users %'
 
+// stays a Link for client-side navigation, but borrows the shared button's size and variant
+const exitLinkClasses = [
+  'mt-8 inline-flex items-center justify-center rounded-full border font-mono leading-none font-semibold no-underline',
+  getButtonSizeStyles(Size.LARGE),
+  getVariantBackgroundStyles(Variant.PRIMARY),
+  'transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+].join(' ')
+
 export function UsersTerminal() {
   const router = useRouter()
+  const meltdown = useReactorMeltdown()
+  const meltdownTimerRef = useRef<number | null>(null)
   const [input, setInput] = useState('')
   const [lines, setLines] = useState<Line[]>(initialLines)
   const [commandHistory, setCommandHistory] = useState<string[]>([])
@@ -179,6 +193,16 @@ export function UsersTerminal() {
     return () => window.clearInterval(gameLoop)
   }, [snakeActive, snakeGame.status])
 
+  useEffect(() => {
+    if (snakeGame.status === 'game-over') recordSnakeScore(snakeGame.score)
+  }, [snakeGame.score, snakeGame.status])
+
+  useEffect(() => {
+    return () => {
+      if (meltdownTimerRef.current) window.clearTimeout(meltdownTimerRef.current)
+    }
+  }, [])
+
   function append(entries: Omit<Line, 'id'>[]) {
     setLines((current) => [...current, ...entries.map((entry) => ({ ...entry, id: nextId.current++ }))])
   }
@@ -207,6 +231,7 @@ export function UsersTerminal() {
 
   function stopSnake() {
     setSnakeActive(false)
+    recordSnakeScore(snakeGame.score)
     append([{ kind: 'muted', text: `snake exited — score ${snakeGame.score}` }])
     window.requestAnimationFrame(() => inputRef.current?.focus())
   }
@@ -265,6 +290,7 @@ export function UsersTerminal() {
     const nextHistory = [...commandHistory, command]
     setCommandHistory(nextHistory)
     setHistoryIndex(nextHistory.length)
+    countCommand()
 
     if (command === 'exit') {
       returnHome()
@@ -330,6 +356,20 @@ export function UsersTerminal() {
 
     if (command === 'sudo admin') {
       elevate()
+      return
+    }
+
+    if (command === 'rm -rf /' || command === 'sudo rm -rf /') {
+      append([
+        { kind: 'muted', text: 'bruh you did not seriously try to delete my website did you?' },
+        { kind: 'error', text: 'ohhh shiiittt' },
+      ])
+      meltdown.trigger(logRef.current)
+
+      meltdownTimerRef.current = window.setTimeout(() => {
+        meltdown.reset()
+        append([{ kind: 'accent', text: 'filesystem restored from backup' }])
+      }, 2400)
       return
     }
 
@@ -431,7 +471,7 @@ export function UsersTerminal() {
       left={
         <PageIntro title="shell" titleId="users-title" subhead="let's hope you know what you're doing" body="">
           <Link
-            className="mt-8 inline-flex rounded-full border border-foreground bg-foreground px-[18px] py-[11px] font-mono text-[0.72rem] leading-none font-semibold tracking-[0.04em] text-background no-underline transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            className={exitLinkClasses}
             href="/"
           >
             get me outta here
@@ -444,14 +484,14 @@ export function UsersTerminal() {
           aria-label="Interactive zsh terminal"
           onClick={() => (snakeActive ? gameRef.current?.focus() : inputRef.current?.focus())}
         >
-          <header className="relative grid h-11 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-line bg-[#121212] px-4 text-[0.66rem] font-medium tracking-[-0.01em] text-[#9b9b96]">
+          <header className="relative grid h-11 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-line bg-surface px-4 text-[0.66rem] font-medium tracking-[-0.01em] text-muted">
             <span className="flex items-center gap-2" aria-hidden="true">
               <span className="size-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
               <span className="size-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
               <span className="size-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
             </span>
             <span className="truncate px-3 text-center">guest@kelev: /users — zsh</span>
-            <span className="justify-self-end text-[#686864] max-[560px]:hidden">80×24</span>
+            <span className="justify-self-end text-footer max-[560px]:hidden">80×24</span>
           </header>
 
           <div
@@ -469,9 +509,10 @@ export function UsersTerminal() {
                         : line.kind === 'accent'
                           ? 'text-accent'
                           : line.kind === 'error'
-                            ? 'text-[#ff8b7c]'
+                            ? 'text-danger'
                             : 'text-subhead'
                   }`}
+                  data-scramble
                   key={line.id}
                 >
                   {line.text}
@@ -490,15 +531,12 @@ export function UsersTerminal() {
               >
                 <div className="mb-2 flex items-center justify-between gap-4 text-[0.68rem] tracking-[0.04em]">
                   <span className="text-accent">score {String(snakeGame.score).padStart(3, '0')}</span>
-                  <span
-                    className={snakeGame.status === 'game-over' ? 'text-[#ff8b7c]' : 'text-muted'}
-                    aria-live="polite"
-                  >
+                  <span className={snakeGame.status === 'game-over' ? 'text-danger' : 'text-muted'} aria-live="polite">
                     {snakeGame.status === 'game-over' ? 'game over · space to restart' : 'q / esc to quit'}
                   </span>
                 </div>
                 <div
-                  className="relative grid aspect-2/1 w-full max-w-[520px] gap-px overflow-hidden border border-line bg-[#080808] p-1"
+                  className="relative grid aspect-2/1 w-full max-w-[520px] gap-px overflow-hidden border border-line bg-background p-1"
                   style={{ gridTemplateColumns: `repeat(${boardWidth}, minmax(0, 1fr))` }}
                   aria-hidden="true"
                 >
@@ -510,14 +548,14 @@ export function UsersTerminal() {
                           : cell.isSnake
                             ? 'bg-subhead'
                             : cell.isFood
-                              ? 'bg-[#ff8b7c]'
+                              ? 'bg-danger'
                               : 'bg-transparent'
                       }`}
                       key={cell.index}
                     />
                   ))}
                   {snakeGame.status === 'game-over' && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/72 text-[0.72rem] font-semibold tracking-[0.08em] text-foreground">
+                    <span className="absolute inset-0 flex items-center justify-center bg-background/80 text-[0.72rem] font-semibold tracking-[0.08em] text-foreground">
                       game over
                     </span>
                   )}

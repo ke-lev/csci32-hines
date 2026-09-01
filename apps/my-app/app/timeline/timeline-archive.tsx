@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent } from 'react'
 import { PageShell } from '../components/page-shell'
+import { getClosestTimelinePost } from './closest-post'
 import type { TimelinePost } from './posts'
 
 type TimelineArchiveProps = {
@@ -11,10 +12,24 @@ type TimelineArchiveProps = {
   selectedPost: TimelinePost
 }
 
+const indexTitle = 'timeline | kelev'
+const indexDescription = 'Notes, experiments, and small updates from the build.'
+
+function applyDocumentMetadata(title: string, description: string) {
+  document.title = title
+  document.querySelector('meta[name="description"]')?.setAttribute('content', description)
+}
+
+// "future" is relative to the reader, not the build, so it is resolved on the client only
+const subscribeToToday = () => () => {}
+const getToday = () => new Date().toISOString().slice(0, 10)
+const getServerToday = () => null
+
 export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
   const [activePost, setActivePost] = useState(selectedPost)
   const [canScrollPost, setCanScrollPost] = useState(false)
   const postRef = useRef<HTMLElement>(null)
+  const today = useSyncExternalStore(subscribeToToday, getToday, getServerToday)
 
   useEffect(() => {
     function handleHistoryChange() {
@@ -23,8 +38,10 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
 
       if (post) {
         setActivePost(post)
+        applyDocumentMetadata(`${post.title} | kelev`, post.description)
       } else if (window.location.pathname.replace(/\/$/, '') === '/timeline') {
-        setActivePost(posts.at(-1) ?? selectedPost)
+        setActivePost(getClosestTimelinePost(posts, new Date()) ?? selectedPost)
+        applyDocumentMetadata(indexTitle, indexDescription)
       }
     }
 
@@ -68,6 +85,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
 
     setActivePost(post)
     window.history.pushState(null, '', `/timeline/${post.slug}/`)
+    applyDocumentMetadata(`${post.title} | kelev`, post.description)
   }
 
   function scrollPostDown() {
@@ -113,6 +131,16 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
             <ol className="relative mx-6 h-12 before:absolute before:top-1/2 before:right-0 before:left-0 before:h-px before:bg-foreground">
               {posts.map((post) => {
                 const selected = post.slug === activePost.slug
+                const future = today !== null && post.date > today
+                const dotClasses = [
+                  'relative size-3.5 rounded-full border-2 transition duration-180 group-hover:scale-125 group-focus-within:scale-125 motion-reduce:transition-none',
+                  // fill marks time: what already happened is solid, what has not stays hollow
+                  future ? 'bg-background' : selected ? 'bg-accent' : 'bg-foreground',
+                  // color and a small step up in size mark selection
+                  selected
+                    ? 'scale-115 border-accent shadow-[0_0_0_4px_var(--color-background)]'
+                    : 'border-foreground',
+                ].join(' ')
 
                 return (
                   <li
@@ -123,7 +151,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
                     <Link
                       className="relative flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"
                       href={`/timeline/${post.slug}/`}
-                      aria-label={`${post.title}, ${post.timelineDateLabel}`}
+                      aria-label={`${post.title}, ${post.timelineDateLabel}${future ? ', not yet' : ''}`}
                       aria-current={selected ? 'page' : undefined}
                       onClick={(event) => selectPost(event, post)}
                     >
@@ -135,12 +163,7 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
                       >
                         {post.timelineDateLabel}
                       </span>
-                      <span
-                        className={`relative size-3.5 rounded-full border-2 border-foreground transition duration-180 group-hover:scale-125 group-focus-within:scale-125 motion-reduce:transition-none ${
-                          selected ? 'bg-foreground shadow-[0_0_0_4px_#050505]' : 'bg-background'
-                        }`}
-                        aria-hidden="true"
-                      />
+                      <span className={dotClasses} aria-hidden="true" />
                     </Link>
                   </li>
                 )
@@ -182,7 +205,13 @@ export function TimelineArchive({ posts, selectedPost }: TimelineArchiveProps) {
               fill="none"
               aria-hidden="true"
             >
-              <path d="M4 7.5 10 13l6-5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M4 7.5 10 13l6-5.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
         </div>

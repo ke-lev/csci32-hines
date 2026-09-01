@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
@@ -5,6 +6,12 @@ import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { NuclearButton } from './nuclear-button'
 import { PupilButtons } from './pupil-buttons'
+
+export const metadata: Metadata = {
+  title: 'buttons',
+  description: 'Button variants, sizes, and a few that misbehave on purpose.',
+  alternates: { canonical: '/buttons/' },
+}
 
 const sizes = [Size.SMALL, Size.MEDIUM, Size.LARGE]
 

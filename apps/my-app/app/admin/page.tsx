@@ -1,11 +1,15 @@
 import type { Metadata } from 'next'
+import { getTimelinePosts } from '../timeline/posts'
 import { AdminConsole } from './admin-console'
 
 export const metadata: Metadata = {
-  title: 'admin console | kelev',
+  title: 'admin console',
   description: "here's the real stats, chief",
+  robots: { follow: false, index: false },
 }
 
-export default function AdminPage() {
-  return <AdminConsole />
+export default async function AdminPage() {
+  const posts = await getTimelinePosts()
+
+  return <AdminConsole timelinePostCount={posts.length} />
 }

@@ -131,6 +131,9 @@ export function NameDrawingPage() {
     if (!source) return
 
     const exportedSvg = source.cloneNode(true) as SVGSVGElement
+    const rootStyles = window.getComputedStyle(document.documentElement)
+    const backgroundColor = rootStyles.getPropertyValue('--ui-background').trim()
+    const foregroundColor = rootStyles.getPropertyValue('--ui-foreground').trim()
     exportedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     exportedSvg.setAttribute('width', '1024')
     exportedSvg.setAttribute('height', '1024')
@@ -145,8 +148,10 @@ export function NameDrawingPage() {
     const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
     background.setAttribute('width', '100')
     background.setAttribute('height', '100')
-    background.setAttribute('fill', '#050505')
-    exportedSvg.querySelector('path')?.before(background)
+    background.setAttribute('fill', backgroundColor)
+    const drawingPath = exportedSvg.querySelector('path')
+    drawingPath?.setAttribute('stroke', foregroundColor)
+    drawingPath?.before(background)
 
     const svgMarkup = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(exportedSvg)}`
     const blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' })
@@ -230,7 +235,7 @@ export function NameDrawingPage() {
               <Button
                 className={
                   catMode
-                    ? 'border-[#8cbf9a] bg-[#8cbf9a] text-[#050505] hover:border-[#8cbf9a] hover:bg-[#8cbf9a]'
+                    ? 'border-success bg-success text-background hover:border-success hover:bg-success'
                     : undefined
                 }
                 onClick={toggleCatMode}

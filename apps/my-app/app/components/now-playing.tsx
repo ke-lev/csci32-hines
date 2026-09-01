@@ -158,7 +158,7 @@ export function NowPlaying() {
     >
       {hasTrack ? (
         <a
-          className="group flex min-h-[94px] items-center gap-3 p-3 pl-4 transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-none focus-visible:shadow-[inset_0_0_0_2px_#8ec5ff] motion-reduce:transition-none"
+          className="group flex min-h-[94px] items-center gap-3 p-3 pl-4 transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
           href={nowPlaying.track.spotifyUrl}
           rel="noopener noreferrer"
           target="_blank"

@@ -3,7 +3,7 @@
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
-import type { MouseEvent, PointerEvent as ReactPointerEvent } from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { PageIntro } from '../../components/page-intro'
 import { PageShell } from '../../components/page-shell'
@@ -79,11 +79,32 @@ export function GameOfLifePage() {
   const [cells, setCells] = useState<Cells>(seededCells)
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setCells((current) => nextGeneration(current))
-    }, tickLength)
+    let timer = 0
 
-    return () => window.clearInterval(timer)
+    function start() {
+      if (timer) return
+      timer = window.setInterval(() => {
+        setCells((current) => nextGeneration(current))
+      }, tickLength)
+    }
+
+    function stop() {
+      window.clearInterval(timer)
+      timer = 0
+    }
+
+    function syncWithVisibility() {
+      if (document.visibilityState === 'visible') start()
+      else stop()
+    }
+
+    syncWithVisibility()
+    document.addEventListener('visibilitychange', syncWithVisibility)
+
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', syncWithVisibility)
+    }
   }, [])
 
   function paintCell(index: number, alive: boolean) {
@@ -136,6 +157,27 @@ type PaintGesture = {
 function LifeField({ cells, onPaintCell }: LifeFieldProps) {
   const fieldRef = useRef<HTMLDivElement>(null)
   const paintGesture = useRef<PaintGesture | null>(null)
+  const [focusedIndex, setFocusedIndex] = useState(0)
+
+  function moveFocus(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    const row = Math.floor(index / columns)
+    const column = index % columns
+    const destinations: Record<string, number | undefined> = {
+      ArrowUp: row > 0 ? index - columns : undefined,
+      ArrowDown: row < rows - 1 ? index + columns : undefined,
+      ArrowLeft: column > 0 ? index - 1 : undefined,
+      ArrowRight: column < columns - 1 ? index + 1 : undefined,
+      Home: row * columns,
+      End: row * columns + columns - 1,
+    }
+    const destination = destinations[event.key]
+
+    if (destination === undefined) return
+
+    event.preventDefault()
+    setFocusedIndex(destination)
+    fieldRef.current?.querySelector<HTMLButtonElement>(`[data-cell-index="${destination}"]`)?.focus()
+  }
 
   function cellIndexAtPoint(clientX: number, clientY: number) {
     const element = document.elementFromPoint(clientX, clientY)?.closest<HTMLElement>('[data-cell-index]')
@@ -187,7 +229,7 @@ function LifeField({ cells, onPaintCell }: LifeFieldProps) {
       ref={fieldRef}
       aria-describedby="life-field-instructions"
       aria-label="Conway’s Game of Life field"
-      className="grid h-full w-full touch-none select-none gap-px bg-[#181817]"
+      className="grid h-full w-full touch-none select-none gap-px bg-line"
       onPointerCancel={finishPainting}
       onPointerDown={beginPainting}
       onPointerMove={continuePainting}
@@ -203,10 +245,13 @@ function LifeField({ cells, onPaintCell }: LifeFieldProps) {
           <button
             aria-label={`row ${row}, column ${column}: ${alive ? 'alive; activate to erase a colony' : 'dead; activate to plant a colony'}`}
             aria-pressed={alive}
-            className="group/cell relative min-w-0 cursor-crosshair border-0 bg-background p-0 outline-none after:absolute after:inset-[24%] after:rounded-[1px] after:bg-line after:opacity-0 after:transition-opacity after:duration-100 hover:after:opacity-100 focus-visible:z-10 focus-visible:shadow-[inset_0_0_0_2px_#8ec5ff] motion-reduce:after:transition-none"
+            className="group/cell relative min-w-0 cursor-crosshair border-0 bg-background p-0 outline-none after:absolute after:inset-[24%] after:rounded-[1px] after:bg-line after:opacity-0 after:transition-opacity after:duration-100 hover:after:opacity-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:after:transition-none"
             data-cell-index={index}
             key={index}
             onClick={(event) => handleKeyboardClick(event, index)}
+            onFocus={() => setFocusedIndex(index)}
+            onKeyDown={(event) => moveFocus(event, index)}
+            tabIndex={index === focusedIndex ? 0 : -1}
             type="button"
           >
             <span
@@ -217,8 +262,9 @@ function LifeField({ cells, onPaintCell }: LifeFieldProps) {
         )
       })}
       <p className="sr-only" id="life-field-instructions">
-        The simulation runs automatically. Activate a dead cell to plant a stable two by two colony. Activate a live
-        cell to erase that area. Pointer users can drag to paint continuously.
+        The simulation runs automatically. Use the arrow keys to move between cells, and Home or End to jump to the
+        start or end of a row. Activate a dead cell to plant a stable two by two colony. Activate a live cell to erase
+        that area. Pointer users can drag to paint continuously.
       </p>
     </div>
   )

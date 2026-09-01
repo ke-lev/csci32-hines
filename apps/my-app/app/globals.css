@@ -1,18 +1,14 @@
 @import 'tailwindcss';
 @import '@repo/tailwind-config';
+@import '@repo/ui/theme.css';
 
 @theme inline {
-  --color-background: #050505;
-  --color-foreground: #f4f4ef;
-  --color-muted: #92928b;
-  --color-line: #292927;
-  --color-accent: #8ec5ff;
-  --color-subhead: #aaa9a3;
-  --color-footer: #64645f;
-  --color-row-hover: #0d0d0c;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/* short viewports (laptops, split screens, landscape tablets) let the shell scroll instead of clipping */
+@custom-variant short (@media (max-height: 760px));
 
 @layer base {
   html {
