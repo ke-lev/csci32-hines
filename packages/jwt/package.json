@@ -1,0 +1,16 @@
+{
+  "name": "@repo/jwt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "sign": "node sign.js",
+    "verify": "node verify.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "jsonwebtoken": "^9.0.3"
+  }
+}
