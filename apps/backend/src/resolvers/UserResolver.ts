@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { Arg, Ctx, Field, ID, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { Context } from '@/utils/graphql'
 import { AuthPayload, SignUpInput } from '@/resolvers/types/AuthTypes'
+import { SignInInput } from '@/resolvers/types/SignInTypes'
 
 @ObjectType()
 class User {
@@ -32,5 +33,17 @@ export class UserResolver {
     }
 
     return userService.createUser(input)
+  }
+
+  @Mutation(() => AuthPayload)
+  async signIn(
+    @Arg('input', () => SignInInput) input: SignInInput,
+    @Ctx() { userService }: Context,
+  ): Promise<AuthPayload> {
+    if (!input.email || !input.password) {
+      throw new Error('email and password are required')
+    }
+
+    return userService.authenticateUser(input)
   }
 }
