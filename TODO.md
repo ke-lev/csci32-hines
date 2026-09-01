@@ -1,6 +1,6 @@
 # deferred: guestbook / `/roll`
 
-Blocked on the Prisma lab (in progress next). Don't start this until the db is actually wired up in `packages/csci32-database` and consumed by `apps/my-app` — see item 16 in [AUDIT-TODO.md](AUDIT-TODO.md) for the workspace-level fixes that need to happen first regardless.
+Blocked on the Prisma lab (in progress next). Don't start this until the db is actually wired up in `packages/database` and consumed by `apps/my-app` — see item 16 in [AUDIT-TODO.md](AUDIT-TODO.md) for the workspace-level fixes that need to happen first regardless.
 
 Decided: identity field is the normalized seed (not display name). Route is `/roll`.
 

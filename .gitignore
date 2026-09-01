@@ -20,3 +20,8 @@ dist/
 **/.claude/
 **/.cursor/
 **/.devin/
+
+# env files — these hold secrets, never commit them
+*.env
+.env.*
+!.env.example
