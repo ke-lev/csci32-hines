@@ -28,7 +28,7 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
   const guessesRemaining = config.maxGuesses - guesses.length
   const recommendedGuess = useMemo(() => Math.floor((lowerBound + upperBound) / 2), [lowerBound, upperBound])
   const danger = result === 'playing' && guessesRemaining === 1
-  const panelTone = result === 'won' ? 'bg-[#07140c]' : result === 'lost' || danger ? 'bg-[#160908]' : 'bg-background'
+  const panelTone = result === 'won' ? 'bg-success-surface' : result === 'lost' || danger ? 'bg-danger-surface' : 'bg-background'
   const rangeSpan = config.max - config.min
   const narrowedRangeStart = ((lowerBound - config.min) / rangeSpan) * 100
   const narrowedRangeWidth = ((upperBound - lowerBound) / rangeSpan) * 100
@@ -136,7 +136,7 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
 
         <div className="relative mt-7 h-px bg-line" aria-hidden="true">
           <span
-            className={`absolute top-0 h-px bg-[#8cbf9a] transition-[left,width,opacity] duration-300 ease-out motion-reduce:transition-none ${hasNarrowedRange ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute top-0 h-px bg-success transition-[left,width,opacity] duration-300 ease-out motion-reduce:transition-none ${hasNarrowedRange ? 'opacity-100' : 'opacity-0'}`}
             style={{ left: `${narrowedRangeStart}%`, width: `${narrowedRangeWidth}%` }}
           />
           <span className="absolute top-1/2 left-0 size-2 -translate-y-1/2 rounded-full bg-foreground" />

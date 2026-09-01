@@ -11,7 +11,7 @@ const variantBackgroundClasses: Record<Variant, string> = {
   [Variant.TERTIARY]:
     'border-transparent bg-transparent text-[var(--color-foreground)] underline decoration-[1px] underline-offset-4 hover:decoration-2',
   [Variant.GLASS]:
-    'border-white/25 bg-white/[0.08] text-[var(--color-foreground)] shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-xl backdrop-saturate-150 hover:border-white/40 hover:bg-white/[0.12]',
+    'border-[var(--ui-glass-border)] bg-[var(--ui-glass)] text-[var(--color-foreground)] shadow-[var(--ui-glass-shadow)] backdrop-blur-xl backdrop-saturate-150 hover:border-[var(--ui-glass-border-hover)] hover:bg-[var(--ui-glass-hover)]',
 }
 
 const variantOutlineClasses: Record<Variant, string> = {
@@ -26,7 +26,7 @@ const variantBorderClasses: Record<Variant, string> = {
   [Variant.SECONDARY]: 'border-[var(--color-line)] hover:border-[var(--color-muted)]',
   [Variant.TERTIARY]: 'border-[var(--color-line)] bg-[var(--color-row-hover)] hover:border-[var(--color-muted)]',
   [Variant.GLASS]:
-    'border-white/25 bg-white/[0.08] backdrop-blur-xl backdrop-saturate-150 hover:border-white/40 hover:bg-white/[0.12]',
+    'border-[var(--ui-glass-border)] bg-[var(--ui-glass)] backdrop-blur-xl backdrop-saturate-150 hover:border-[var(--ui-glass-border-hover)] hover:bg-[var(--ui-glass-hover)]',
 }
 
 const variantInputTextClasses: Record<Variant, string> = {

@@ -38,8 +38,15 @@ use the workspace scripts for checks and production builds:
 ```bash
 yarn lint
 yarn check-types
+yarn test
 yarn build
 ```
+
+CI runs the same checks plus `prisma validate` on every push and pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+### toolchain lanes
+
+the workspaces deliberately run two toolchain generations: the Next.js app stays on TypeScript 5 and ESLint 9 to match `eslint-config-next`, while the shared packages (`@repo/ui`, `@repo/math`, `@repo/database`) run TypeScript 7 and ESLint 10. `@types/node` is pinned to the same major (`^26.4.0`) everywhere. don't "align" the TypeScript majors without checking that the app still typechecks.
 
 ## optional Spotify integration
 

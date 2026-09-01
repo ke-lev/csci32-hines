@@ -2,6 +2,7 @@ import 'server-only'
 
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { getDateFromSlug } from './post-dates'
 
 export type TimelinePost = {
   content: string
@@ -15,32 +16,6 @@ export type TimelinePost = {
 }
 
 const postsDirectory = path.join(process.cwd(), 'app', 'timeline', 'posts')
-const timelineYear = 2026
-const timelineStart = Date.UTC(timelineYear, 7, 17)
-const timelineEnd = Date.UTC(timelineYear, 11, 18)
-
-function getDateFromSlug(slug: string) {
-  const match = slug.match(/^(\d{1,2})-(\d{1,2})$/)
-
-  if (!match) {
-    throw new Error(`Invalid post filename "${slug}.md". Use M-D.md, for example 8-26.md.`)
-  }
-
-  const month = Number(match[1])
-  const day = Number(match[2])
-  const timestamp = Date.UTC(timelineYear, month - 1, day)
-  const date = new Date(timestamp)
-  const isRealDate = date.getUTCMonth() === month - 1 && date.getUTCDate() === day
-
-  if (!isRealDate || timestamp < timelineStart || timestamp > timelineEnd) {
-    throw new Error(`Post date "${slug}" must be a real date from 8-17 through 12-18, 2026.`)
-  }
-
-  return {
-    date: date.toISOString().slice(0, 10),
-    timelinePosition: ((timestamp - timelineStart) / (timelineEnd - timelineStart)) * 100,
-  }
-}
 
 function parseFrontmatter(source: string, slug: string): TimelinePost {
   const match = source.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
@@ -102,23 +77,4 @@ export async function getTimelinePosts() {
 export async function getTimelinePost(slug: string) {
   const posts = await getTimelinePosts()
   return posts.find((post) => post.slug === slug)
-}
-
-export function getClosestTimelinePost(posts: TimelinePost[], accessDate: Date) {
-  const accessDay = Date.UTC(
-    accessDate.getUTCFullYear(),
-    accessDate.getUTCMonth(),
-    accessDate.getUTCDate(),
-  )
-
-  return posts.reduce<TimelinePost | undefined>((closest, post) => {
-    if (!closest) {
-      return post
-    }
-
-    const postDistance = Math.abs(Date.parse(post.date) - accessDay)
-    const closestDistance = Math.abs(Date.parse(closest.date) - accessDay)
-
-    return postDistance < closestDistance ? post : closest
-  }, undefined)
 }

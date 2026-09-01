@@ -1,97 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-
-type ReactorState = 'idle' | 'detonated' | 'recoverable'
-
-const scrambledGlyphs = '#!?%&*+/=<>[]{}01'
-
-function scrambleCopy(root: HTMLElement, animate: boolean) {
-  const originals = new Map<Text, string>()
-  const targets = root.querySelectorAll<HTMLElement>('h1, h2, p, a, button:not([data-nuclear-control])')
-
-  targets.forEach((target) => {
-    const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
-    let node = walker.nextNode()
-
-    while (node) {
-      const textNode = node as Text
-      const original = textNode.data
-
-      if (original.trim()) originals.set(textNode, original)
-      node = walker.nextNode()
-    }
-  })
-
-  let intervalId = 0
-
-  const restore = () => {
-    window.clearInterval(intervalId)
-    originals.forEach((original, node) => {
-      if (node.isConnected) node.data = original
-    })
-  }
-
-  const scramble = () => {
-    originals.forEach((original, node) => {
-      if (!node.isConnected) return
-
-      node.data = [...original]
-        .map((character) => {
-          if (!/[a-z0-9]/i.test(character) || Math.random() > 0.58) return character
-          return scrambledGlyphs[Math.floor(Math.random() * scrambledGlyphs.length)]
-        })
-        .join('')
-    })
-  }
-
-  scramble()
-  if (animate) intervalId = window.setInterval(scramble, 58)
-  return restore
-}
+import { useReactorMeltdown } from '../components/use-reactor-meltdown'
 
 export function NuclearButton() {
-  const [reactorState, setReactorState] = useState<ReactorState>('idle')
-  const mainRef = useRef<HTMLElement | null>(null)
-  const recoverTimerRef = useRef<number | null>(null)
-  const restoreCopyRef = useRef<(() => void) | null>(null)
-
-  const resetReactor = () => {
-    if (recoverTimerRef.current) window.clearTimeout(recoverTimerRef.current)
-    restoreCopyRef.current?.()
-    restoreCopyRef.current = null
-    mainRef.current?.removeAttribute('data-reactor-state')
-    setReactorState('idle')
-  }
+  const { reactorState, reset, trigger } = useReactorMeltdown()
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (reactorState !== 'idle') {
-      resetReactor()
+      reset()
       return
     }
 
-    const main = event.currentTarget.closest('main')
-    if (!main) return
-
-    mainRef.current = main
-    main.dataset.reactorState = 'meltdown'
-    setReactorState('detonated')
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    restoreCopyRef.current = scrambleCopy(main, !reducedMotion)
-
-    recoverTimerRef.current = window.setTimeout(() => {
-      setReactorState('recoverable')
-    }, 1350)
+    trigger(event.currentTarget)
   }
-
-  useEffect(() => {
-    return () => {
-      if (recoverTimerRef.current) window.clearTimeout(recoverTimerRef.current)
-      restoreCopyRef.current?.()
-      mainRef.current?.removeAttribute('data-reactor-state')
-    }
-  }, [])
 
   const accessibleLabel =
     reactorState === 'idle' ? 'do not press' : reactorState === 'detonated' ? 'you had one job' : 'reset'

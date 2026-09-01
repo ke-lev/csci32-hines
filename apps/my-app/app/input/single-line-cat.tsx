@@ -126,7 +126,7 @@ export function SingleLineCat({ config, name, svgRef }: SingleLineCatProps) {
         d={line}
         fill="none"
         pathLength={1}
-        stroke="#f4f4ef"
+        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={parameters.lineWidth}

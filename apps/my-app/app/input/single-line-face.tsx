@@ -91,7 +91,7 @@ export function SingleLineFace({ config, name, svgRef }: SingleLineFaceProps) {
         d={line}
         fill="none"
         pathLength={1}
-        stroke="#f4f4ef"
+        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={parameters.lineWidth}

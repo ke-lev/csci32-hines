@@ -20,8 +20,9 @@ export async function generateMetadata({ params }: TimelinePostPageProps): Promi
 
   return post
     ? {
-        title: `${post.title} | kelev`,
+        title: post.title,
         description: post.description,
+        alternates: { canonical: `/timeline/${post.slug}/` },
       }
     : {}
 }

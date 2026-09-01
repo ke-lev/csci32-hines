@@ -25,11 +25,28 @@ function htmlPage(title: string, body: string, status = 200) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
     <style>
-      :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-      body { max-width: 760px; margin: 0 auto; padding: 64px 24px; background: #050505; color: #f4f4ef; }
+      :root {
+        color-scheme: light dark;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        --background: #f4f4ef;
+        --foreground: #111110;
+        --subtle: #4d4d49;
+        --line: #cfcfc7;
+        --accent: #27699f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #050505;
+          --foreground: #f4f4ef;
+          --subtle: #aaa9a3;
+          --line: #292927;
+          --accent: #8ec5ff;
+        }
+      }
+      body { max-width: 760px; margin: 0 auto; padding: 64px 24px; background: var(--background); color: var(--foreground); }
       h1 { margin: 0 0 24px; font: 600 clamp(2.5rem, 8vw, 5rem)/.9 system-ui, sans-serif; letter-spacing: -.05em; }
-      p { color: #aaa9a3; line-height: 1.65; }
-      code { display: block; overflow-wrap: anywhere; margin: 24px 0; padding: 18px; border: 1px solid #292927; border-radius: 12px; color: #8ec5ff; }
+      p { color: var(--subtle); line-height: 1.65; }
+      code { display: block; overflow-wrap: anywhere; margin: 24px 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; color: var(--accent); }
     </style>
   </head>
   <body>${body}</body>

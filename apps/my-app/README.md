@@ -12,8 +12,9 @@ the Next.js app behind [csci32-hines.vercel.app](https://csci32-hines.vercel.app
 - `/games/game-of-life` — interactive Conway’s Game of Life
 - `/timeline` — dated Markdown devlog
 - `/users` — zsh-style guest shell with a hidden admin-console path
+- `/admin` — local-only admin console, reached by running `sudo admin` in the shell
 
-the interface is intentionally minimal: lowercase copy, a black-and-off-white palette, path-style breadcrumbs, and a shared responsive two-column shell.
+the interface is intentionally minimal: lowercase copy, a two-tone palette, path-style breadcrumbs, and a shared responsive two-column shell. it ships light and dark; the header control cycles system, light, and dark, and every color resolves through the semantic tokens in [`packages/ui/src/theme.css`](../../packages/ui/src/theme.css). see [`DESIGN.md`](DESIGN.md) for the full system.
 
 ## local development
 
@@ -37,8 +38,11 @@ use these checks before shipping:
 ```bash
 yarn lint
 yarn check-types
+yarn test
 yarn build
 ```
+
+unit tests live in [`tests`](tests) and cover the deterministic pieces: inclusive random bounds, timeline filename/date validation, closest-post selection, and the procedural portrait's determinism.
 
 ## Spotify now playing
 
