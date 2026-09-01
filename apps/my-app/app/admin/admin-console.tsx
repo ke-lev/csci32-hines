@@ -103,11 +103,7 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
           title="admin console"
           titleId="admin-title"
           subhead={isGranted ? 'freshly produced data for the one true admin' : 'this route expects a root session.'}
-          body={
-            isGranted
-              ? 'routes and posts are counted straight from the project. commands run and snake best come from this exact browser tab — close it and they are gone.\n\nnothing here phones home, which is why tracked visitors is stuck at 00.'
-              : undefined
-          }
+          body={isGranted ? 'these stats are only tab aware\nyou can literally get all this from the shell' : undefined}
         />
       }
       right={
