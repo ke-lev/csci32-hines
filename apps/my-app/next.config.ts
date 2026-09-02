@@ -18,6 +18,9 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  // @repo/database exports raw TypeScript from src/, so Next has to compile it rather than
+  // treat it as a prebuilt dependency the way @repo/ui is.
+  transpilePackages: ['@repo/database'],
   images: {
     remotePatterns: [
       {

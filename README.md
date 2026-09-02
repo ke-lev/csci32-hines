@@ -5,7 +5,8 @@
 ## what’s here
 
 - `/buttons` — small interaction experiments
-- `/input` — deterministic single-line portraits generated from a name
+- `/input` — deterministic single-line portraits generated from a name, and the guestbook signing control
+- `/input/roll` — roll call: every signed name, redrawn from its stored seed
 - `/games` — a random-number guesser and Conway’s Game of Life
 - `/timeline` — dated build notes and course updates
 - `/users` — a playful zsh-style guest shell
@@ -48,6 +49,32 @@ CI runs the same checks plus `prisma validate` on every push and pull request; s
 
 the workspaces deliberately run two toolchain generations: the Next.js app stays on TypeScript 5 and ESLint 9 to match `eslint-config-next`, while the shared packages (`@repo/ui`, `@repo/math`, `@repo/database`) run TypeScript 7 and ESLint 10. `@types/node` is pinned to the same major (`^26.4.0`) everywhere. don't "align" the TypeScript majors without checking that the app still typechecks.
 
+## the guestbook and `/input/roll`
+
+`/input` can sign a drawing into a guestbook, and `/input/roll` is the contact sheet of everything signed.
+
+the table stores one row per signature — the normalized name (`seed`), the drawing kind (`face` or `cat`), and a timestamp. it does not store rendered images: `/input/roll` regenerates every portrait from its seed on each request. a unique `(seed, kind)` pair makes a repeat signing a no-op, so a double-click cannot duplicate a row.
+
+the write path is the `signGuestbookAction` server action in `apps/my-app/app/input/sign-guestbook.ts`. it re-derives the seed from the submitted names rather than trusting a client-sent one, validates length and characters (`app/input/guestbook-name.ts`), and applies a per-IP rate limit. `/input/roll` is `force-dynamic` and reads one bounded page at a time, so it is never prerendered — CI builds against a `DATABASE_URL` that does not connect.
+
+`DATABASE_URL` is read from `packages/database/.env` locally. **the deployment needs `DATABASE_URL` set in its own environment**, or `/input/roll` and signing will fail at request time.
+
+### removing an entry
+
+there is deliberately no moderation UI. to remove an abusive entry, delete the row directly:
+
+```bash
+yarn workspace @repo/database prisma studio
+```
+
+then delete the row from `GuestbookEntry`. or from a psql session against `DATABASE_URL`:
+
+```sql
+DELETE FROM "GuestbookEntry" WHERE seed = 'the offending name';
+```
+
+the drawing disappears from `/input/roll` on the next request, because nothing about it was stored anywhere else.
+
 ## optional Spotify integration
 
 the homepage can show the currently playing or most recently played track from the site owner’s Spotify account.
@@ -67,6 +94,8 @@ the Spotify card is optional and fails quietly when the integration is not confi
 
 ```text
 apps/my-app/       Next.js application
+apps/backend/      Fastify + GraphQL API
+packages/database/ Prisma schema, migrations, and the shared client
 packages/math/     shared math helpers
 packages/ui/       shared UI components and styles
 packages/*         workspace configuration packages

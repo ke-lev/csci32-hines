@@ -11,6 +11,7 @@ const publicRoutes = [
   '/games/',
   '/games/random-number-guesser/',
   '/games/game-of-life/',
+  '/input/roll/',
   '/timeline/',
   '/users/',
 ]

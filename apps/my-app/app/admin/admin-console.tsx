@@ -19,6 +19,7 @@ const routes = [
   { path: '/games/', label: 'games', access: 'public' },
   { path: '/games/random-number-guesser/', label: 'number guesser', access: 'public' },
   { path: '/games/game-of-life/', label: 'game of life', access: 'public' },
+  { path: '/input/roll/', label: 'roll call', access: 'public' },
   { path: '/timeline/', label: 'timeline', access: 'public' },
   { path: '/users/', label: 'users shell', access: 'unlisted' },
   { path: '/admin/', label: 'admin', access: 'root' },

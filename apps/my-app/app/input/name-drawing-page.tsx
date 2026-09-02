@@ -4,11 +4,13 @@ import { Button } from '@repo/ui/button'
 import { Input } from '@repo/ui/input'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
+import Link from 'next/link'
 import { type FormEvent, useMemo, useRef, useState } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { normalizeFaceSeed } from './generate-face'
 import { generateSingleLineFace } from './generate-single-line-face'
+import { signGuestbookAction } from './sign-guestbook'
 import { SingleLineCat } from './single-line-cat'
 import { SingleLineFace } from './single-line-face'
 
@@ -104,6 +106,32 @@ export function NameDrawingPage() {
   const face = useMemo(() => generateSingleLineFace(seed), [seed])
   const drawingKind = catMode ? 'cat' : 'face'
   const displayName = seed || 'anonymous visitor'
+  const [isSigning, setIsSigning] = useState(false)
+  const [signedKey, setSignedKey] = useState<string | null>(null)
+  const [signError, setSignError] = useState<{ key: string; reason: string } | null>(null)
+  // keyed by what is actually on screen, so redrawing or flipping cat-mode resets the button
+  // without an effect: a different drawing is a different signature.
+  const signatureKey = `${seed}:${drawingKind}`
+  const isSigned = signedKey === signatureKey
+  const failureReason = signError?.key === signatureKey ? signError.reason : null
+
+  async function signTheGuestbook() {
+    if (isSigning || isSigned) return
+
+    setIsSigning(true)
+    setSignError(null)
+
+    const result = await signGuestbookAction(drawingName.first, drawingName.last, drawingKind)
+
+    setIsSigning(false)
+
+    if (result.ok) {
+      setSignedKey(`${result.seed}:${drawingKind}`)
+      return
+    }
+
+    setSignError({ key: signatureKey, reason: result.reason })
+  }
 
   function draw(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -307,8 +335,26 @@ export function NameDrawingPage() {
             aria-live="polite"
             className="flex items-center justify-between gap-4 border-t border-line px-[clamp(18px,2vw,28px)] py-4 font-mono text-[0.66rem] tracking-[0.06em] lowercase"
           >
-            <p className="m-0 min-w-0 flex-1 truncate text-foreground">{`${displayName}`}</p>
-            <p className="m-0 shrink-0 text-muted">checksum={face.checksum}</p>
+            <p className="m-0 min-w-0 flex-1 truncate text-foreground">
+              {failureReason ? <span className="text-muted">{failureReason}</span> : displayName}
+            </p>
+            <div className="flex shrink-0 items-center gap-3">
+              <Link
+                className="text-muted underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"
+                href="/input/roll/"
+              >
+                see the roll
+              </Link>
+              <Button
+                disabled={isSigning || isSigned}
+                onClick={signTheGuestbook}
+                size={Size.MEDIUM}
+                type="button"
+                variant={isSigned ? Variant.SECONDARY : Variant.PRIMARY}
+              >
+                {isSigned ? 'signed \u2713' : isSigning ? 'signing\u2026' : 'sign the guestbook'}
+              </Button>
+            </div>
           </div>
         </div>
       }
