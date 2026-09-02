@@ -20,3 +20,18 @@ model User {
   emailVerified DateTime?
   passwordHash  String?
 }
+
+enum DrawingKind {
+  face
+  cat
+}
+
+model GuestbookEntry {
+  entry_id   String      @id @default(cuid())
+  seed       String
+  kind       DrawingKind
+  created_at DateTime    @default(now())
+
+  @@unique([seed, kind])
+  @@index([created_at])
+}
