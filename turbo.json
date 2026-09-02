@@ -22,7 +22,8 @@
       "persistent": true
     },
     "@repo/database#build": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL"]
     }
   }
 }
