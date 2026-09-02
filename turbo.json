@@ -20,6 +20,9 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "@repo/database#build": {
+      "cache": false
     }
   }
 }
