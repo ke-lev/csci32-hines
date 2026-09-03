@@ -19,14 +19,14 @@ export function RollSheet({ entries }: RollSheetProps) {
   }
 
   return (
-    <ul className="grid min-h-0 flex-1 list-none grid-cols-4 content-start overflow-y-auto bg-background max-[900px]:grid-cols-3 max-[560px]:grid-cols-2">
+    <ul className="grid min-h-0 flex-1 list-none auto-rows-[33.3333%] grid-cols-4 content-start overflow-y-auto bg-background max-[900px]:grid-cols-3 max-[560px]:grid-cols-2">
       {entries.map((entry) => {
         // regenerated from the stored seed on every read: the database holds identities, not images
         const face = generateSingleLineFace(entry.seed)
 
         return (
-          <li className="flex flex-col" key={entry.entryId}>
-            <div className="aspect-square w-full">
+          <li className="flex min-h-0 flex-col" key={entry.entryId}>
+            <div className="min-h-0 flex-1">
               {entry.kind === 'cat' ? (
                 <SingleLineCat config={face} name={entry.seed} />
               ) : (

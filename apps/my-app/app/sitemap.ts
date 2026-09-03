@@ -14,6 +14,7 @@ const publicRoutes = [
   '/input/roll/',
   '/timeline/',
   '/users/',
+  '/welcome/',
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
