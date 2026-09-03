@@ -38,7 +38,10 @@ export function Dashboard() {
           body=""
           subhead="welcome home"
           title={
-            <span className="block break-words">sup {username}</span>
+            <>
+              <span className="block">sup</span>
+              <span className="block break-words">{username}</span>
+            </>
           }
           titleId="dashboard-title"
         />
@@ -46,7 +49,6 @@ export function Dashboard() {
       right={
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="border-b border-line px-[clamp(18px,2vw,28px)] py-5">
-            <p className="m-0 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">session</p>
             <h2 className="mt-2 text-[clamp(1.9rem,3.8vw,3rem)] leading-[0.95] font-semibold tracking-[-0.04em]">
               account details
             </h2>
