@@ -1,6 +1,6 @@
 'use client'
 
-import type { HTMLInputTypeAttribute, MouseEvent } from 'react'
+import type { ChangeEvent, FocusEvent, HTMLInputTypeAttribute, MouseEvent, Ref } from 'react'
 import { getInputSizeStyles, Size } from './size'
 import { getCommonStyles } from './tokens'
 import { getVariantBorderStyles, getVariantInputTextStyles, getVariantOutlineStyles, Variant } from './variant'
@@ -19,8 +19,14 @@ export interface InputProps {
   maxLength?: number
   min?: number | string
   name: string
+  // onBlur/onChange/ref exist so a form library can drive this input directly. react-hook-form's
+  // register() returns exactly that trio plus `name`, and a dropped ref means it silently never
+  // tracks the field, so these are passed straight through to the DOM node.
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void
   placeCaretAtEndOnEdgeClick?: boolean
   placeholder?: string
+  ref?: Ref<HTMLInputElement>
   required?: boolean
   setValue?: (newValue: string) => void
   size?: Size
@@ -45,8 +51,11 @@ export function Input({
   maxLength,
   min,
   name,
+  onBlur,
+  onChange,
   placeCaretAtEndOnEdgeClick = false,
   placeholder,
+  ref,
   required,
   setValue,
   size = Size.MEDIUM,
@@ -89,6 +98,16 @@ export function Input({
     }
   }
 
+  // both may be supplied: `setValue` is this repo's existing string-based callback, `onChange`
+  // is the raw DOM handler a form library hands over. neither wins; both run.
+  const handleChange =
+    onChange || setValue
+      ? (event: ChangeEvent<HTMLInputElement>) => {
+          onChange?.(event)
+          setValue?.(event.currentTarget.value)
+        }
+      : undefined
+
   return (
     <input
       aria-describedby={ariaDescribedBy}
@@ -102,9 +121,11 @@ export function Input({
       maxLength={maxLength}
       min={min}
       name={name}
-      onChange={setValue ? (event) => setValue(event.currentTarget.value) : undefined}
+      onBlur={onBlur}
+      onChange={handleChange}
       onClick={handleClick}
       placeholder={placeholder}
+      ref={ref}
       required={required}
       step={step}
       type={type}

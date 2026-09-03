@@ -106,3 +106,5 @@ timeline entries are md files in `apps/my-app/app/timeline/posts` and use `M-D.m
 ## deployment
 
 the app can be deployed as a standard Next.js application. the production site is configured for Vercel at [csci32-hines.vercel.app](https://csci32-hines.vercel.app).
+
+<!-- new link: https://www.youtube.com/watch?v=dQw4w9WgXcQ -->

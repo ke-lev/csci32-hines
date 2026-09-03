@@ -3,7 +3,7 @@ import { buildSchema } from 'type-graphql'
 import type { NonEmptyArray } from 'type-graphql'
 import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { PrismaClient } from '@repo/database'
-import { getBooleanEnvVar, getRequiredStringEnvVar } from '@/utils'
+import { getBooleanEnvVar } from '@/utils'
 import type { UserService } from '@/services/UserService'
 import mercurius from 'mercurius'
 import mercuriusLogging from 'mercurius-logging'
@@ -42,9 +42,11 @@ export async function registerGraphQL(fastify: FastifyInstance) {
     allowBatchedQueries: false,
   }
   await fastify.register(mercurius, options)
+  // never on: this endpoint carries signUp/signIn, so a logged body or variable set is a
+  // plaintext password in the logs. redact before turning either of these back on.
   await fastify.register(mercuriusLogging, {
     prependAlias: true,
-    logBody: true,
-    logVariables: getRequiredStringEnvVar('NODE_ENV') === 'development',
+    logBody: false,
+    logVariables: false,
   })
 }

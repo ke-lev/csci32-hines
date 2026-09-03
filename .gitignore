@@ -10,8 +10,6 @@ dist/
 # local agent instructions and generated skill folders
 **/AGENTS.md
 **/agents.md
-**/CLAUDE.md
-**/claude.md
 **/DESIGN.md
 **/design.md
 **/PRODUCT.md
