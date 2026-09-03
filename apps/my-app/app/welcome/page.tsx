@@ -5,7 +5,7 @@ import { PageShell } from '../components/page-shell'
 
 export const metadata: Metadata = {
   title: 'welcome',
-  description: 'A working authentication form with a temporary fake account behind it.',
+  description: 'Sign in or create an account through the GraphQL backend.',
   alternates: { canonical: '/welcome/' },
 }
 
@@ -20,7 +20,7 @@ export default function WelcomePage() {
       titleId="welcome-title"
       left={
         <PageIntro
-          body={'this door is just painted on for now'}
+          body="real accounts. real backend. try not to forget your password"
           subhead="you new here or what?"
           title={
             <>

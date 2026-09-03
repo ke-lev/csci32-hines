@@ -8,12 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "check-types": "next typegen && tsc --noEmit",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch",
     "test": "vitest run"
   },
   "dependencies": {
     "@repo/database": "*",
     "@repo/math": "*",
     "@repo/ui": "*",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.4.0",
     "next": "16.3.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -21,6 +25,9 @@
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^7.4.0",
+    "@graphql-codegen/client-preset": "^6.1.3",
+    "@graphql-codegen/schema-ast": "^6.1.0",
     "@repo/eslint-config": "*",
     "@repo/tailwind-config": "*",
     "@repo/typescript-config": "*",
