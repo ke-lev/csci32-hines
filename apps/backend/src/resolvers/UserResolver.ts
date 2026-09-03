@@ -9,8 +9,8 @@ class User {
   @Field(() => ID)
   user_id!: string
 
-  @Field(() => String, { nullable: true })
-  name?: string
+  @Field(() => String)
+  username!: string
 
   @Field(() => String, { nullable: true })
   email?: string
@@ -28,8 +28,8 @@ export class UserResolver {
     @Arg('input', () => SignUpInput) input: SignUpInput,
     @Ctx() { userService }: Context,
   ): Promise<AuthPayload> {
-    if (!input.email || !input.password) {
-      throw new Error('email and password are required')
+    if (!input.username || !input.email || !input.password) {
+      throw new Error('username, email, and password are required')
     }
 
     return userService.createUser(input)
@@ -40,8 +40,8 @@ export class UserResolver {
     @Arg('input', () => SignInInput) input: SignInInput,
     @Ctx() { userService }: Context,
   ): Promise<AuthPayload> {
-    if (!input.email || !input.password) {
-      throw new Error('email and password are required')
+    if (!input.username || !input.password) {
+      throw new Error('username and password are required')
     }
 
     return userService.authenticateUser(input)

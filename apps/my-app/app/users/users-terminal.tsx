@@ -7,6 +7,7 @@ import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
+import { useAuth } from '../components/use-auth'
 import { useReactorMeltdown } from '../components/use-reactor-meltdown'
 import { countCommand, recordSnakeScore } from '../lib/session-stats'
 
@@ -15,6 +16,14 @@ type Line = {
   kind: 'command' | 'output' | 'muted' | 'accent' | 'error'
   text: string
 }
+
+type PromptState =
+  | { kind: 'command' }
+  | { kind: 'login-username' }
+  | { kind: 'login-password'; username: string }
+  | { kind: 'signup-username' }
+  | { kind: 'signup-email'; username: string }
+  | { kind: 'signup-password'; email: string; username: string }
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 
@@ -81,6 +90,9 @@ function placeFood(body: Point[]) {
 
 const guestCommands = [
   'help',
+  'login',
+  'signup',
+  'logout',
   'whoami',
   'pwd',
   'ls',
@@ -106,9 +118,7 @@ const tree = `.
 
 const initialLines: Line[] = [
   { id: 1, kind: 'muted', text: 'last login: just now on ttys001' },
-  { id: 2, kind: 'output', text: 'guest@kelev.dev users %' },
-  { id: 3, kind: 'muted', text: 'type help for a list of available commands' },
-  { id: 4, kind: 'accent', text: 'hint: if you are admin, just say so' },
+  { id: 2, kind: 'muted', text: 'login / signup, or type help for a list of commands' },
 ]
 
 const routeMap: Record<string, string> = {
@@ -118,32 +128,44 @@ const routeMap: Record<string, string> = {
   users: '/users/',
 }
 
-const prompt = 'guest@kelev ~ /users %'
-
 // stays a Link for client-side navigation, but borrows the shared button's size and variant
 const exitLinkClasses = [
   'mt-8 inline-flex items-center justify-center rounded-full border font-mono leading-none font-semibold no-underline',
-  getButtonSizeStyles(Size.LARGE),
+  getButtonSizeStyles(Size.MEDIUM),
   getVariantBackgroundStyles(Variant.PRIMARY),
   'transition-transform duration-180 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0',
 ].join(' ')
 
 export function UsersTerminal() {
   const router = useRouter()
+  const { clearError, isHydrated, isLoading, signIn, signOut, signUp, user } = useAuth()
   const meltdown = useReactorMeltdown()
   const meltdownTimerRef = useRef<number | null>(null)
   const [input, setInput] = useState('')
   const [lines, setLines] = useState<Line[]>(initialLines)
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(0)
+  const [promptState, setPromptState] = useState<PromptState>({ kind: 'command' })
   const [snakeActive, setSnakeActive] = useState(false)
   const [snakeGame, setSnakeGame] = useState<SnakeGame>(createSnakeGame)
-  const nextId = useRef(5)
+  const nextId = useRef(3)
   const inputRef = useRef<HTMLInputElement>(null)
   const logRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<HTMLDivElement>(null)
   const directionRef = useRef<Direction>('right')
   const queuedDirectionRef = useRef<Direction>('right')
+  const terminalUser = isHydrated ? user : null
+  const identity = terminalUser?.username || terminalUser?.email || 'guest'
+  const prompt = `${identity}@kelev ~ /users %`
+
+  const promptLabel =
+    promptState.kind === 'command'
+      ? prompt
+      : promptState.kind === 'login-username' || promptState.kind === 'signup-username'
+        ? 'username:'
+        : promptState.kind === 'signup-email'
+          ? 'email:'
+          : 'password:'
 
   useEffect(() => {
     const log = logRef.current
@@ -310,8 +332,41 @@ export function UsersTerminal() {
       return
     }
 
+    if (command === 'login') {
+      if (terminalUser) {
+        append([{ kind: 'muted', text: `already logged in as ${identity}` }])
+        return
+      }
+
+      clearError()
+      setPromptState({ kind: 'login-username' })
+      return
+    }
+
+    if (command === 'signup') {
+      if (terminalUser) {
+        append([{ kind: 'muted', text: `log out before creating another account` }])
+        return
+      }
+
+      clearError()
+      setPromptState({ kind: 'signup-username' })
+      return
+    }
+
+    if (command === 'logout') {
+      if (!terminalUser) {
+        append([{ kind: 'muted', text: 'not logged in' }])
+        return
+      }
+
+      signOut()
+      append([{ kind: 'accent', text: `logged out ${identity}` }])
+      return
+    }
+
     if (command === 'whoami') {
-      append([{ kind: 'output', text: 'guest' }])
+      append([{ kind: 'output', text: identity }])
       return
     }
 
@@ -406,19 +461,77 @@ export function UsersTerminal() {
     append([{ kind: 'error', text: `zsh: command not found: ${command.split(' ')[0]}` }])
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const command = input
+    const response = input.trim()
     setInput('')
-    execute(command)
+
+    if (promptState.kind === 'command') {
+      execute(input)
+      return
+    }
+
+    if (!response) {
+      append([{ kind: 'error', text: `${promptLabel.slice(0, -1)} is required` }])
+      return
+    }
+
+    if (promptState.kind === 'login-username') {
+      append([{ kind: 'output', text: `username: ${response}` }])
+      setPromptState({ kind: 'login-password', username: response })
+      return
+    }
+
+    if (promptState.kind === 'signup-username') {
+      append([{ kind: 'output', text: `username: ${response}` }])
+      setPromptState({ kind: 'signup-email', username: response })
+      return
+    }
+
+    if (promptState.kind === 'signup-email') {
+      append([{ kind: 'output', text: `email: ${response}` }])
+      setPromptState({ kind: 'signup-password', email: response, username: promptState.username })
+      return
+    }
+
+    if (promptState.kind === 'login-password') {
+      const result = await signIn({ username: promptState.username, password: input })
+      if (!result) {
+        append([{ kind: 'error', text: 'login failed. check your username and password, then try again' }])
+        setPromptState({ kind: 'login-username' })
+      } else {
+        setPromptState({ kind: 'command' })
+      }
+      return
+    }
+
+    const result = await signUp({
+      email: promptState.email,
+      password: input,
+      username: promptState.username,
+    })
+    if (!result) {
+      append([{ kind: 'error', text: 'signup failed. check your details, then try again' }])
+      setPromptState({ kind: 'signup-username' })
+    } else {
+      setPromptState({ kind: 'command' })
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.ctrlKey && event.key.toLowerCase() === 'c') {
       event.preventDefault()
+      if (promptState.kind !== 'command') {
+        setInput('')
+        setPromptState({ kind: 'command' })
+        append([{ kind: 'muted', text: '^C' }])
+        return
+      }
       returnHome()
       return
     }
+
+    if (promptState.kind !== 'command') return
 
     if (event.key === 'ArrowUp') {
       event.preventDefault()
@@ -470,10 +583,7 @@ export function UsersTerminal() {
       titleId="users-title"
       left={
         <PageIntro title="shell" titleId="users-title" subhead="let's hope you know what you're doing" body="">
-          <Link
-            className={exitLinkClasses}
-            href="/"
-          >
+          <Link className={exitLinkClasses} href={terminalUser ? '/dashboard/' : '/'}>
             get me outta here
           </Link>
         </PageIntro>
@@ -490,7 +600,7 @@ export function UsersTerminal() {
               <span className="size-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
               <span className="size-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.35)]" />
             </span>
-            <span className="truncate px-3 text-center">guest@kelev: /users — zsh</span>
+            <span className="truncate px-3 text-center">{identity}@kelev: /users — zsh</span>
             <span className="justify-self-end text-footer max-[560px]:hidden">80×24</span>
           </header>
 
@@ -603,20 +713,32 @@ export function UsersTerminal() {
             ) : (
               <form className={`flex min-w-0 items-center gap-2 ${lines.length ? 'mt-4' : ''}`} onSubmit={submit}>
                 <label className="sr-only" htmlFor="terminal-command">
-                  terminal command
+                  {promptState.kind === 'command' ? 'terminal command' : promptLabel.slice(0, -1)}
                 </label>
                 <span className="shrink-0 text-foreground" aria-hidden="true">
-                  {prompt}
+                  {promptLabel}
                 </span>
                 <input
                   className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[inherit] leading-[inherit] text-foreground caret-accent outline-none max-[560px]:text-base"
                   id="terminal-command"
                   ref={inputRef}
+                  type={promptState.kind.endsWith('password') ? 'password' : 'text'}
                   value={input}
                   autoFocus
-                  autoComplete="off"
+                  autoComplete={
+                    promptState.kind.endsWith('password')
+                      ? promptState.kind === 'signup-password'
+                        ? 'new-password'
+                        : 'current-password'
+                      : promptState.kind.endsWith('username')
+                        ? 'username'
+                        : promptState.kind === 'signup-email'
+                          ? 'email'
+                          : 'off'
+                  }
                   autoCapitalize="none"
                   aria-keyshortcuts="Control+C Control+L"
+                  disabled={isLoading}
                   spellCheck={false}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}

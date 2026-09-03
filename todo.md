@@ -1,11 +1,11 @@
 # todo
 
-## move authentication into the `/users` terminal
+## move authentication into the `/users` terminal — done
 
-- make `login`, `signup`, `logout`, and `whoami` real terminal commands backed by the existing GraphQL auth client
-- use a dedicated prompt state for email, name, and password instead of accepting credentials in the command itself
-- mask password entry and never append passwords to terminal output or command history
-- change the shell prompt from `guest@kelev` to the authenticated user's name or email
-- restore the signed-in terminal identity from local storage after a refresh
-- keep `/welcome` and `/dashboard` as explicit lab routes until the terminal flow is working, then decide whether to remove or redirect them
-- revisit `sudo admin` during the roles and permissions lab; replace the current theatrical `sessionStorage` elevation only when the backend can authorize it
+- [x] make `login`, `signup`, `logout`, and `whoami` real terminal commands backed by the existing GraphQL auth client
+- [x] prompt for username and password during login; prompt for username, email, and password during signup
+- [x] mask password entry and never append passwords to terminal output or command history
+- [x] change the shell prompt from `guest@kelev` to the authenticated username
+- [x] restore the signed-in terminal identity from local storage after a refresh
+- [x] keep `/welcome` and `/dashboard` as explicit lab routes; successful terminal login and signup lead to `/dashboard`
+- [x] leave `sudo admin` on its current theatrical `sessionStorage` elevation until the roles and permissions lab can replace it with backend authorization

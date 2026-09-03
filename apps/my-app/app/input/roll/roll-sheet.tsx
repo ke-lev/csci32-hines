@@ -7,6 +7,19 @@ type RollSheetProps = {
   entries: GuestbookEntryView[]
 }
 
+export function RollSheetFallback() {
+  return (
+    <div
+      aria-label="loading"
+      aria-live="polite"
+      className="flex min-h-0 flex-1 items-center justify-center px-8 text-center font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase"
+      role="status"
+    >
+      <span aria-hidden="true">...</span>
+    </div>
+  )
+}
+
 export function RollSheet({ entries }: RollSheetProps) {
   if (entries.length === 0) {
     return (

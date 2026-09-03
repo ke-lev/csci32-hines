@@ -9,7 +9,7 @@ import { Variant } from '@repo/ui/variant'
 import { useAuth } from './use-auth'
 
 type AuthFormInputs = {
-  name?: string
+  username: string
   email: string
   password: string
 }
@@ -30,7 +30,7 @@ export function AuthForm() {
     if (isSignUpMode) {
       await signUp(data)
     } else {
-      await signIn({ email: data.email, password: data.password })
+      await signIn({ username: data.username, password: data.password })
     }
   }
 
@@ -60,43 +60,56 @@ export function AuthForm() {
 
       <form className="flex min-h-0 flex-1 flex-col" noValidate onSubmit={handleSubmit(onSubmit)}>
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-5 overflow-y-auto px-[clamp(18px,3vw,48px)] py-7 [scrollbar-color:var(--color-line)_transparent] [scrollbar-width:thin]">
-          {isSignUpMode ? (
-            <label className="flex flex-col gap-2" htmlFor="auth-name">
-              <span className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">name (optional)</span>
-              <Input
-                className="w-full"
-                id="auth-name"
-                placeholder="john doe"
-                size={Size.LARGE}
-                variant={Variant.SECONDARY}
-                {...register('name')}
-              />
-            </label>
-          ) : null}
-
-          <label className="flex flex-col gap-2" htmlFor="auth-email">
-            <span className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">email</span>
+          <label className="flex flex-col gap-2" htmlFor="auth-username">
+            <span className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
+              {isSignUpMode ? 'name' : 'username'}
+            </span>
             <Input
-              ariaDescribedBy={errors.email ? 'auth-email-error' : undefined}
-              ariaInvalid={Boolean(errors.email)}
-              autoComplete="email"
+              ariaDescribedBy={errors.username ? 'auth-username-error' : undefined}
+              ariaInvalid={Boolean(errors.username)}
+              autoComplete={isSignUpMode ? 'name' : 'username'}
               className="w-full"
-              id="auth-email"
-              placeholder="you@example.com"
+              id="auth-username"
+              placeholder={isSignUpMode ? 'john doe' : 'john-doe'}
               size={Size.LARGE}
-              type="email"
               variant={Variant.SECONDARY}
-              {...register('email', { required: 'email is required' })}
+              {...register('username', { required: `${isSignUpMode ? 'name' : 'username'} is required` })}
             />
-            {errors.email ? (
+            {errors.username ? (
               <p
                 className="m-0 font-mono text-[0.66rem] tracking-[0.06em] text-danger lowercase"
-                id="auth-email-error"
+                id="auth-username-error"
               >
-                {errors.email.message}
+                {errors.username.message}
               </p>
             ) : null}
           </label>
+
+          {isSignUpMode ? (
+            <label className="flex flex-col gap-2" htmlFor="auth-email">
+              <span className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">email</span>
+              <Input
+                ariaDescribedBy={errors.email ? 'auth-email-error' : undefined}
+                ariaInvalid={Boolean(errors.email)}
+                autoComplete="email"
+                className="w-full"
+                id="auth-email"
+                placeholder="you@example.com"
+                size={Size.LARGE}
+                type="email"
+                variant={Variant.SECONDARY}
+                {...register('email', { required: 'email is required' })}
+              />
+              {errors.email ? (
+                <p
+                  className="m-0 font-mono text-[0.66rem] tracking-[0.06em] text-danger lowercase"
+                  id="auth-email-error"
+                >
+                  {errors.email.message}
+                </p>
+              ) : null}
+            </label>
+          ) : null}
 
           <label className="flex flex-col gap-2" htmlFor="auth-password">
             <span className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">password</span>

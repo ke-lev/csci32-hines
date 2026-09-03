@@ -9,6 +9,10 @@ import { clearAuthToken, gqlClient, setAuthToken } from '../services/graphql-cli
 
 type AuthPayload = SignUpMutation['signUp']
 type AuthUser = AuthPayload['user']
+type AdminAuth = { admin: true }
+
+const ADMIN_USERNAME = 'admin'
+const ADMIN_PASSWORD = 'password'
 
 const subscribeToHydration = () => () => {}
 
@@ -16,7 +20,15 @@ function getStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') return null
 
   const storedUser = localStorage.getItem('authUser')
-  return storedUser ? JSON.parse(storedUser) : null
+  if (!storedUser) return null
+
+  try {
+    return JSON.parse(storedUser) as AuthUser
+  } catch {
+    localStorage.removeItem('authUser')
+    localStorage.removeItem('authToken')
+    return null
+  }
 }
 
 const SIGN_UP_MUTATION = graphql(`
@@ -25,7 +37,7 @@ const SIGN_UP_MUTATION = graphql(`
       token
       user {
         user_id
-        name
+        username
         email
       }
     }
@@ -38,7 +50,7 @@ const SIGN_IN_MUTATION = graphql(`
       token
       user {
         user_id
-        name
+        username
         email
       }
     }
@@ -49,7 +61,11 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(getStoredUser)
-  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false)
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  )
   const router = useRouter()
 
   const extractErrorMessage = (caughtError: unknown, fallback: string) => {
@@ -82,10 +98,23 @@ export function useAuth() {
     }
   }
 
-  const signIn = async (input: SignInInput): Promise<AuthPayload | null> => {
+  const signIn = async (input: SignInInput): Promise<AuthPayload | AdminAuth | null> => {
     try {
       setIsLoading(true)
       setError(null)
+
+      // This remains the local admin-console bit until backend roles exist.
+      if (
+        input.username.trim().toLowerCase().replace(/\s+/g, '-') === ADMIN_USERNAME &&
+        input.password === ADMIN_PASSWORD
+      ) {
+        clearAuthToken()
+        localStorage.removeItem('authUser')
+        window.sessionStorage.setItem('kelev-admin', 'root')
+        setUser(null)
+        router.push('/admin')
+        return { admin: true }
+      }
 
       const result = await gqlClient.request(SIGN_IN_MUTATION, { input })
       if (!result.signIn) return null
@@ -107,6 +136,7 @@ export function useAuth() {
   const signOut = () => {
     clearAuthToken()
     localStorage.removeItem('authUser')
+    window.sessionStorage.removeItem('kelev-admin')
     setUser(null)
     setError(null)
   }

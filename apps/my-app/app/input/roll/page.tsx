@@ -3,10 +3,11 @@ import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { PageIntro } from '../../components/page-intro'
 import { PageShell } from '../../components/page-shell'
-import { getGuestbookPage } from '../../lib/guestbook'
-import { RollSheet } from './roll-sheet'
+import { getCachedGuestbookPage, type GuestbookPage } from '../../lib/guestbook'
+import { RollSheet, RollSheetFallback } from './roll-sheet'
 
 // the guestbook is read at request time. CI builds against a DATABASE_URL that does not
 // connect, so this route must never be prerendered.
@@ -25,12 +26,61 @@ function parsePage(value: string | string[] | undefined) {
   return Number.isFinite(parsed) ? parsed : 1
 }
 
+type GuestbookPagePromise = Promise<GuestbookPage>
+
+async function RollAttendance({ guestbookPage }: { guestbookPage: GuestbookPagePromise }) {
+  const { total } = await guestbookPage
+
+  return (
+    <p className="mt-5 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
+      {total === 1 ? '1 person is present' : `${total} people are present`}
+    </p>
+  )
+}
+
+async function RollPagination({ guestbookPage }: { guestbookPage: GuestbookPagePromise }) {
+  const { page, pageCount } = await guestbookPage
+
+  if (pageCount <= 1) return null
+
+  return (
+    <span className="flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
+      {page > 1 ? (
+        <Link
+          className="underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          href={`/input/roll/?page=${page - 1}`}
+        >
+          newer
+        </Link>
+      ) : null}
+      <span>
+        page {page} / {pageCount}
+      </span>
+      {page < pageCount ? (
+        <Link
+          className="underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          href={`/input/roll/?page=${page + 1}`}
+        >
+          older
+        </Link>
+      ) : null}
+    </span>
+  )
+}
+
+async function RollPortraits({ guestbookPage }: { guestbookPage: GuestbookPagePromise }) {
+  const { entries } = await guestbookPage
+
+  return <RollSheet entries={entries} />
+}
+
 export default async function RollPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const { entries, page, pageCount, total } = await getGuestbookPage(parsePage((await searchParams).page))
+  const requestedPage = parsePage((await searchParams).page)
+  const guestbookPage = getCachedGuestbookPage(requestedPage)
 
   return (
     <PageShell
@@ -43,49 +93,41 @@ export default async function RollPage({
       titleId="roll-title"
       left={
         <PageIntro
-          body={
-            'ok so basically the name you entered gets hashed and added to a database and it actually just get regenerated here whenever you load the page (no need to store the svg or anything). it keeps track of whether or not you are a cat, and it refuses duped entries'
-          }
+          body={'time for a class photo!'}
           subhead="thanks for showing up"
           title="roll call"
           titleId="roll-title"
         >
-          <p className="mt-5 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
-            {total === 1 ? '1 person is present' : `${total} people are present`}
-          </p>
+          <Suspense
+            fallback={
+              <p
+                aria-label="loading"
+                className="mt-5 font-mono text-[0.68rem] tracking-[0.06em] text-muted"
+                role="status"
+              >
+                <span aria-hidden="true">...</span>
+              </p>
+            }
+          >
+            <RollAttendance guestbookPage={guestbookPage} />
+          </Suspense>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
             <Button href="/input/" size={Size.MEDIUM} variant={Variant.PRIMARY}>
               add another person
             </Button>
-            {pageCount > 1 ? (
-              <span className="flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
-                {page > 1 ? (
-                  <Link
-                    className="underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-                    href={`/input/roll/?page=${page - 1}`}
-                  >
-                    newer
-                  </Link>
-                ) : null}
-                <span>
-                  page {page} / {pageCount}
-                </span>
-                {page < pageCount ? (
-                  <Link
-                    className="underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-                    href={`/input/roll/?page=${page + 1}`}
-                  >
-                    older
-                  </Link>
-                ) : null}
-              </span>
-            ) : null}
+            <Suspense fallback={null}>
+              <RollPagination guestbookPage={guestbookPage} />
+            </Suspense>
           </div>
         </PageIntro>
       }
       rightInset={false}
-      right={<RollSheet entries={entries} />}
+      right={
+        <Suspense fallback={<RollSheetFallback />}>
+          <RollPortraits guestbookPage={guestbookPage} />
+        </Suspense>
+      }
     />
   )
 }

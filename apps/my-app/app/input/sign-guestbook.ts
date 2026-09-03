@@ -1,9 +1,9 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { updateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import { checkRateLimit } from '../lib/rate-limit'
-import { signGuestbook } from '../lib/guestbook'
+import { GUESTBOOK_CACHE_TAG, signGuestbook } from '../lib/guestbook'
 import { checkGuestbookName, isDrawingKind } from './guestbook-name'
 
 export type SignResult = { ok: true; seed: string } | { ok: false; reason: string }
@@ -52,7 +52,7 @@ export async function signGuestbookAction(
     return { ok: false, reason: 'the guestbook did not take that one' }
   }
 
-  revalidatePath('/input/roll')
+  updateTag(GUESTBOOK_CACHE_TAG)
 
   return { ok: true, seed: name.seed }
 }

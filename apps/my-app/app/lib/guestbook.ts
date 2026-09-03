@@ -1,9 +1,11 @@
 import 'server-only'
 
 import { prisma } from '@repo/database'
+import { unstable_cache } from 'next/cache'
 import type { DrawingKindName } from '../input/guestbook-name'
 
 export const GUESTBOOK_PAGE_SIZE = 48
+export const GUESTBOOK_CACHE_TAG = 'guestbook'
 
 export type GuestbookEntryView = {
   entryId: string
@@ -56,3 +58,8 @@ export async function getGuestbookPage(requestedPage: number): Promise<Guestbook
     total,
   }
 }
+
+export const getCachedGuestbookPage = unstable_cache(getGuestbookPage, ['guestbook-page'], {
+  revalidate: 3600,
+  tags: [GUESTBOOK_CACHE_TAG],
+})

@@ -24,23 +24,21 @@ export function Dashboard() {
     router.replace('/welcome/')
   }
 
+  const username = isHydrated ? user?.username || user?.email || 'user' : 'user'
+
   return (
     <PageShell
       breadcrumbs={[
         { label: 'users', href: '/users/' },
-        { label: 'kelev', href: '/' },
-        { label: 'dashboard', href: '/dashboard/' },
+        { label: username, href: '/dashboard/' },
       ]}
       titleId="dashboard-title"
       left={
         <PageIntro
-          body="your token is attached to future GraphQL requests until you sign out"
-          subhead="credentials checked. door unlocked."
+          body=""
+          subhead="welcome home"
           title={
-            <>
-              <span className="block">you&apos;re</span>
-              <span className="block translate-x-2">in.</span>
-            </>
+            <span className="block break-words">sup {username}</span>
           }
           titleId="dashboard-title"
         />
@@ -60,8 +58,8 @@ export function Dashboard() {
             ) : (
               <dl className="divide-y divide-line border-y border-line">
                 <div className="grid grid-cols-[6rem_1fr] gap-4 py-4">
-                  <dt className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">name</dt>
-                  <dd className="min-w-0 break-words">{user.name || 'not supplied'}</dd>
+                  <dt className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">username</dt>
+                  <dd className="min-w-0 break-words">{user.username || 'not supplied'}</dd>
                 </div>
                 <div className="grid grid-cols-[6rem_1fr] gap-4 py-4">
                   <dt className="font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">email</dt>
