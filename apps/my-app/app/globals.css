@@ -66,16 +66,26 @@
   .cursive-title-art {
     aspect-ratio: 9 / 4;
     width: 100%;
-    background: currentColor;
-    clip-path: inset(0 0 0 0);
-    -webkit-mask: url('/cursive-title.svg') left center / 100% 100% no-repeat;
-    mask: url('/cursive-title.svg') left center / 100% 100% no-repeat;
-    animation: cursive-title-reveal 1.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+    overflow: visible;
   }
 
-  @keyframes cursive-title-reveal {
+  .cursive-title-stroke {
+    stroke: currentColor;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    animation: cursive-title-draw 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .cursive-title-stroke-second {
+    animation-delay: 240ms;
+  }
+
+  @keyframes cursive-title-draw {
     from {
-      clip-path: inset(0 100% 0 0);
+      stroke-dashoffset: 1;
     }
   }
 
@@ -90,6 +100,10 @@
     .cursive-home-title {
       width: calc(100% + 20px);
       margin-inline-start: -20px;
+    }
+
+    .cursive-title-stroke {
+      stroke-width: 6;
     }
   }
 
