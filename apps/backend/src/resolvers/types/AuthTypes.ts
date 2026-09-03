@@ -3,13 +3,13 @@ import { Field, ID, InputType, ObjectType } from 'type-graphql'
 @InputType()
 export class SignUpInput {
   @Field(() => String)
+  username!: string
+
+  @Field(() => String)
   email!: string
 
   @Field(() => String)
   password!: string
-
-  @Field(() => String, { nullable: true })
-  name?: string
 }
 
 @ObjectType()
@@ -17,8 +17,8 @@ export class UserDTO {
   @Field(() => ID)
   user_id!: string
 
-  @Field(() => String, { nullable: true })
-  name?: string | null
+  @Field(() => String)
+  username!: string
 
   @Field(() => String, { nullable: true })
   email?: string | null

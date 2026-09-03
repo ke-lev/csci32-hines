@@ -3,7 +3,7 @@ import { Field, InputType } from 'type-graphql'
 @InputType()
 export class SignInInput {
   @Field(() => String)
-  email!: string
+  username!: string
 
   @Field(() => String)
   password!: string

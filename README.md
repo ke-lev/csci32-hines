@@ -9,7 +9,7 @@
 - `/input/roll` — roll call: every signed name, redrawn from its stored seed
 - `/games` — a random-number guesser and Conway’s Game of Life
 - `/timeline` — dated build notes and course updates
-- `/users` — a playful zsh-style guest shell
+- `/users` — a playful zsh-style shell with GraphQL-backed account commands
 - `/admin` — a local-only admin-console easter egg reached through the shell
 - homepage Spotify now-playing status, when configured (vercel deployment has my env vars set so it should work there)
 
@@ -55,7 +55,7 @@ the workspaces deliberately run two toolchain generations: the Next.js app stays
 
 the table stores one row per signature — the normalized name (`seed`), the drawing kind (`face` or `cat`), and a timestamp. it does not store rendered images: `/input/roll` regenerates every portrait from its seed on each request. a unique `(seed, kind)` pair makes a repeat signing a no-op, so a double-click cannot duplicate a row.
 
-the write path is the `signGuestbookAction` server action in `apps/my-app/app/input/sign-guestbook.ts`. it re-derives the seed from the submitted names rather than trusting a client-sent one, validates length and characters (`app/input/guestbook-name.ts`), and applies a per-IP rate limit. `/input/roll` is `force-dynamic` and reads one bounded page at a time, so it is never prerendered — CI builds against a `DATABASE_URL` that does not connect.
+the write path is the `signGuestbookAction` server action in `apps/my-app/app/input/sign-guestbook.ts`. it re-derives the seed from the submitted names rather than trusting a client-sent one, validates length and characters (`app/input/guestbook-name.ts`), and applies a per-IP rate limit. `/input/roll` is `force-dynamic` so it is never prerendered — CI builds against a `DATABASE_URL` that does not connect — but its bounded database pages are cached and invalidated after a successful signing. the page shell streams before an uncached database read finishes.
 
 `DATABASE_URL` is read from `packages/database/.env` locally. **the deployment needs `DATABASE_URL` set in its own environment**, or `/input/roll` and signing will fail at request time.
 

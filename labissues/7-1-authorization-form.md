@@ -8,7 +8,7 @@ so its form never contacts the backend or Supabase.
 they are included here because they are confirmed consequences of following the earlier
 database setup literally, and they become visible once the frontend is connected to the real
 backend in the following authentication-hookup lab. they also affect any existing Next.js
-route, such as the guestbook, that queries the database from Vercel. treat them as important
+route, such as my guestbook, that queries the database from Vercel. treat them as important
 deployment prerequisites, not authorization-form implementation failures.
 
 ## the direct Supabase connection cannot be reached from Vercel
@@ -38,10 +38,10 @@ postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.co
 
 the username includes the project ref. redeploy after changing the environment variable.
 
-> i only ran into this and the next one because i went ahead and hooked up my database early for a rollcall feature inside input/
+> i only ran into this and the next one because i went ahead and hooked up my database early for a rollcall feature i was excited about inside input/
 > other students likely wont run into this problem since they arent hooking anything up yet
 > and now i fear ive jumped the gun and hooked things up differently than the next lab wants me to
-> !!! before making any real changes to the labs based on this labissue entry (and related) GO READ AHEAD IN THE LABS and make sure they are relevant, and not just something that gets solved later, and that i was just too eager to get to
+> !!! before making any real changes to this lab or the 5-1-backend-setup lab based on this labissue entry (and related) GO READ AHEAD IN THE LABS and make sure they are relevant, and not just something that gets solved later, and that i was just too eager to get to
 
 ## the transaction pooler fails under concurrency without `pgbouncer=true`
 
