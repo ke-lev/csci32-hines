@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
+import { submitTipIdea } from './submit-tip-idea'
 
 type TipsView = 'menu' | 'ideas' | 'money'
-type CopyStatus = 'idle' | 'copied' | 'error'
+type SubmitStatus = 'idle' | 'submitting' | 'submitted' | 'error'
 
 const paymentUrl = process.env.NEXT_PUBLIC_TIPS_URL ?? ''
 const qrSrc = '/$ke1ev-cashapp-qr.svg'
@@ -55,7 +56,8 @@ type TipsDialogProps = {
 export function TipsDialog({ onClose }: TipsDialogProps) {
   const [view, setView] = useState<TipsView>('menu')
   const [feedbackText, setFeedbackText] = useState('')
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle')
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
+  const [submitError, setSubmitError] = useState('')
   const dialogRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<HTMLDivElement>(null)
 
@@ -100,18 +102,32 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
 
   function changeView(nextView: TipsView) {
     setView(nextView)
-    setCopyStatus('idle')
+    setSubmitStatus('idle')
+    setSubmitError('')
   }
 
-  async function copyIdea() {
+  async function sendIdea() {
     const editor = editorRef.current
-    if (!editor || !feedbackText.trim()) return
+    if (!editor || !feedbackText.trim() || submitStatus === 'submitting') return
+
+    setSubmitStatus('submitting')
+    setSubmitError('')
 
     try {
-      await navigator.clipboard.writeText(htmlToMarkdown(editor))
-      setCopyStatus('copied')
+      const result = await submitTipIdea(htmlToMarkdown(editor))
+
+      if (result.ok) {
+        setSubmitStatus('submitted')
+        setFeedbackText('')
+        editor.replaceChildren()
+        return
+      }
+
+      setSubmitStatus('error')
+      setSubmitError(result.reason)
     } catch {
-      setCopyStatus('error')
+      setSubmitStatus('error')
+      setSubmitError('could not send that idea')
     }
   }
 
@@ -218,7 +234,8 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                 data-placeholder="a game, an experiment, a strange button..."
                 onInput={(event) => {
                   setFeedbackText(event.currentTarget.innerText)
-                  setCopyStatus('idle')
+                  setSubmitStatus('idle')
+                  setSubmitError('')
                 }}
                 ref={editorRef}
                 role="textbox"
@@ -233,17 +250,23 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                 </Button>
                 <div className="flex items-center gap-3">
                   <span aria-live="polite" className="font-mono text-[0.6rem] text-foreground" role="status">
-                    {copyStatus === 'copied' ? 'copied' : copyStatus === 'error' ? 'copy failed' : ''}
+                    {submitStatus === 'submitted'
+                      ? 'idea sent'
+                      : submitStatus === 'error'
+                        ? submitError
+                        : submitStatus === 'submitting'
+                          ? 'sending...'
+                          : ''}
                   </span>
                   <Button
                     className="disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100"
-                    disabled={!feedbackText.trim()}
-                    onClick={copyIdea}
+                    disabled={!feedbackText.trim() || submitStatus === 'submitting'}
+                    onClick={sendIdea}
                     size={Size.MEDIUM}
                     type="button"
                     variant={feedbackText.trim() ? Variant.PRIMARY : Variant.SECONDARY}
                   >
-                    copy idea
+                    send idea
                   </Button>
                 </div>
               </div>

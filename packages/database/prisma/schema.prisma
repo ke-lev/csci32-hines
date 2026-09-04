@@ -35,3 +35,11 @@ model GuestbookEntry {
   @@unique([seed, kind])
   @@index([created_at])
 }
+
+model TipIdea {
+  idea_id    String   @id @default(cuid())
+  body       String
+  created_at DateTime @default(now())
+
+  @@index([created_at])
+}
