@@ -1,20 +1,18 @@
 import { PrismaClient } from '@repo/database'
 import type { SignUpInput } from '@/resolvers/types/AuthTypes'
 import type { SignInInput } from '@/resolvers/types/SignInTypes'
+import { validationError } from '@/utils/auth-errors'
 import { comparePassword, hashPassword, signToken } from '@/utils/auth'
+import { normalizeUsername, validateSignupInput } from './auth-validation'
 
 export interface UserServiceProps {
   prisma: PrismaClient
 }
 
-function normalizeUsername(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9_-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
+export type CurrentUser = {
+  email: string | null
+  user_id: string
+  username: string
 }
 
 export class UserService {
@@ -25,16 +23,33 @@ export class UserService {
   }
 
   findMany() {
-    return this.prisma.user.findMany()
+    return this.prisma.user.findMany({
+      select: {
+        user_id: true,
+        username: true,
+      },
+    })
   }
 
-  async createUser({ email, password, username }: SignUpInput) {
-    const normalizedUsername = normalizeUsername(username)
-    const normalizedEmail = email.trim().toLowerCase()
+  findById(userId: string): Promise<CurrentUser | null> {
+    return this.prisma.user.findUnique({
+      where: { user_id: userId },
+      select: {
+        email: true,
+        user_id: true,
+        username: true,
+      },
+    })
+  }
 
-    if (!/^[a-z0-9][a-z0-9_-]{1,31}$/.test(normalizedUsername)) {
-      throw new Error('Username must be 2–32 characters using letters, numbers, underscores, or hyphens')
+  async createUser(input: SignUpInput) {
+    const validation = validateSignupInput(input)
+
+    if (!validation.ok) {
+      throw validationError(validation.fieldErrors)
     }
+
+    const { email: normalizedEmail, password, username: normalizedUsername } = validation.value
 
     const existing = await this.prisma.user.findFirst({
       where: {
@@ -43,7 +58,10 @@ export class UserService {
     })
 
     if (existing) {
-      throw new Error(existing.username === normalizedUsername ? 'Username already in use' : 'Email already in use')
+      const field = existing.username === normalizedUsername ? 'username' : 'email'
+      const message = field === 'username' ? 'username is already in use' : 'email is already in use'
+
+      throw validationError({ [field]: message })
     }
 
     const passwordHash = await hashPassword(password)

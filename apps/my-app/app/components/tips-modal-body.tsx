@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@repo/ui/button'
+import { Input } from '@repo/ui/input'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
-import { submitTipIdea } from './submit-tip-idea'
+import { checkTipIdeaStatus, submitTipIdea, type CheckTipIdeaResult } from './submit-tip-idea'
 
-type TipsView = 'menu' | 'ideas' | 'money'
+type TipsView = 'menu' | 'ideas' | 'status' | 'money'
 type SubmitStatus = 'idle' | 'submitting' | 'submitted' | 'error'
+type PublicTipStatus = Extract<CheckTipIdeaResult, { ok: true }>
 
 const paymentUrl = process.env.NEXT_PUBLIC_TIPS_URL ?? ''
 const qrSrc = '/$ke1ev-cashapp-qr.svg'
@@ -20,6 +22,10 @@ const viewCopy = {
   ideas: {
     title: 'ideas',
     description: 'whatever you want to see next on this site',
+  },
+  status: {
+    title: 'receipt',
+    description: 'check what happened to an idea without showing it to anyone else',
   },
   money: {
     title: 'money',
@@ -56,6 +62,11 @@ type TipsDialogProps = {
 export function TipsDialog({ onClose }: TipsDialogProps) {
   const [view, setView] = useState<TipsView>('menu')
   const [feedbackText, setFeedbackText] = useState('')
+  const [receipt, setReceipt] = useState('')
+  const [statusChecking, setStatusChecking] = useState(false)
+  const [statusError, setStatusError] = useState('')
+  const [statusReceipt, setStatusReceipt] = useState('')
+  const [statusResult, setStatusResult] = useState<PublicTipStatus | null>(null)
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
   const [submitError, setSubmitError] = useState('')
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -106,6 +117,13 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
     setSubmitError('')
   }
 
+  function openStatus(receiptToCheck = '') {
+    setStatusReceipt(receiptToCheck)
+    setStatusError('')
+    setStatusResult(null)
+    setView('status')
+  }
+
   async function sendIdea() {
     const editor = editorRef.current
     if (!editor || !feedbackText.trim() || submitStatus === 'submitting') return
@@ -118,6 +136,7 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
 
       if (result.ok) {
         setSubmitStatus('submitted')
+        setReceipt(result.receipt)
         setFeedbackText('')
         editor.replaceChildren()
         return
@@ -128,6 +147,27 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
     } catch {
       setSubmitStatus('error')
       setSubmitError('could not send that idea')
+    }
+  }
+
+  async function checkStatus() {
+    if (!statusReceipt.trim() || statusChecking) return
+
+    setStatusChecking(true)
+    setStatusError('')
+    setStatusResult(null)
+
+    try {
+      const result = await checkTipIdeaStatus(statusReceipt)
+      if (result.ok) {
+        setStatusResult(result)
+      } else {
+        setStatusError(result.reason)
+      }
+    } catch {
+      setStatusError('could not check that receipt')
+    } finally {
+      setStatusChecking(false)
     }
   }
 
@@ -221,6 +261,26 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                   </svg>
                 </Button>
               </div>
+              <div className="group flex min-h-28 w-full items-center justify-between gap-6 border-t border-line px-6 py-5 text-left transition-colors duration-180 hover:bg-row-hover sm:px-8 motion-reduce:transition-none">
+                <span>
+                  <span className="block text-[1rem] font-semibold tracking-[-0.02em]">a receipt</span>
+                  <span className="mt-1.5 block text-[0.78rem] leading-5 text-muted">
+                    check the status of an idea you already sent
+                  </span>
+                </span>
+                <Button
+                  aria-label="check an idea receipt"
+                  className="shrink-0"
+                  onClick={() => openStatus()}
+                  size={Size.MEDIUM}
+                  type="button"
+                  variant={Variant.PRIMARY}
+                >
+                  <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 16 12" width="16">
+                    <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Button>
+              </div>
             </div>
           ) : view === 'ideas' ? (
             <div className="px-6 pt-6 pb-7 sm:px-8 sm:pt-8 sm:pb-8">
@@ -270,6 +330,82 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                   </Button>
                 </div>
               </div>
+              {submitStatus === 'submitted' && receipt ? (
+                <div className="mt-5 border-t border-line pt-5 font-mono text-[0.68rem] tracking-[0.04em] text-muted">
+                  <p className="m-0">save this receipt if you want to check back:</p>
+                  <code className="mt-2 block break-all text-foreground">{receipt}</code>
+                  <Button
+                    className="mt-4"
+                    onClick={() => openStatus(receipt)}
+                    size={Size.MEDIUM}
+                    type="button"
+                    variant={Variant.TERTIARY}
+                  >
+                    check status
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : view === 'status' ? (
+            <div className="px-6 pt-6 pb-7 sm:px-8 sm:pt-8 sm:pb-8">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void checkStatus()
+                }}
+              >
+                <label
+                  className="flex flex-col gap-2 font-mono text-[0.68rem] font-semibold tracking-[0.04em] lowercase"
+                  htmlFor="tip-receipt"
+                >
+                  receipt
+                  <Input
+                    autoComplete="off"
+                    className="w-full"
+                    id="tip-receipt"
+                    maxLength={16}
+                    name="receipt"
+                    onChange={(event) => setStatusReceipt(event.currentTarget.value)}
+                    placeholder="paste the 16-character code"
+                    value={statusReceipt}
+                    variant={Variant.SECONDARY}
+                  />
+                </label>
+                {statusError ? <p className="mt-3 mb-0 font-mono text-[0.66rem] text-danger">{statusError}</p> : null}
+                {statusResult ? (
+                  <div className="mt-5 border-y border-line py-4 font-mono text-[0.68rem] tracking-[0.04em]">
+                    <p className="m-0 text-foreground">
+                      status: {statusResult.status === 'trying_it' ? 'trying it' : statusResult.status}
+                    </p>
+                    {statusResult.shippedHref ? (
+                      <a
+                        className="mt-3 inline-block text-accent underline underline-offset-4"
+                        href={statusResult.shippedHref}
+                      >
+                        open what shipped ↗
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className="mt-7 flex items-center justify-between gap-4 border-t border-line pt-5">
+                  <Button
+                    onClick={() => changeView('menu')}
+                    size={Size.MEDIUM}
+                    type="button"
+                    variant={Variant.TERTIARY}
+                  >
+                    &lt; back
+                  </Button>
+                  <Button
+                    disabled={statusChecking || !statusReceipt.trim()}
+                    size={Size.MEDIUM}
+                    type="submit"
+                    variant={Variant.PRIMARY}
+                  >
+                    {statusChecking ? 'checking...' : 'check status'}
+                  </Button>
+                </div>
+              </form>
             </div>
           ) : (
             <div className="grid gap-7 px-6 pt-6 pb-7 sm:grid-cols-[1fr_200px] sm:items-end sm:px-8 sm:pt-8 sm:pb-8">

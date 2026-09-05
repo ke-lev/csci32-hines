@@ -43,6 +43,34 @@ yarn test
 yarn build
 ```
 
+### backend setup
+
+the Next.js app sends account requests to `NEXT_PUBLIC_API_URL` and the Fastify API serves GraphQL at `/api/graphql`. configure the three local environment files before using accounts:
+
+1. copy `apps/backend/.env.example` to `apps/backend/.env` and fill in `PRIVATE_KEY`, `PUBLIC_KEY`, `ALGORITHM`, `EXPIRATION`, `AUD`, `ISS`, `BCRYPT_ROUNDS`, `CORS_ORIGIN`, and `OWNER_USERNAME`
+2. copy `packages/database/.env.example` to `packages/database/.env` and set `DATABASE_URL`
+3. copy `apps/my-app/.env.example` to `apps/my-app/.env.local` and set `NEXT_PUBLIC_API_URL` to `http://127.0.0.1:4000` (the origin must match the API's `CORS_ORIGIN`)
+
+generate the Prisma client and apply committed migrations against the configured database:
+
+```bash
+yarn workspace @repo/database db:generate
+yarn workspace @repo/database prisma migrate deploy
+```
+
+the dashboard's saved intro and drawing live in the `PersonalPage` table added by the
+`20260904140000_add_personal_page` migration, so run the command above after pulling it or that
+page will fail to load.
+
+for development, `yarn dev` starts both workspaces. to run the built API separately:
+
+```bash
+yarn workspace backend build
+yarn workspace backend start
+```
+
+for deployment, provide the same backend variables in the API service, set its `CORS_ORIGIN` to the deployed frontend origin, set the frontend's `NEXT_PUBLIC_API_URL` to the deployed API origin before the Next build, and run `prisma migrate deploy` against the production `DATABASE_URL` before starting the API. never put private keys, database URLs, or other secret values in documentation or committed `.env` files.
+
 CI runs the same checks plus `prisma validate` on every push and pull request; see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### toolchain lanes
@@ -73,7 +101,13 @@ then delete the row from `GuestbookEntry`. or from a psql session against `DATAB
 DELETE FROM "GuestbookEntry" WHERE seed = 'the offending name';
 ```
 
-the drawing disappears from `/input/roll` on the next request, because nothing about it was stored anywhere else.
+the drawing disappears from a fresh `/input/roll` read after the cache is invalidated. a direct Prisma Studio or SQL delete does not invalidate the `guestbook` tag, so allow up to one hour for cached pages to expire; a new signing invalidates that tag sooner.
+
+## ideas and receipts
+
+ideas submitted through the tips dialog are private by default. a successful submission returns a random receipt code; the receipt lookup reveals only `heard`, `trying it`, or `shipped`, plus an optional site-relative link when something ships. it never returns the suggestion text.
+
+set `OWNER_USERNAME` in the backend environment to the normalized account username that may read the user directory and read/update the private inbox. the owner can use `ideas` and `ideas update <receipt> <heard|trying|shipped> [site/path]` in `/users`; the local `sudo admin` shortcut is unrelated and remains theatrical.
 
 ## optional Spotify integration
 

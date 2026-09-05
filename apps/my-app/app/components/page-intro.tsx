@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 type PageIntroProps = {
-  body?: string
+  body?: ReactNode
   children?: ReactNode
   subhead: ReactNode
   title: ReactNode
@@ -20,7 +20,12 @@ export function PageIntro({ body, children, subhead, title, titleId }: PageIntro
       <p className="page-intro-description mt-8 max-w-[530px] text-[clamp(1.1rem,1.5vw,1.4rem)] leading-[1.55] text-subhead text-balance">
         {subhead}
       </p>
-      {body && <p className="mt-5 max-w-[52ch] whitespace-pre-line text-sm leading-[1.6] text-muted">{body}</p>}
+      {body &&
+        (typeof body === 'string' ? (
+          <p className="mt-5 max-w-[52ch] whitespace-pre-line text-sm leading-[1.6] text-muted">{body}</p>
+        ) : (
+          <div className="mt-5 max-w-[52ch] text-sm leading-[1.6] text-muted">{body}</div>
+        ))}
       {children}
     </div>
   )

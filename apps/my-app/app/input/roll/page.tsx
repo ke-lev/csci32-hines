@@ -33,7 +33,7 @@ async function RollAttendance({ guestbookPage }: { guestbookPage: GuestbookPageP
 
   return (
     <p className="mt-5 font-mono text-[0.68rem] tracking-[0.06em] text-muted lowercase">
-      {total === 1 ? '1 person is present' : `${total} people are present`}
+      {total === 1 ? '1 signature is on the sheet' : `${total} signatures are on the sheet`}
     </p>
   )
 }
@@ -114,7 +114,7 @@ export default async function RollPage({
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
             <Button href="/input/" size={Size.MEDIUM} variant={Variant.PRIMARY}>
-              add another person
+              add another signature
             </Button>
             <Suspense fallback={null}>
               <RollPagination guestbookPage={guestbookPage} />

@@ -205,7 +205,7 @@ export function NameDrawingPage() {
       left={
         <PageIntro
           body={
-            'name is normalized, used to seed for some hashes, converted into decimals, mapped onto ranges, and used to generate a deterministic vector path that draws locally and in real time - just proof of concept\n\n- same name == same drawing\n- cat-mode remixes the portrait as a cat face lol\n- you can download the svg'
+            'name is normalized, used to seed for some hashes, converted into decimals, mapped onto ranges, and used to generate a deterministic vector path that draws locally and in real time - just proof of concept\n- same name == same drawing\n- cat-mode remixes the portrait as a cat face lol\n- you can download the svg\n- you can now sign the guestbook'
           }
           subhead="like one of your french girls"
           title="draw me"

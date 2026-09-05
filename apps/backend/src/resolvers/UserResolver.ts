@@ -1,26 +1,30 @@
 import 'reflect-metadata'
 import { Arg, Ctx, Field, ID, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { Context } from '@/utils/graphql'
-import { AuthPayload, SignUpInput } from '@/resolvers/types/AuthTypes'
+import { requireCurrentUser, requireSiteOwner } from '@/utils/graphql'
+import { AuthPayload, SignUpInput, UserDTO } from '@/resolvers/types/AuthTypes'
 import { SignInInput } from '@/resolvers/types/SignInTypes'
 
 @ObjectType()
-class User {
+class PublicUser {
   @Field(() => ID)
   user_id!: string
 
   @Field(() => String)
   username!: string
-
-  @Field(() => String, { nullable: true })
-  email?: string
 }
 
 @Resolver()
 export class UserResolver {
-  @Query(() => [User])
-  findManyUsers(@Ctx() { userService }: Context) {
-    return userService.findMany()
+  @Query(() => [PublicUser])
+  findManyUsers(@Ctx() context: Context) {
+    requireSiteOwner(context)
+    return context.userService.findMany()
+  }
+
+  @Query(() => UserDTO)
+  currentUser(@Ctx() context: Context) {
+    return requireCurrentUser(context)
   }
 
   @Mutation(() => AuthPayload)
@@ -28,10 +32,6 @@ export class UserResolver {
     @Arg('input', () => SignUpInput) input: SignUpInput,
     @Ctx() { userService }: Context,
   ): Promise<AuthPayload> {
-    if (!input.username || !input.email || !input.password) {
-      throw new Error('username, email, and password are required')
-    }
-
     return userService.createUser(input)
   }
 

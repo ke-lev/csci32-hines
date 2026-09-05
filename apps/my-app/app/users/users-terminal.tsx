@@ -4,15 +4,22 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getButtonSizeStyles, Size } from '@repo/ui/size'
 import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
+import { ClientError } from 'graphql-request'
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
+import { validateSignupField } from '../components/auth-validation'
 import { useAuth } from '../components/use-auth'
 import { useReactorMeltdown } from '../components/use-reactor-meltdown'
 import { countCommand, recordSnakeScore } from '../lib/session-stats'
+import { getTerminalListing, getTerminalTree, resolveSiteRoute, SITE_ROUTES } from '../lib/site-routes'
+import { gqlClient } from '../services/graphql-client'
+import { readTimelinePost } from '../timeline/read-post'
+import { graphql } from '../generated/gql'
 
 type Line = {
   id: number
+  links?: { href: string; label: string }[]
   kind: 'command' | 'output' | 'muted' | 'accent' | 'error'
   text: string
 }
@@ -92,6 +99,7 @@ const guestCommands = [
   'help',
   'login',
   'signup',
+  'ideas',
   'logout',
   'whoami',
   'pwd',
@@ -102,31 +110,40 @@ const guestCommands = [
   'admin',
   'sudo -l',
   'sudo admin',
+  'cat timeline/9-7',
   'history',
   'clear',
   'exit',
 ]
-
-const tree = `.
-├── buttons/
-├── timeline/
-│   └── posts/
-├── users/
-│   └── kelev/
-├── package.json
-└── README.md`
 
 const initialLines: Line[] = [
   { id: 1, kind: 'muted', text: 'last login: just now on ttys001' },
   { id: 2, kind: 'muted', text: 'login / signup, or type help for a list of commands' },
 ]
 
-const routeMap: Record<string, string> = {
-  home: '/',
-  buttons: '/buttons/',
-  timeline: '/timeline/',
-  users: '/users/',
-}
+const TIP_IDEAS_QUERY = graphql(`
+  query TipIdeas {
+    findManyTipIdeas {
+      body
+      createdAt
+      receipt
+      shippedHref
+      status
+    }
+  }
+`)
+
+const UPDATE_TIP_IDEA_MUTATION = graphql(`
+  mutation UpdateTipIdea($input: UpdateTipIdeaInput!) {
+    updateTipIdea(input: $input) {
+      body
+      createdAt
+      receipt
+      shippedHref
+      status
+    }
+  }
+`)
 
 // stays a Link for client-side navigation, but borrows the shared button's size and variant
 const exitLinkClasses = [
@@ -138,7 +155,18 @@ const exitLinkClasses = [
 
 export function UsersTerminal() {
   const router = useRouter()
-  const { clearError, isHydrated, isLoading, signIn, signOut, signUp, user } = useAuth()
+  const {
+    clearError,
+    getLastError,
+    isHydrated,
+    isLoading,
+    isSessionChecked,
+    recoverSession,
+    signIn,
+    signOut,
+    signUp,
+    user,
+  } = useAuth()
   const meltdown = useReactorMeltdown()
   const meltdownTimerRef = useRef<number | null>(null)
   const [input, setInput] = useState('')
@@ -154,7 +182,7 @@ export function UsersTerminal() {
   const gameRef = useRef<HTMLDivElement>(null)
   const directionRef = useRef<Direction>('right')
   const queuedDirectionRef = useRef<Direction>('right')
-  const terminalUser = isHydrated ? user : null
+  const terminalUser = isHydrated && isSessionChecked ? user : null
   const identity = terminalUser?.username || terminalUser?.email || 'guest'
   const prompt = `${identity}@kelev ~ /users %`
 
@@ -301,7 +329,7 @@ export function UsersTerminal() {
     }
   }
 
-  function execute(rawCommand: string) {
+  async function execute(rawCommand: string) {
     const command = rawCommand.trim()
     append([{ kind: 'command', text: `${prompt} ${command}` }])
 
@@ -327,7 +355,15 @@ export function UsersTerminal() {
     if (command === 'help') {
       append([
         { kind: 'output', text: guestCommands.join('  ') },
-        { kind: 'muted', text: 'tip: use ↑/↓ for history, tab to complete, ctrl+l to clear, and ctrl+c to exit' },
+        {
+          kind: 'muted',
+          links: SITE_ROUTES.map((route) => ({ href: route.href, label: route.command })),
+          text: 'destinations: ',
+        },
+        {
+          kind: 'muted',
+          text: 'tip: use ↑/↓ for history, ctrl+space to complete, ctrl+l to clear, and ctrl+c to exit',
+        },
       ])
       return
     }
@@ -376,17 +412,96 @@ export function UsersTerminal() {
     }
 
     if (command === 'ls' || command === 'ls -la') {
-      append([
-        {
-          kind: 'output',
-          text: 'buttons/  timeline/  users/  package.json  README.md',
-        },
-      ])
+      append([{ kind: 'output', text: getTerminalListing() }])
       return
     }
 
     if (command === 'tree' || command === 'tree -L 2') {
-      append([{ kind: 'output', text: tree }])
+      append([{ kind: 'output', text: getTerminalTree() }])
+      return
+    }
+
+    if (command === 'ideas') {
+      if (!terminalUser) {
+        append([{ kind: 'error', text: 'ideas: login required' }])
+        return
+      }
+
+      try {
+        const result = await gqlClient.request(TIP_IDEAS_QUERY)
+        if (result.findManyTipIdeas.length === 0) {
+          append([{ kind: 'muted', text: 'ideas: inbox is empty' }])
+          return
+        }
+
+        append([
+          {
+            kind: 'accent',
+            text: `${result.findManyTipIdeas.length} suggestion${result.findManyTipIdeas.length === 1 ? '' : 's'}`,
+          },
+          ...result.findManyTipIdeas.flatMap((idea) => [
+            {
+              kind: 'output' as const,
+              text: `${idea.receipt}  [${idea.status}]  ${idea.body}`,
+            },
+            {
+              kind: 'muted' as const,
+              text: `  received ${idea.createdAt}${idea.shippedHref ? `  → ${idea.shippedHref}` : ''}`,
+            },
+          ]),
+        ])
+      } catch (caughtError) {
+        const code = caughtError instanceof ClientError ? caughtError.response.errors?.[0]?.extensions?.code : undefined
+        const sessionExpired = recoverSession(caughtError)
+        append([
+          {
+            kind: 'error',
+            text: sessionExpired
+              ? 'session expired — log in again'
+              : code === 'FORBIDDEN'
+                ? 'ideas: owner permission required'
+                : 'ideas: could not read the inbox',
+          },
+        ])
+      }
+      return
+    }
+
+    if (command.startsWith('ideas update ')) {
+      if (!terminalUser) {
+        append([{ kind: 'error', text: 'ideas: login required' }])
+        return
+      }
+
+      const [, receipt, requestedStatus, shippedHref] = command.match(/^ideas update (\S+) (\S+)(?: (\S+))?$/) ?? []
+      const status = requestedStatus === 'trying' ? 'trying_it' : requestedStatus
+
+      if (!receipt || !status || !['heard', 'trying_it', 'shipped'].includes(status)) {
+        append([{ kind: 'error', text: 'usage: ideas update <receipt> <heard|trying|shipped> [site/path]' }])
+        return
+      }
+
+      try {
+        const result = await gqlClient.request(UPDATE_TIP_IDEA_MUTATION, {
+          input: { receipt, shippedHref, status },
+        })
+        append([{ kind: 'accent', text: `${result.updateTipIdea.receipt} is now ${result.updateTipIdea.status}` }])
+      } catch (caughtError) {
+        const code = caughtError instanceof ClientError ? caughtError.response.errors?.[0]?.extensions?.code : undefined
+        const sessionExpired = recoverSession(caughtError)
+        append([
+          {
+            kind: 'error',
+            text: sessionExpired
+              ? 'session expired — log in again'
+              : code === 'FORBIDDEN'
+                ? 'ideas: owner permission required'
+                : code === 'NOT_FOUND'
+                  ? 'ideas: no suggestion found for that receipt'
+                  : 'ideas: could not update that suggestion',
+          },
+        ])
+      }
       return
     }
 
@@ -435,6 +550,31 @@ export function UsersTerminal() {
       return
     }
 
+    const timelineCat = command.match(/^cat\s+timeline\/(.+)$/)
+    if (timelineCat) {
+      const requestedSlug = timelineCat[1]
+      let result
+
+      try {
+        result = await readTimelinePost(requestedSlug)
+      } catch {
+        append([{ kind: 'error', text: `cat: timeline/${requestedSlug}: could not read that post` }])
+        return
+      }
+
+      if (!result.ok) {
+        append([{ kind: 'error', text: `cat: timeline/${requestedSlug}: ${result.reason}` }])
+        return
+      }
+
+      append([
+        { kind: 'accent', text: `${result.post.title} — ${result.post.dateLabel}` },
+        { kind: 'muted', text: result.post.description },
+        { kind: 'output', text: result.post.content },
+      ])
+      return
+    }
+
     if (command === 'history') {
       append([
         {
@@ -446,14 +586,14 @@ export function UsersTerminal() {
     }
 
     if (command.startsWith('open ')) {
-      const destination = command.slice(5).replace(/^\//, '').replace(/\/$/, '') || 'home'
-      const href = routeMap[destination]
+      const destination = command.slice(5)
+      const route = resolveSiteRoute(destination)
 
-      if (href) {
-        append([{ kind: 'accent', text: `opening ${href}` }])
-        router.push(href)
+      if (route) {
+        append([{ kind: 'accent', text: `opening ${route.href}` }])
+        router.push(route.href)
       } else {
-        append([{ kind: 'error', text: `open: route not found: ${destination}` }])
+        append([{ kind: 'error', text: `open: route not found: ${destination.trim()}` }])
       }
       return
     }
@@ -467,7 +607,7 @@ export function UsersTerminal() {
     setInput('')
 
     if (promptState.kind === 'command') {
-      execute(input)
+      await execute(input)
       return
     }
 
@@ -483,12 +623,24 @@ export function UsersTerminal() {
     }
 
     if (promptState.kind === 'signup-username') {
+      const usernameError = validateSignupField('username', response)
+      if (usernameError) {
+        append([{ kind: 'error', text: usernameError }])
+        return
+      }
+
       append([{ kind: 'output', text: `username: ${response}` }])
       setPromptState({ kind: 'signup-email', username: response })
       return
     }
 
     if (promptState.kind === 'signup-email') {
+      const emailError = validateSignupField('email', response)
+      if (emailError) {
+        append([{ kind: 'error', text: emailError }])
+        return
+      }
+
       append([{ kind: 'output', text: `email: ${response}` }])
       setPromptState({ kind: 'signup-password', email: response, username: promptState.username })
       return
@@ -505,14 +657,31 @@ export function UsersTerminal() {
       return
     }
 
+    const passwordError = validateSignupField('password', input)
+    if (passwordError) {
+      append([{ kind: 'error', text: passwordError }])
+      return
+    }
+
     const result = await signUp({
       email: promptState.email,
       password: input,
       username: promptState.username,
     })
     if (!result) {
-      append([{ kind: 'error', text: 'signup failed. check your details, then try again' }])
-      setPromptState({ kind: 'signup-username' })
+      const signupError = getLastError()
+      const field = signupError?.fieldErrors
+      const correctedField = field?.username ? 'username' : field?.email ? 'email' : field?.password ? 'password' : null
+
+      append([{ kind: 'error', text: signupError?.message ?? 'signup failed. check your details, then try again' }])
+
+      if (correctedField === 'username') {
+        setPromptState({ kind: 'signup-username' })
+      } else if (correctedField === 'email') {
+        setPromptState({ kind: 'signup-email', username: promptState.username })
+      } else {
+        setPromptState({ kind: 'signup-password', email: promptState.email, username: promptState.username })
+      }
     } else {
       setPromptState({ kind: 'command' })
     }
@@ -548,7 +717,7 @@ export function UsersTerminal() {
       setInput(commandHistory[nextIndex] ?? '')
     }
 
-    if (event.key === 'Tab') {
+    if (event.ctrlKey && event.code === 'Space') {
       event.preventDefault()
       const matches = guestCommands.filter((command) => command.startsWith(input))
       if (matches.length === 1) {
@@ -622,10 +791,23 @@ export function UsersTerminal() {
                             ? 'text-danger'
                             : 'text-subhead'
                   }`}
-                  data-scramble
+                  data-scramble={line.links ? undefined : true}
                   key={line.id}
                 >
                   {line.text}
+                  {line.links ? (
+                    <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
+                      {line.links.map((link) => (
+                        <Link
+                          className="text-accent underline decoration-line underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          href={link.href}
+                          key={link.href}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </span>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -737,7 +919,7 @@ export function UsersTerminal() {
                           : 'off'
                   }
                   autoCapitalize="none"
-                  aria-keyshortcuts="Control+C Control+L"
+                  aria-keyshortcuts="Control+Space Control+C Control+L"
                   disabled={isLoading}
                   spellCheck={false}
                   onChange={(event) => setInput(event.target.value)}

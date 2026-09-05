@@ -7,14 +7,19 @@ import { Input } from '@repo/ui/input'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
 import { useAuth } from './use-auth'
+import {
+  MAX_EMAIL_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MAX_USERNAME_INPUT_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  validateSignupField,
+} from './auth-validation'
 
 type AuthFormInputs = {
   username: string
   email: string
   password: string
 }
-
-const PASSWORD_MIN_LENGTH = 6
 
 export function AuthForm() {
   const { clearError, error, isLoading, signIn, signUp } = useAuth()
@@ -47,7 +52,7 @@ export function AuthForm() {
           className="flex items-center justify-between gap-3 border-b border-danger bg-danger-surface px-[clamp(18px,2vw,28px)] py-3 font-mono text-[0.68rem] tracking-[0.06em] text-danger lowercase"
           role="alert"
         >
-          {error}
+          {error.message}
           <button
             className="cursor-pointer border-0 bg-transparent p-0 text-danger underline underline-offset-4"
             onClick={clearError}
@@ -73,7 +78,16 @@ export function AuthForm() {
               placeholder={isSignUpMode ? 'john doe' : 'john-doe'}
               size={Size.LARGE}
               variant={Variant.SECONDARY}
-              {...register('username', { required: `${isSignUpMode ? 'name' : 'username'} is required` })}
+              {...register('username', {
+                maxLength: isSignUpMode
+                  ? {
+                      message: `keep your name under ${MAX_USERNAME_INPUT_LENGTH} characters`,
+                      value: MAX_USERNAME_INPUT_LENGTH,
+                    }
+                  : undefined,
+                required: `${isSignUpMode ? 'name' : 'username'} is required`,
+                validate: isSignUpMode ? (value) => validateSignupField('username', value) : undefined,
+              })}
             />
             {errors.username ? (
               <p
@@ -98,7 +112,14 @@ export function AuthForm() {
                 size={Size.LARGE}
                 type="email"
                 variant={Variant.SECONDARY}
-                {...register('email', { required: 'email is required' })}
+                {...register('email', {
+                  maxLength: {
+                    message: `keep your email under ${MAX_EMAIL_LENGTH} characters`,
+                    value: MAX_EMAIL_LENGTH,
+                  },
+                  required: 'email is required',
+                  validate: (value) => validateSignupField('email', value),
+                })}
               />
               {errors.email ? (
                 <p
@@ -124,8 +145,17 @@ export function AuthForm() {
               type="password"
               variant={Variant.SECONDARY}
               {...register('password', {
-                minLength: { message: `at least ${PASSWORD_MIN_LENGTH} characters`, value: PASSWORD_MIN_LENGTH },
+                maxLength: isSignUpMode
+                  ? {
+                      message: `keep your password under ${MAX_PASSWORD_LENGTH} characters`,
+                      value: MAX_PASSWORD_LENGTH,
+                    }
+                  : undefined,
+                minLength: isSignUpMode
+                  ? { message: `at least ${MIN_PASSWORD_LENGTH} characters`, value: MIN_PASSWORD_LENGTH }
+                  : undefined,
                 required: 'password is required',
+                validate: isSignUpMode ? (value) => validateSignupField('password', value) : undefined,
               })}
             />
             {errors.password ? (

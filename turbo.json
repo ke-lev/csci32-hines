@@ -9,7 +9,27 @@
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": [
+        "ALGORITHM",
+        "AUD",
+        "BCRYPT_ROUNDS",
+        "CORS_ORIGIN",
+        "DATABASE_URL",
+        "ENABLE_GRAPHIQL",
+        "EXPIRATION",
+        "OWNER_USERNAME",
+        "ISS",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_TIPS_URL",
+        "NODE_ENV",
+        "PRIVATE_KEY",
+        "PUBLIC_KEY",
+        "SPOTIFY_CLIENT_ID",
+        "SPOTIFY_CLIENT_SECRET",
+        "SPOTIFY_REDIRECT_URI",
+        "SPOTIFY_REFRESH_TOKEN"
+      ]
     },
     "check-types": {
       "dependsOn": ["^build", "^check-types"]

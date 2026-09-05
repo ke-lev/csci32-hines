@@ -377,6 +377,15 @@
     scrollbar-width: thin;
   }
 
+  .drawing-pad {
+    background: var(--color-surface);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-theme='dark'] .drawing-pad {
+    background: #000;
+  }
+
   .terminal-log {
     scrollbar-color: var(--color-line) transparent;
     scrollbar-width: thin;
