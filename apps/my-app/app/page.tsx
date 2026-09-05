@@ -34,6 +34,25 @@ const routePillClasses = [
   'transition-transform duration-180 group-hover:-translate-x-1 group-focus-visible:-translate-x-1 motion-reduce:transition-none',
 ].join(' ')
 
+function CatMark() {
+  return (
+    <span
+      aria-hidden="true"
+      className="ml-2 block size-28 shrink-0 bg-current text-foreground max-[560px]:size-24"
+      style={{
+        maskImage: "url('/cats_16.svg')",
+        maskPosition: 'center',
+        maskRepeat: 'no-repeat',
+        maskSize: 'contain',
+        WebkitMaskImage: "url('/cats_16.svg')",
+        WebkitMaskPosition: 'center',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskSize: 'contain',
+      }}
+    />
+  )
+}
+
 export default function Home() {
   const [thursdayAnswer, setThursdayAnswer] = useState<string | null>(null)
   const [hasReset, setHasReset] = useState(false)
@@ -86,8 +105,9 @@ export default function Home() {
               </div>
             </PageIntro>
           </div>
-          <div className="mt-auto pt-6 max-[900px]:mt-8 max-[900px]:pt-0">
+          <div className="mt-auto flex flex-wrap items-end gap-4 pt-6 max-[900px]:mt-8 max-[900px]:pt-0">
             <NowPlaying />
+            <CatMark />
           </div>
         </div>
       }

@@ -1,6 +1,8 @@
+import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin'
 import type { NextConfig } from 'next'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
+const __impeccableLiveDev = isDevelopment ? ' http://localhost:8400' : ''
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).origin : undefined
 const connectSources = ["'self'", apiOrigin, isDevelopment ? 'ws:' : undefined].filter(Boolean).join(' ')
 
@@ -8,11 +10,11 @@ const connectSources = ["'self'", apiOrigin, isDevelopment ? 'ws:' : undefined].
 // script-src keeps 'unsafe-inline' until there is a nonce path worth the complexity here.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}${__impeccableLiveDev}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://i.scdn.co",
   "font-src 'self' data:",
-  `connect-src ${connectSources}`,
+  `connect-src ${connectSources}${__impeccableLiveDev}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -23,6 +25,14 @@ const nextConfig: NextConfig = {
   // @repo/database exports raw TypeScript from src/, so Next has to compile it rather than
   // treat it as a prebuilt dependency the way @repo/ui is.
   transpilePackages: ['@repo/database'],
+  serverExternalPackages: ['@prisma/client', 'prisma'],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()]
+    }
+
+    return config
+  },
   images: {
     remotePatterns: [
       {

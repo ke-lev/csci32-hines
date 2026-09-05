@@ -1824,6 +1824,11 @@
   dependencies:
     "@prisma/debug" "6.19.0"
 
+"@prisma/nextjs-monorepo-workaround-plugin@6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@prisma/nextjs-monorepo-workaround-plugin/-/nextjs-monorepo-workaround-plugin-6.19.0.tgz#37770e0d6cc34abcc23f324d83eafa129a4b4695"
+  integrity sha512-gI80bqfPf8bmW2y2jISsIFrAYZlDcrPC+CBUS5Lehq5umsY0LD1O+qWd4T59OUdHKDb475vbAOiG6K8iQbZsfw==
+
 "@repeaterjs/repeater@^3.0.4", "@repeaterjs/repeater@^3.0.6", "@repeaterjs/repeater@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@repeaterjs/repeater/-/repeater-3.1.0.tgz#312b20a655e5b3ebfe8b1e04ec7df567bcb48d87"
