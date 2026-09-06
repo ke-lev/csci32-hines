@@ -1,9 +1,10 @@
 import 'reflect-metadata'
-import { Arg, Ctx, Field, ID, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Field, ID, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { Context } from '@/utils/graphql'
-import { requireCurrentUser, requireSiteOwner } from '@/utils/graphql'
+import { requireCurrentUser } from '@/utils/graphql'
 import { AuthPayload, SignUpInput, UserDTO } from '@/resolvers/types/AuthTypes'
 import { SignInInput } from '@/resolvers/types/SignInTypes'
+import { PermissionName } from '@repo/database'
 
 @ObjectType()
 class PublicUser {
@@ -17,9 +18,9 @@ class PublicUser {
 @Resolver()
 export class UserResolver {
   @Query(() => [PublicUser])
-  findManyUsers(@Ctx() context: Context) {
-    requireSiteOwner(context)
-    return context.userService.findMany()
+  @Authorized(PermissionName.UserRead)
+  findManyUsers(@Ctx() { userService }: Context) {
+    return userService.findMany()
   }
 
   @Query(() => UserDTO)

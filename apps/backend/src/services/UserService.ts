@@ -1,4 +1,4 @@
-import { PrismaClient } from '@repo/database'
+import { BASIC_ROLE_ID, PrismaClient } from '@repo/database'
 import type { SignUpInput } from '@/resolvers/types/AuthTypes'
 import type { SignInInput } from '@/resolvers/types/SignInTypes'
 import { validationError } from '@/utils/auth-errors'
@@ -70,17 +70,26 @@ export class UserService {
         email: normalizedEmail,
         username: normalizedUsername,
         passwordHash,
+        role: { connect: { role_id: BASIC_ROLE_ID } },
       },
       select: {
         user_id: true,
         email: true,
         username: true,
+        role: {
+          select: {
+            name: true,
+            role_permissions: { select: { permission: { select: { name: true } } } },
+          },
+        },
       },
     })
     const token = signToken({
       sub: user.user_id,
       email: user.email,
       username: user.username,
+      role: user.role?.name,
+      permissions: user.role?.role_permissions.map((p) => p.permission.name) ?? [],
     })
 
     return { user, token }
@@ -94,6 +103,12 @@ export class UserService {
         email: true,
         username: true,
         passwordHash: true,
+        role: {
+          select: {
+            name: true,
+            role_permissions: { select: { permission: { select: { name: true } } } },
+          },
+        },
       },
     })
 
@@ -112,6 +127,8 @@ export class UserService {
       sub: user.user_id,
       email: user.email,
       username: user.username,
+      role: found.role?.name,
+      permissions: found.role?.role_permissions.map((p) => p.permission.name) ?? [],
     })
 
     return { user, token }

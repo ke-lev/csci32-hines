@@ -1,9 +1,12 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { Algorithm, JwtPayload, SignOptions } from 'jsonwebtoken'
+import type { PermissionName, RoleName } from '@repo/database'
 
 export type AuthTokenPayload = JwtPayload & {
   email?: string | null
+  permissions?: PermissionName[]
+  role?: RoleName
   sub: string
   username?: string
 }
