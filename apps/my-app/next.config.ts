@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@repo/database'],
   serverExternalPackages: ['@prisma/client', 'prisma'],
   webpack: (config, { isServer }) => {
+    // NodeNext imports use .js extensions even when the workspace source is TypeScript.
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      '.js': ['.ts', '.tsx', '.js'],
+    }
     if (isServer) {
       config.plugins = [...config.plugins, new PrismaPlugin()]
     }
