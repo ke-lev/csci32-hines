@@ -1,19 +1,30 @@
 import { UserResolver } from '@/resolvers/UserResolver'
 import { TipIdeaResolver } from '@/resolvers/TipIdeaResolver'
 import { PersonalPageResolver } from '@/resolvers/PersonalPageResolver'
-import { buildSchema } from 'type-graphql'
+import { buildSchema, registerEnumType } from 'type-graphql'
 import type { NonEmptyArray } from 'type-graphql'
 import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { PrismaClient } from '@repo/database'
+import { PermissionName, PrismaClient, RoleName } from '@repo/database'
 import { getBooleanEnvVar } from '@/utils'
 import type { CurrentUser, UserService } from '@/services/UserService'
 import { normalizeUsername } from '@/services/auth-validation'
 import { verifyToken, type AuthTokenPayload } from './auth'
+import { customAuthChecker } from './authChecker'
 import { forbiddenError, unauthenticatedError } from './auth-errors'
 import mercurius from 'mercurius'
 import mercuriusLogging from 'mercurius-logging'
 const GRAPHQL_API_PATH = '/api/graphql'
 const GRAPHQL_DEPTH_LIMIT = 7
+
+registerEnumType(PermissionName, {
+  name: 'PermissionName',
+  description: 'Enum representing valid permissions for authorization',
+})
+
+registerEnumType(RoleName, {
+  name: 'RoleName',
+  description: 'Enum representing valid roles for users',
+})
 
 const resolvers: NonEmptyArray<typeof UserResolver | typeof TipIdeaResolver | typeof PersonalPageResolver> = [
   UserResolver,
@@ -58,6 +69,7 @@ export function requireSiteOwner(context: Pick<Context, 'currentUser'>): Current
 export async function registerGraphQL(fastify: FastifyInstance) {
   const schema = await buildSchema({
     resolvers,
+    authChecker: customAuthChecker,
   })
   const graphiql = getBooleanEnvVar('ENABLE_GRAPHIQL', false)
   fastify.log.info(`GraphiQL is ${graphiql ? 'enabled' : 'disabled'}`)
