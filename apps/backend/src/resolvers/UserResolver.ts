@@ -1,9 +1,10 @@
 import 'reflect-metadata'
-import { Arg, Authorized, Ctx, Field, ID, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Field, ID, Int, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { Context } from '@/utils/graphql'
 import { requireCurrentUser } from '@/utils/graphql'
 import { AuthPayload, SignUpInput, UserDTO } from '@/resolvers/types/AuthTypes'
 import { SignInInput } from '@/resolvers/types/SignInTypes'
+import { FindManyUsersInput } from '@/resolvers/types/FindManyUsersInput'
 import { PermissionName } from '@repo/database'
 
 @ObjectType()
@@ -19,8 +20,20 @@ class PublicUser {
 export class UserResolver {
   @Query(() => [PublicUser])
   @Authorized(PermissionName.UserRead)
-  findManyUsers(@Ctx() { userService }: Context) {
-    return userService.findMany()
+  findManyUsers(
+    @Ctx() { userService }: Context,
+    @Arg('params', () => FindManyUsersInput, { nullable: true }) params?: FindManyUsersInput,
+  ) {
+    return userService.findMany(params ?? {})
+  }
+
+  @Query(() => Int)
+  @Authorized(PermissionName.UserRead)
+  totalUsers(
+    @Ctx() { userService }: Context,
+    @Arg('params', () => FindManyUsersInput, { nullable: true }) params?: FindManyUsersInput,
+  ) {
+    return userService.getTotalUsers(params?.filters)
   }
 
   @Query(() => UserDTO)

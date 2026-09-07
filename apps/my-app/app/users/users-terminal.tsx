@@ -114,6 +114,29 @@ const guestCommands = [
   'exit',
 ]
 
+// Narration for the sign-in round trip, which is long enough that a silent terminal reads as
+// broken. Every step is real work: the API call, the bcrypt compare at 10 rounds (seedUsers.ts),
+// and the role/permission lookup.
+const authSteps = [
+  '==> resolving kelev-backend:4000',
+  '==> verifying credentials (bcrypt, 10 rounds)',
+  '==> fetching role bindings',
+]
+const authStepDurationMs = 150
+const authTickMs = 60
+const authBarWidth = 44
+// The bar has no idea how long the request has left, so it eases toward a ceiling it never
+// reaches on its own. Only a request that actually came back gets to draw a full bar.
+const authBarCeiling = 0.96
+const authBarEaseMs = 380
+
+function renderAuthBar(ratio: number) {
+  const filled = Math.round(authBarWidth * ratio)
+  const percent = `${(ratio * 100).toFixed(1)}%`.padStart(7)
+
+  return `${'#'.repeat(filled)}${' '.repeat(authBarWidth - filled)}${percent}`
+}
+
 const initialLines: Line[] = [
   { id: 1, kind: 'muted', text: 'last login: just now on ttys001' },
   { id: 2, kind: 'muted', text: 'login / signup, or type help for a list of commands' },
@@ -181,6 +204,7 @@ export function UsersTerminal() {
   const logRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<HTMLDivElement>(null)
   const directionRef = useRef<Direction>('right')
+  const authTickerRef = useRef<number | null>(null)
   const queuedDirectionRef = useRef<Direction>('right')
   const terminalUser = isHydrated && isSessionChecked ? user : null
   const identity = terminalUser?.username || terminalUser?.email || 'guest'
@@ -250,11 +274,65 @@ export function UsersTerminal() {
   useEffect(() => {
     return () => {
       if (meltdownTimerRef.current) window.clearTimeout(meltdownTimerRef.current)
+      if (authTickerRef.current) window.clearInterval(authTickerRef.current)
     }
   }, [])
 
   function append(entries: Omit<Line, 'id'>[]) {
     setLines((current) => [...current, ...entries.map((entry) => ({ ...entry, id: nextId.current++ }))])
+  }
+
+  function appendLine(entry: Omit<Line, 'id'>) {
+    const id = nextId.current++
+    setLines((current) => [...current, { ...entry, id }])
+    return id
+  }
+
+  function insertLineBefore(anchorId: number, entry: Omit<Line, 'id'>) {
+    const id = nextId.current++
+    setLines((current) => {
+      const index = current.findIndex((line) => line.id === anchorId)
+      if (index === -1) return [...current, { ...entry, id }]
+
+      return [...current.slice(0, index), { ...entry, id }, ...current.slice(index)]
+    })
+    return id
+  }
+
+  function setLineText(lineId: number, text: string) {
+    setLines((current) => current.map((line) => (line.id === lineId ? { ...line, text } : line)))
+  }
+
+  // Draws alongside the real request and never outlives it. Steps land on a timer, but the work
+  // is never held back to let them finish — if auth returns first, the log stops where it got to,
+  // which is also what a download that ended early looks like.
+  async function withAuthTicker<T>(work: Promise<T>): Promise<T> {
+    const barId = appendLine({ kind: 'output', text: renderAuthBar(0) })
+    insertLineBefore(barId, { kind: 'muted', text: authSteps[0] })
+    const startedAt = Date.now()
+    let shownSteps = 1
+
+    authTickerRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt
+      const dueSteps = Math.min(Math.floor(elapsed / authStepDurationMs) + 1, authSteps.length)
+
+      while (shownSteps < dueSteps) {
+        insertLineBefore(barId, { kind: 'muted', text: authSteps[shownSteps] })
+        shownSteps += 1
+      }
+
+      setLineText(barId, renderAuthBar(authBarCeiling * (1 - Math.exp(-elapsed / authBarEaseMs))))
+    }, authTickMs)
+
+    try {
+      const result = await work
+      if (result) setLineText(barId, renderAuthBar(1))
+
+      return result
+    } finally {
+      if (authTickerRef.current) window.clearInterval(authTickerRef.current)
+      authTickerRef.current = null
+    }
   }
 
   function describeGrant() {
@@ -654,11 +732,18 @@ export function UsersTerminal() {
     }
 
     if (promptState.kind === 'login-password') {
-      const result = await signIn({ username: promptState.username, password: input })
+      const result = await withAuthTicker(signIn({ username: promptState.username, password: input }))
       if (!result) {
-        append([{ kind: 'error', text: 'login failed. check your username and password, then try again' }])
+        append([{ kind: 'error', text: '✗ login failed. check your username and password, then try again' }])
         setPromptState({ kind: 'login-username' })
       } else {
+        const { permissions: grantedPermissions, role, username } = result.user
+        append([
+          {
+            kind: 'accent',
+            text: `✓ signed in as ${username}  role=${role ?? 'none'}  perms=${grantedPermissions.length ? grantedPermissions.join(',') : 'none'}`,
+          },
+        ])
         setPromptState({ kind: 'command' })
       }
       return

@@ -4,6 +4,18 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never }
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core'
+export type FindManyUsersFilters = {
+  query?: string | null | undefined
+}
+
+export type FindManyUsersInput = {
+  filters?: FindManyUsersFilters | null | undefined
+  skip?: number | null | undefined
+  sortColumn?: UserSortColumn | null | undefined
+  sortDirection?: SortOrder | null | undefined
+  take?: number | null | undefined
+}
+
 /** Enum representing valid permissions for authorization */
 export type PermissionName = 'UserRead' | 'UserWrite'
 
@@ -31,15 +43,23 @@ export type SignUpInput = {
   username: string
 }
 
+/** Defines ascending or descending sort order. */
+export type SortOrder = 'ASC' | 'DESC'
+
 export type UpdateTipIdeaInput = {
   receipt: string
   shippedHref?: string | null | undefined
   status: string
 }
 
-export type FindManyUsersQueryVariables = Exact<{ [key: string]: never }>
+/** Columns a user listing may be sorted by. */
+export type UserSortColumn = 'EMAIL' | 'USERNAME'
 
-export type FindManyUsersQuery = { findManyUsers: Array<{ user_id: string; username: string }> }
+export type FindManyUsersQueryVariables = Exact<{
+  params?: FindManyUsersInput | null | undefined
+}>
+
+export type FindManyUsersQuery = { totalUsers: number; findManyUsers: Array<{ user_id: string; username: string }> }
 
 export type SignUpMutationVariables = Exact<{
   input: SignUpInput
@@ -154,12 +174,26 @@ export const FindManyUsersDocument = {
       kind: 'OperationDefinition',
       operation: 'query',
       name: { kind: 'Name', value: 'FindManyUsers' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'params' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'FindManyUsersInput' } },
+        },
+      ],
       selectionSet: {
         kind: 'SelectionSet',
         selections: [
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'findManyUsers' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'params' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'params' } },
+              },
+            ],
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
@@ -167,6 +201,17 @@ export const FindManyUsersDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'username' } },
               ],
             },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'totalUsers' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'params' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'params' } },
+              },
+            ],
           },
         ],
       },
