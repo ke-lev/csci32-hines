@@ -7,10 +7,9 @@ import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest }
 import { PermissionName, PrismaClient, RoleName } from '@repo/database'
 import { getBooleanEnvVar } from '@/utils'
 import type { CurrentUser, UserService } from '@/services/UserService'
-import { normalizeUsername } from '@/services/auth-validation'
 import { verifyToken, type AuthTokenPayload } from './auth'
 import { customAuthChecker } from './authChecker'
-import { forbiddenError, unauthenticatedError } from './auth-errors'
+import { unauthenticatedError } from './auth-errors'
 import mercurius from 'mercurius'
 import mercuriusLogging from 'mercurius-logging'
 const GRAPHQL_API_PATH = '/api/graphql'
@@ -53,17 +52,6 @@ export function requireCurrentUser(context: Pick<Context, 'currentUser'>): Curre
   }
 
   return context.currentUser
-}
-
-export function requireSiteOwner(context: Pick<Context, 'currentUser'>): CurrentUser {
-  const currentUser = requireCurrentUser(context)
-  const ownerUsername = process.env.OWNER_USERNAME
-
-  if (!ownerUsername || normalizeUsername(ownerUsername) !== currentUser.username) {
-    throw forbiddenError()
-  }
-
-  return currentUser
 }
 
 export async function registerGraphQL(fastify: FastifyInstance) {

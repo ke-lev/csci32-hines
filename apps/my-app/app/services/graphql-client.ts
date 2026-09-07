@@ -1,32 +1,25 @@
 import { GraphQLClient } from 'graphql-request'
+import { dropLegacySessionKeys, readStoredSession } from './auth-session'
 
 const GRAPHQL_API_PATH = '/api/graphql'
 
 export const gqlClient = new GraphQLClient(`${process.env.NEXT_PUBLIC_API_URL}${GRAPHQL_API_PATH}`)
 
+// these only manage the outgoing header; persistence belongs to auth-session so that a
+// session is always written and cleared as a single localStorage entry.
 export function setAuthToken(token: string) {
   gqlClient.setHeader('Authorization', `Bearer ${token}`)
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('authToken', token)
-  }
 }
 
 export function clearAuthToken() {
   gqlClient.setHeader('Authorization', '')
-
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('authToken')
-  }
 }
 
 export function initializeAuth() {
-  if (typeof window === 'undefined') return
+  const session = readStoredSession()
 
-  const token = localStorage.getItem('authToken')
-  if (token) {
-    gqlClient.setHeader('Authorization', `Bearer ${token}`)
-  }
+  gqlClient.setHeader('Authorization', session ? `Bearer ${session.token}` : '')
 }
 
+dropLegacySessionKeys()
 initializeAuth()

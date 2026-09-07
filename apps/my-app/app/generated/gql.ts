@@ -14,9 +14,10 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-  '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n': typeof types.SignUpDocument
-  '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n': typeof types.SignInDocument
-  '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n    }\n  }\n': typeof types.CurrentUserDocument
+  '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n': typeof types.FindManyUsersDocument
+  '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignUpDocument
+  '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignInDocument
+  '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n': typeof types.CurrentUserDocument
   '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.MyPersonalPageDocument
   '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalIntroDocument
   '\n  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {\n    savePersonalDrawing(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalDrawingDocument
@@ -24,11 +25,13 @@ type Documents = {
   '\n  mutation UpdateTipIdea($input: UpdateTipIdeaInput!) {\n    updateTipIdea(input: $input) {\n      body\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.UpdateTipIdeaDocument
 }
 const documents: Documents = {
-  '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n':
+  '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n':
+    types.FindManyUsersDocument,
+  '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n':
     types.SignUpDocument,
-  '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n':
+  '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n':
     types.SignInDocument,
-  '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n    }\n  }\n':
+  '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n':
     types.CurrentUserDocument,
   '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n':
     types.MyPersonalPageDocument,
@@ -60,20 +63,26 @@ export function graphql(source: string): unknown
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n',
-): (typeof documents)['\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n']
+  source: '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n',
+): (typeof documents)['\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n',
-): (typeof documents)['\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n      }\n    }\n  }\n']
+  source: '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n',
+): (typeof documents)['\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n    }\n  }\n',
-): (typeof documents)['\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n    }\n  }\n']
+  source: '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n',
+): (typeof documents)['\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n']
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n',
+): (typeof documents)['\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
