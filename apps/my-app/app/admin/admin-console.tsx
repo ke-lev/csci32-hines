@@ -38,14 +38,19 @@ const routes = [
 
 const tabOrder: TabId[] = ['routes', 'posts', 'users']
 
+// One request for the page and its total: a count fetched separately can disagree with the
+// rows beside it, which is how pagers end up offering a "next" that lands on nothing.
 const FIND_MANY_USERS_QUERY = graphql(`
-  query FindManyUsers {
-    findManyUsers {
+  query FindManyUsers($params: FindManyUsersInput) {
+    findManyUsers(params: $params) {
       user_id
       username
     }
+    totalUsers(params: $params)
   }
 `)
+
+const USERS_PAGE_SIZE = 10
 
 function pad(value: number) {
   return String(value).padStart(2, '0')
@@ -55,6 +60,8 @@ const rowClasses =
   'grid w-full items-center gap-4 border-b border-line px-[clamp(18px,2vw,28px)] py-3.5 text-left last:border-b-0'
 const interactiveRowClasses = `${rowClasses} transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none`
 const noticeClasses = 'px-[clamp(18px,2vw,28px)] py-4 text-xs text-muted'
+const controlClasses =
+  'rounded-xs border border-line bg-background px-2.5 py-1.5 font-mono text-[0.64rem] tracking-[0.05em] text-foreground transition-colors duration-180 hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-background motion-reduce:transition-none'
 
 export function AdminConsole({ posts }: AdminConsoleProps) {
   const router = useRouter()
@@ -63,6 +70,11 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
   const [canScrollAdmin, setCanScrollAdmin] = useState(false)
   const [users, setUsers] = useState<ConsoleUser[]>([])
   const [usersState, setUsersState] = useState<UsersState>('idle')
+  const [userCount, setUserCount] = useState(0)
+  const [userSearch, setUserSearch] = useState('')
+  const [userQuery, setUserQuery] = useState('')
+  const [userPage, setUserPage] = useState(0)
+  const [userSort, setUserSort] = useState<'ASC' | 'DESC'>('ASC')
   const [activeTab, setActiveTab] = useState<TabId>('routes')
   const adminScrollRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
@@ -77,16 +89,37 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
     return () => window.cancelAnimationFrame(accessFrame)
   }, [isAdmin, isHydrated, isSessionChecked])
 
+  // Every keystroke would otherwise be its own round trip. Hold them for a beat, then send one
+  // query for the settled phrase — and go back to page 1, since page 4 of the old result set
+  // says nothing about the new one.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setUserQuery(userSearch.trim())
+      setUserPage(0)
+    }, 250)
+
+    return () => window.clearTimeout(timer)
+  }, [userSearch])
+
   useEffect(() => {
     if (access !== 'granted') return
 
     let cancelled = false
 
     gqlClient
-      .request(FIND_MANY_USERS_QUERY)
+      .request(FIND_MANY_USERS_QUERY, {
+        params: {
+          skip: userPage * USERS_PAGE_SIZE,
+          take: USERS_PAGE_SIZE,
+          sortColumn: 'USERNAME',
+          sortDirection: userSort,
+          filters: { query: userQuery },
+        },
+      })
       .then((result) => {
         if (cancelled) return
         setUsers(result.findManyUsers)
+        setUserCount(result.totalUsers)
         setUsersState('loaded')
       })
       .catch(() => {
@@ -96,7 +129,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
     return () => {
       cancelled = true
     }
-  }, [access])
+  }, [access, userPage, userQuery, userSort])
 
   useEffect(() => {
     if (access !== 'granted') return
@@ -145,10 +178,13 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
   }
 
   const isGranted = access === 'granted'
+  const firstUserRow = userPage * USERS_PAGE_SIZE + 1
+  const lastUserRow = userPage * USERS_PAGE_SIZE + users.length
+  const hasNextUserPage = (userPage + 1) * USERS_PAGE_SIZE < userCount
   const tabs: { id: TabId; label: string; value: string }[] = [
     { id: 'routes', label: 'routes', value: pad(routes.length) },
     { id: 'posts', label: 'timeline posts', value: pad(posts.length) },
-    { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(users.length) : '--' },
+    { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(userCount) : '--' },
   ]
 
   return (
@@ -300,23 +336,72 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
                     ))
                   ))}
 
-                {activeTab === 'users' &&
-                  (usersState === 'idle' ? (
-                    <p className={noticeClasses}>loading users…</p>
-                  ) : usersState === 'error' ? (
-                    <p className={noticeClasses}>could not load users</p>
-                  ) : users.length === 0 ? (
-                    <p className={noticeClasses}>no users found</p>
-                  ) : (
-                    users.map((consoleUser) => (
-                      <div className={`${rowClasses} grid-cols-[minmax(0,1fr)_auto]`} key={consoleUser.user_id}>
-                        <span className="truncate font-mono text-[0.68rem] text-foreground">
-                          {consoleUser.username}
-                        </span>
-                        <span className="truncate font-mono text-[0.64rem] text-muted">{consoleUser.user_id}</span>
+                {activeTab === 'users' && (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2.5 border-b border-line bg-surface px-[clamp(18px,2vw,28px)] py-3">
+                      <input
+                        aria-label="Filter users by username or email"
+                        className="min-w-[14ch] flex-1 rounded-xs border border-line bg-background px-2.5 py-1.5 font-mono text-[0.68rem] text-foreground placeholder:text-muted focus:border-foreground focus:outline-none focus-visible:outline-none"
+                        placeholder="filter username or email…"
+                        type="search"
+                        value={userSearch}
+                        onChange={(event) => setUserSearch(event.target.value)}
+                      />
+                      <button
+                        className={controlClasses}
+                        type="button"
+                        aria-label={`Sort by username, currently ${userSort === 'ASC' ? 'ascending' : 'descending'}`}
+                        onClick={() => {
+                          setUserSort(userSort === 'ASC' ? 'DESC' : 'ASC')
+                          setUserPage(0)
+                        }}
+                      >
+                        username {userSort === 'ASC' ? '↑' : '↓'}
+                      </button>
+                    </div>
+
+                    {usersState === 'idle' ? (
+                      <p className={noticeClasses}>loading users…</p>
+                    ) : usersState === 'error' ? (
+                      <p className={noticeClasses}>could not load users</p>
+                    ) : users.length === 0 ? (
+                      <p className={noticeClasses}>{userQuery ? `no users match “${userQuery}”` : 'no users found'}</p>
+                    ) : (
+                      users.map((consoleUser) => (
+                        <div className={`${rowClasses} grid-cols-[minmax(0,1fr)_auto]`} key={consoleUser.user_id}>
+                          <span className="truncate font-mono text-[0.68rem] text-foreground">
+                            {consoleUser.username}
+                          </span>
+                          <span className="truncate font-mono text-[0.64rem] text-muted">{consoleUser.user_id}</span>
+                        </div>
+                      ))
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 border-t border-line px-[clamp(18px,2vw,28px)] py-3">
+                      <p className="m-0 font-mono text-[0.64rem] tracking-[0.05em] text-muted" aria-live="polite">
+                        {userCount === 0 ? 'no results' : `${firstUserRow}–${lastUserRow} of ${userCount}`}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          className={controlClasses}
+                          type="button"
+                          disabled={userPage === 0}
+                          onClick={() => setUserPage(userPage - 1)}
+                        >
+                          prev
+                        </button>
+                        <button
+                          className={controlClasses}
+                          type="button"
+                          disabled={!hasNextUserPage}
+                          onClick={() => setUserPage(userPage + 1)}
+                        >
+                          next
+                        </button>
                       </div>
-                    ))
-                  ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

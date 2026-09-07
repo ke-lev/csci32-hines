@@ -14,7 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-  '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n': typeof types.FindManyUsersDocument
+  '\n  query FindManyUsers($params: FindManyUsersInput) {\n    findManyUsers(params: $params) {\n      user_id\n      username\n    }\n    totalUsers(params: $params)\n  }\n': typeof types.FindManyUsersDocument
   '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignUpDocument
   '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignInDocument
   '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n': typeof types.CurrentUserDocument
@@ -25,7 +25,7 @@ type Documents = {
   '\n  mutation UpdateTipIdea($input: UpdateTipIdeaInput!) {\n    updateTipIdea(input: $input) {\n      body\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.UpdateTipIdeaDocument
 }
 const documents: Documents = {
-  '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n':
+  '\n  query FindManyUsers($params: FindManyUsersInput) {\n    findManyUsers(params: $params) {\n      user_id\n      username\n    }\n    totalUsers(params: $params)\n  }\n':
     types.FindManyUsersDocument,
   '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n':
     types.SignUpDocument,
@@ -63,8 +63,8 @@ export function graphql(source: string): unknown
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n',
-): (typeof documents)['\n  query FindManyUsers {\n    findManyUsers {\n      user_id\n      username\n    }\n  }\n']
+  source: '\n  query FindManyUsers($params: FindManyUsersInput) {\n    findManyUsers(params: $params) {\n      user_id\n      username\n    }\n    totalUsers(params: $params)\n  }\n',
+): (typeof documents)['\n  query FindManyUsers($params: FindManyUsersInput) {\n    findManyUsers(params: $params) {\n      user_id\n      username\n    }\n    totalUsers(params: $params)\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
