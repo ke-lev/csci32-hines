@@ -1,8 +1,8 @@
 import 'reflect-metadata'
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from 'type-graphql'
 import type { Context } from '@/utils/graphql'
-import { requireSiteOwner } from '@/utils/graphql'
 import { GraphQLError } from 'graphql'
+import { PermissionName } from '@repo/database'
 
 const IDEA_STATUSES = ['heard', 'trying_it', 'shipped'] as const
 type IdeaStatus = (typeof IDEA_STATUSES)[number]
@@ -64,9 +64,8 @@ function toView(row: {
 @Resolver()
 export class TipIdeaResolver {
   @Query(() => [TipIdea])
+  @Authorized(PermissionName.UserWrite)
   async findManyTipIdeas(@Ctx() context: Context): Promise<TipIdea[]> {
-    requireSiteOwner(context)
-
     const rows = await context.prisma.tipIdea.findMany({
       orderBy: [{ created_at: 'desc' }, { idea_id: 'desc' }],
       select: {
@@ -83,12 +82,11 @@ export class TipIdeaResolver {
   }
 
   @Mutation(() => TipIdea)
+  @Authorized(PermissionName.UserWrite)
   async updateTipIdea(
     @Arg('input', () => UpdateTipIdeaInput) input: UpdateTipIdeaInput,
     @Ctx() context: Context,
   ): Promise<TipIdea> {
-    requireSiteOwner(context)
-
     const status = input.status === 'trying' ? 'trying_it' : input.status
     if (!isIdeaStatus(status)) {
       throw new GraphQLError('status must be heard, trying, or shipped', {

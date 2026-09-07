@@ -11,5 +11,9 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   const posts = await getTimelinePosts()
 
-  return <AdminConsole timelinePostCount={posts.length} />
+  return (
+    <AdminConsole
+      posts={posts.map(({ dateLabel, slug, title }) => ({ dateLabel, slug, title }))}
+    />
+  )
 }

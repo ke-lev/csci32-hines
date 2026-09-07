@@ -1,4 +1,4 @@
-import { BASIC_ROLE_ID, PrismaClient } from '@repo/database'
+import { BASIC_ROLE_ID, PermissionName, PrismaClient, RoleName } from '@repo/database'
 import type { SignUpInput } from '@/resolvers/types/AuthTypes'
 import type { SignInInput } from '@/resolvers/types/SignInTypes'
 import { validationError } from '@/utils/auth-errors'
@@ -11,8 +11,45 @@ export interface UserServiceProps {
 
 export type CurrentUser = {
   email: string | null
+  permissions: PermissionName[]
+  role: RoleName | null
   user_id: string
   username: string
+}
+
+// Shared select for the queries that need to resolve a user's role and permissions
+// (in addition to the base user fields), so the shape used to build a CurrentUser
+// stays in one place instead of being hand-rolled per query.
+const userWithRoleSelect = {
+  user_id: true,
+  email: true,
+  username: true,
+  role: {
+    select: {
+      name: true,
+      role_permissions: { select: { permission: { select: { name: true } } } },
+    },
+  },
+} as const
+
+type UserWithRole = {
+  user_id: string
+  email: string | null
+  username: string
+  role: {
+    name: RoleName
+    role_permissions: { permission: { name: PermissionName } }[]
+  } | null
+}
+
+function flattenUser(user: UserWithRole): CurrentUser {
+  return {
+    user_id: user.user_id,
+    email: user.email,
+    username: user.username,
+    role: user.role?.name ?? null,
+    permissions: user.role?.role_permissions.map((rp) => rp.permission.name) ?? [],
+  }
 }
 
 export class UserService {
@@ -31,15 +68,13 @@ export class UserService {
     })
   }
 
-  findById(userId: string): Promise<CurrentUser | null> {
-    return this.prisma.user.findUnique({
+  async findById(userId: string): Promise<CurrentUser | null> {
+    const user = await this.prisma.user.findUnique({
       where: { user_id: userId },
-      select: {
-        email: true,
-        user_id: true,
-        username: true,
-      },
+      select: userWithRoleSelect,
     })
+
+    return user ? flattenUser(user) : null
   }
 
   async createUser(input: SignUpInput) {
@@ -65,31 +100,24 @@ export class UserService {
     }
 
     const passwordHash = await hashPassword(password)
-    const user = await this.prisma.user.create({
+    const created = await this.prisma.user.create({
       data: {
         email: normalizedEmail,
         username: normalizedUsername,
         passwordHash,
         role: { connect: { role_id: BASIC_ROLE_ID } },
       },
-      select: {
-        user_id: true,
-        email: true,
-        username: true,
-        role: {
-          select: {
-            name: true,
-            role_permissions: { select: { permission: { select: { name: true } } } },
-          },
-        },
-      },
+      select: userWithRoleSelect,
     })
+    const user = flattenUser(created)
+    // These claims are a convenience for the client. Authorization reads permissions from the
+    // database on every request (see authChecker), so a stale claim cannot widen access.
     const token = signToken({
       sub: user.user_id,
       email: user.email,
       username: user.username,
-      role: user.role?.name,
-      permissions: user.role?.role_permissions.map((p) => p.permission.name) ?? [],
+      role: user.role,
+      permissions: user.permissions,
     })
 
     return { user, token }
@@ -99,16 +127,8 @@ export class UserService {
     const found = await this.prisma.user.findUnique({
       where: { username: normalizeUsername(username) },
       select: {
-        user_id: true,
-        email: true,
-        username: true,
+        ...userWithRoleSelect,
         passwordHash: true,
-        role: {
-          select: {
-            name: true,
-            role_permissions: { select: { permission: { select: { name: true } } } },
-          },
-        },
       },
     })
 
@@ -118,17 +138,15 @@ export class UserService {
       throw new Error('Invalid username or password')
     }
 
-    const user = {
-      user_id: found.user_id,
-      email: found.email,
-      username: found.username,
-    }
+    const user = flattenUser(found)
+    // These claims are a convenience for the client. Authorization reads permissions from the
+    // database on every request (see authChecker), so a stale claim cannot widen access.
     const token = signToken({
       sub: user.user_id,
       email: user.email,
       username: user.username,
-      role: found.role?.name,
-      permissions: found.role?.role_permissions.map((p) => p.permission.name) ?? [],
+      role: user.role,
+      permissions: user.permissions,
     })
 
     return { user, token }

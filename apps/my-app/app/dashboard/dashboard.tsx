@@ -48,11 +48,23 @@ export function Dashboard() {
   const [introError, setIntroError] = useState<string | null>(null)
   const [isSavingIntro, setIsSavingIntro] = useState(false)
 
+  const userId = user?.user_id ?? null
   const isReady = isHydrated && isSessionChecked && Boolean(user)
   const { isSettled, loadError, saveDrawing, saveIntro, savedIntro, savedStrokes } = usePersonalPage({
-    isReady,
     recoverSession,
+    userId,
   })
+
+  // an unsaved draft belongs to the account that typed it, so a session swap clears it rather than
+  // letting it be saved onto whoever signs in next
+  const [draftUserId, setDraftUserId] = useState(userId)
+
+  if (userId !== draftUserId) {
+    setDraftUserId(userId)
+    setDraftIntro(null)
+    setIntroMessage(null)
+    setIntroError(null)
+  }
 
   useEffect(() => {
     if (isHydrated && isSessionChecked && !user) {

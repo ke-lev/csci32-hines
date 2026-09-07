@@ -1,4 +1,5 @@
 import { Field, ID, InputType, ObjectType } from 'type-graphql'
+import { PermissionName, RoleName } from '@repo/database'
 
 @InputType()
 export class SignUpInput {
@@ -22,6 +23,12 @@ export class UserDTO {
 
   @Field(() => String, { nullable: true })
   email?: string | null
+
+  @Field(() => RoleName, { nullable: true })
+  role?: RoleName | null
+
+  @Field(() => [PermissionName])
+  permissions!: PermissionName[]
 }
 
 @ObjectType()

@@ -96,19 +96,33 @@ function extractReason(caughtError: unknown, fallback: string) {
  * the session behind the request, so there is no page id to pass and no other account to reach.
  */
 export function usePersonalPage({
-  isReady,
   recoverSession,
+  userId,
 }: {
-  isReady: boolean
   recoverSession: (caughtError: unknown) => boolean
+  userId: string | null
 }) {
   const [savedIntro, setSavedIntro] = useState<IntroCopy | null>(null)
   const [savedStrokes, setSavedStrokes] = useState<StoredStroke[] | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // keyed on the account rather than a readiness flag. when another tab swaps the session a
+  // boolean stays true, so the previous account's page would stay on screen — and the next save
+  // would write it under the new account's token. adjusted during render (rather than in an
+  // effect) so no paint ever shows one account's page while another is signed in.
+  const [loadedUserId, setLoadedUserId] = useState(userId)
+
+  if (userId !== loadedUserId) {
+    setLoadedUserId(userId)
+    setSavedIntro(null)
+    setSavedStrokes(null)
+    setIsLoaded(false)
+    setLoadError(null)
+  }
+
   useEffect(() => {
-    if (!isReady) return
+    if (!userId) return
 
     let cancelled = false
 
@@ -134,7 +148,7 @@ export function usePersonalPage({
     return () => {
       cancelled = true
     }
-  }, [isReady, recoverSession])
+  }, [recoverSession, userId])
 
   const saveIntro = useCallback(
     async (intro: IntroCopy): Promise<SaveIntroResult> => {

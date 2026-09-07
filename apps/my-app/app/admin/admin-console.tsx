@@ -1,51 +1,102 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
-import { readSessionStats, type SessionStats } from '../lib/session-stats'
+import { useAuth } from '../components/use-auth'
+import { graphql } from '../generated/gql'
+import { gqlClient } from '../services/graphql-client'
 
 type AccessState = 'checking' | 'granted' | 'denied'
+type ConsoleUser = { user_id: string; username: string }
+type UsersState = 'idle' | 'loaded' | 'error'
+type TabId = 'routes' | 'posts' | 'users'
+
+export type ConsolePost = {
+  dateLabel: string
+  slug: string
+  title: string
+}
 
 type AdminConsoleProps = {
-  timelinePostCount: number
+  posts: ConsolePost[]
 }
 
 const routes = [
   { path: '/', label: 'home', access: 'public' },
   { path: '/buttons/', label: 'buttons', access: 'public' },
   { path: '/input/', label: 'input', access: 'public' },
+  { path: '/input/roll/', label: 'roll call', access: 'public' },
   { path: '/games/', label: 'games', access: 'public' },
   { path: '/games/random-number-guesser/', label: 'number guesser', access: 'public' },
   { path: '/games/game-of-life/', label: 'game of life', access: 'public' },
-  { path: '/input/roll/', label: 'roll call', access: 'public' },
   { path: '/timeline/', label: 'timeline', access: 'public' },
   { path: '/users/', label: 'users shell', access: 'unlisted' },
   { path: '/admin/', label: 'admin', access: 'root' },
 ]
 
+const tabOrder: TabId[] = ['routes', 'posts', 'users']
+
+const FIND_MANY_USERS_QUERY = graphql(`
+  query FindManyUsers {
+    findManyUsers {
+      user_id
+      username
+    }
+  }
+`)
+
 function pad(value: number) {
   return String(value).padStart(2, '0')
 }
 
-export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
+const rowClasses =
+  'grid w-full items-center gap-4 border-b border-line px-[clamp(18px,2vw,28px)] py-3.5 text-left last:border-b-0'
+const interactiveRowClasses = `${rowClasses} transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none`
+const noticeClasses = 'px-[clamp(18px,2vw,28px)] py-4 text-xs text-muted'
+
+export function AdminConsole({ posts }: AdminConsoleProps) {
   const router = useRouter()
+  const { isAdmin, isHydrated, isSessionChecked, signOut } = useAuth()
   const [access, setAccess] = useState<AccessState>('checking')
-  const [sessionStats, setSessionStats] = useState<SessionStats>({ commands: 0, snakeBest: 0 })
-  const [guestShellEnabled, setGuestShellEnabled] = useState(true)
-  const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [canScrollAdmin, setCanScrollAdmin] = useState(false)
+  const [users, setUsers] = useState<ConsoleUser[]>([])
+  const [usersState, setUsersState] = useState<UsersState>('idle')
+  const [activeTab, setActiveTab] = useState<TabId>('routes')
   const adminScrollRef = useRef<HTMLDivElement>(null)
+  const tabRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
 
   useEffect(() => {
+    // deferred to a frame so the first client render still matches the server's
+    // ('checking') output — avoids a hydration mismatch on this session-derived state
     const accessFrame = window.requestAnimationFrame(() => {
-      setAccess(window.sessionStorage.getItem('kelev-admin') === 'root' ? 'granted' : 'denied')
-      setSessionStats(readSessionStats())
+      setAccess(!isHydrated || !isSessionChecked ? 'checking' : isAdmin ? 'granted' : 'denied')
     })
 
     return () => window.cancelAnimationFrame(accessFrame)
-  }, [])
+  }, [isAdmin, isHydrated, isSessionChecked])
+
+  useEffect(() => {
+    if (access !== 'granted') return
+
+    let cancelled = false
+
+    gqlClient
+      .request(FIND_MANY_USERS_QUERY)
+      .then((result) => {
+        if (cancelled) return
+        setUsers(result.findManyUsers)
+        setUsersState('loaded')
+      })
+      .catch(() => {
+        if (!cancelled) setUsersState('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [access])
 
   useEffect(() => {
     if (access !== 'granted') return
@@ -63,10 +114,11 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
     resizeObserver.observe(scrollPanel)
 
     return () => resizeObserver.disconnect()
-  }, [access])
+    // activeTab is a dependency because each panel is a different height
+  }, [access, activeTab])
 
   function endSession() {
-    window.sessionStorage.removeItem('kelev-admin')
+    signOut()
     router.push('/')
   }
 
@@ -81,14 +133,22 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
     })
   }
 
+  // arrow keys move between tabs and carry focus with them, per the tabs pattern
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    const offset = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (offset === 0) return
+
+    event.preventDefault()
+    const nextTab = tabOrder[(tabOrder.indexOf(activeTab) + offset + tabOrder.length) % tabOrder.length]
+    setActiveTab(nextTab)
+    tabRefs.current[nextTab]?.focus()
+  }
+
   const isGranted = access === 'granted'
-  const metrics = [
-    { label: 'routes', value: pad(routes.length) },
-    { label: 'timeline posts', value: pad(timelinePostCount) },
-    { label: 'commands run', value: pad(sessionStats.commands) },
-    { label: 'snake best', value: pad(sessionStats.snakeBest) },
-    { label: 'local sessions', value: '01' },
-    { label: 'tracked visitors', value: '00' },
+  const tabs: { id: TabId; label: string; value: string }[] = [
+    { id: 'routes', label: 'routes', value: pad(routes.length) },
+    { id: 'posts', label: 'timeline posts', value: pad(posts.length) },
+    { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(users.length) : '--' },
   ]
 
   return (
@@ -103,8 +163,8 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
         <PageIntro
           title="admin console"
           titleId="admin-title"
-          subhead={isGranted ? 'freshly produced data for the one true admin' : 'this route expects a root session.'}
-          body={isGranted ? 'these stats are only tab aware\nyou can literally get all this from the shell' : undefined}
+          subhead={isGranted ? 'what the site actually knows about itself' : 'this route expects an admin session.'}
+          body={isGranted ? 'routes and posts are baked in at build\nusers come straight from the database' : undefined}
         />
       }
       right={
@@ -117,9 +177,9 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
             <p className="m-0 font-mono text-[clamp(3.5rem,7vw,5.5rem)] leading-none font-medium tracking-[-0.04em]">
               403
             </p>
-            <h2 className="mt-7 text-xl font-semibold tracking-[-0.03em]">root session required</h2>
+            <h2 className="mt-7 text-xl font-semibold tracking-[-0.03em]">admin role required</h2>
             <p className="mt-3 max-w-[34ch] text-sm leading-6 text-muted">
-              direct access is disabled for the bit. elevate through the terminal first.
+              this console is limited to accounts with the Admin role. sign in as one from the shell.
             </p>
             <button
               className="mt-8 rounded-full border border-foreground bg-foreground px-4 py-2.5 font-mono text-[0.68rem] font-[650] tracking-[0.04em] text-background transition-transform duration-180 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none"
@@ -130,8 +190,8 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
             </button>
           </section>
         ) : (
-          <section className="relative flex min-h-0 flex-1 flex-col" aria-label="Admin control plane">
-            <header className="flex min-h-14 items-center justify-between gap-4 border-b border-line px-[clamp(18px,2vw,28px)]">
+          <section className="relative flex min-h-0 flex-1 flex-col">
+            <header className="flex h-11 shrink-0 items-center justify-between border-b border-line bg-surface px-4">
               <p className="m-0 flex items-center gap-2.5 font-mono text-[0.68rem] font-[650] tracking-[0.06em]">
                 <span
                   className="size-1.5 rounded-full bg-accent shadow-[0_0_12px_var(--color-accent)]"
@@ -158,29 +218,56 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
                 }
               }}
             >
-              <section
-                className="grid grid-cols-3 gap-px border-b border-line bg-line max-[560px]:grid-cols-2"
-                aria-label="System overview"
+              <div
+                className="grid grid-cols-3 gap-px border-b border-line bg-line"
+                role="tablist"
+                aria-label="Console sections"
               >
-                {metrics.map((metric) => (
-                  <div className="bg-background px-4 py-5" key={metric.label}>
-                    <p className="m-0 font-mono text-[0.64rem] tracking-[0.05em] text-muted">{metric.label}</p>
-                    <p className="mt-3 font-mono text-2xl leading-none font-medium tabular-nums">{metric.value}</p>
-                  </div>
-                ))}
-              </section>
+                {tabs.map((tab) => {
+                  const isActive = tab.id === activeTab
 
-              <section className="border-b border-line py-2" aria-labelledby="routes-heading">
-                <div className="flex items-center justify-between px-[clamp(18px,2vw,28px)] py-4">
-                  <h2 className="m-0 text-sm font-semibold tracking-[-0.02em]" id="routes-heading">
-                    routes
-                  </h2>
-                  <span className="font-mono text-[0.64rem] tracking-[0.05em] text-muted">{routes.length} mounted</span>
-                </div>
-                <div className="border-t border-line">
-                  {routes.map((route) => (
+                  return (
                     <button
-                      className="group grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 border-b border-line px-[clamp(18px,2vw,28px)] py-3.5 text-left last:border-b-0 transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none"
+                      className={`relative px-4 py-5 text-left transition-colors duration-180 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none ${
+                        isActive ? 'bg-row-hover' : 'bg-background hover:bg-row-hover'
+                      }`}
+                      id={`admin-tab-${tab.id}`}
+                      key={tab.id}
+                      ref={(node) => {
+                        tabRefs.current[tab.id] = node
+                      }}
+                      type="button"
+                      role="tab"
+                      aria-controls={`admin-panel-${tab.id}`}
+                      aria-selected={isActive}
+                      tabIndex={isActive ? 0 : -1}
+                      onClick={() => setActiveTab(tab.id)}
+                      onKeyDown={handleTabKeyDown}
+                    >
+                      <span
+                        className={`block font-mono text-[0.64rem] tracking-[0.05em] ${isActive ? 'text-foreground' : 'text-muted'}`}
+                      >
+                        {tab.label}
+                      </span>
+                      <span
+                        className={`mt-3 block font-mono text-2xl leading-none font-medium tabular-nums ${isActive ? 'text-foreground' : 'text-muted'}`}
+                      >
+                        {tab.value}
+                      </span>
+                      <span
+                        className={`absolute inset-x-0 bottom-0 h-px ${isActive ? 'bg-accent' : 'bg-transparent'}`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div aria-labelledby={`admin-tab-${activeTab}`} id={`admin-panel-${activeTab}`} role="tabpanel">
+                {activeTab === 'routes' &&
+                  routes.map((route) => (
+                    <button
+                      className={`${interactiveRowClasses} grid-cols-[minmax(0,1fr)_auto_auto]`}
                       key={route.path}
                       type="button"
                       onClick={() => router.push(route.path)}
@@ -194,38 +281,43 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
                       </span>
                     </button>
                   ))}
-                </div>
-              </section>
 
-              <section className="py-2" aria-labelledby="access-heading">
-                <div className="flex items-center justify-between px-[clamp(18px,2vw,28px)] py-4">
-                  <h2 className="m-0 text-sm font-semibold tracking-[-0.02em]" id="access-heading">
-                    access controls
-                  </h2>
-                  <span className="font-mono text-[0.64rem] tracking-[0.05em] text-muted">local simulation</span>
-                </div>
-                <div className="border-t border-line">
-                  <SettingRow
-                    checked={guestShellEnabled}
-                    description="allow the unlisted users terminal to accept commands"
-                    label="guest shell"
-                    onChange={setGuestShellEnabled}
-                  />
-                  <SettingRow
-                    checked={maintenanceMode}
-                    description="pretend public routes are undergoing maintenance"
-                    label="maintenance mode"
-                    onChange={setMaintenanceMode}
-                  />
-                  <div className="flex items-center justify-between gap-6 px-[clamp(18px,2vw,28px)] py-4">
-                    <div>
-                      <p className="m-0 text-sm font-medium">visitor telemetry</p>
-                      <p className="mt-1.5 text-xs leading-5 text-muted">no analytics provider is connected</p>
-                    </div>
-                    <span className="font-mono text-[0.64rem] tracking-[0.05em] text-muted">disabled</span>
-                  </div>
-                </div>
-              </section>
+                {activeTab === 'posts' &&
+                  (posts.length === 0 ? (
+                    <p className={noticeClasses}>no timeline posts found</p>
+                  ) : (
+                    posts.map((post) => (
+                      <button
+                        className={`${interactiveRowClasses} grid-cols-[auto_minmax(0,1fr)_auto]`}
+                        key={post.slug}
+                        type="button"
+                        onClick={() => router.push(`/timeline/${post.slug}/`)}
+                      >
+                        <span className="font-mono text-[0.68rem] text-foreground">{post.slug}</span>
+                        <span className="truncate text-xs text-muted">{post.title}</span>
+                        <span className="font-mono text-[0.64rem] tabular-nums text-muted">{post.dateLabel}</span>
+                      </button>
+                    ))
+                  ))}
+
+                {activeTab === 'users' &&
+                  (usersState === 'idle' ? (
+                    <p className={noticeClasses}>loading users…</p>
+                  ) : usersState === 'error' ? (
+                    <p className={noticeClasses}>could not load users</p>
+                  ) : users.length === 0 ? (
+                    <p className={noticeClasses}>no users found</p>
+                  ) : (
+                    users.map((consoleUser) => (
+                      <div className={`${rowClasses} grid-cols-[minmax(0,1fr)_auto]`} key={consoleUser.user_id}>
+                        <span className="truncate font-mono text-[0.68rem] text-foreground">
+                          {consoleUser.username}
+                        </span>
+                        <span className="truncate font-mono text-[0.64rem] text-muted">{consoleUser.user_id}</span>
+                      </div>
+                    ))
+                  ))}
+              </div>
             </div>
 
             <button
@@ -256,37 +348,5 @@ export function AdminConsole({ timelinePostCount }: AdminConsoleProps) {
         )
       }
     />
-  )
-}
-
-type SettingRowProps = {
-  checked: boolean
-  description: string
-  label: string
-  onChange: (checked: boolean) => void
-}
-
-function SettingRow({ checked, description, label, onChange }: SettingRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-6 border-b border-line px-[clamp(18px,2vw,28px)] py-4">
-      <div>
-        <p className="m-0 text-sm font-medium">{label}</p>
-        <p className="mt-1.5 text-xs leading-5 text-muted">{description}</p>
-      </div>
-      <button
-        className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors duration-180 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none ${checked ? 'border-foreground bg-foreground' : 'border-line bg-background'}`}
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={`${label}: ${checked ? 'on' : 'off'}`}
-        onClick={() => onChange(!checked)}
-      >
-        {/* left-anchored: without it the knob starts from the button's centered static position */}
-        <span
-          className={`absolute top-1/2 left-0.5 size-4 -translate-y-1/2 rounded-full transition-transform duration-180 motion-reduce:transition-none ${checked ? 'translate-x-5.5 bg-background' : 'translate-x-0 bg-muted'}`}
-          aria-hidden="true"
-        />
-      </button>
-    </div>
   )
 }

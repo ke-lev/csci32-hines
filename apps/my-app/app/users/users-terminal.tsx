@@ -9,7 +9,7 @@ import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { validateSignupField } from '../components/auth-validation'
-import { useAuth } from '../components/use-auth'
+import { landingRoute, useAuth } from '../components/use-auth'
 import { useReactorMeltdown } from '../components/use-reactor-meltdown'
 import { countCommand, recordSnakeScore } from '../lib/session-stats'
 import { getTerminalListing, getTerminalTree, resolveSiteRoute, SITE_ROUTES } from '../lib/site-routes'
@@ -108,8 +108,6 @@ const guestCommands = [
   'snake',
   'open',
   'admin',
-  'sudo -l',
-  'sudo admin',
   'cat timeline/9-7',
   'history',
   'clear',
@@ -158,9 +156,11 @@ export function UsersTerminal() {
   const {
     clearError,
     getLastError,
+    isAdmin,
     isHydrated,
     isLoading,
     isSessionChecked,
+    permissions,
     recoverSession,
     signIn,
     signOut,
@@ -257,19 +257,36 @@ export function UsersTerminal() {
     setLines((current) => [...current, ...entries.map((entry) => ({ ...entry, id: nextId.current++ }))])
   }
 
-  function elevate() {
-    window.sessionStorage.setItem('kelev-admin', 'root')
+  function describeGrant() {
+    return `role=${terminalUser?.role ?? 'none'}  perms=${permissions.length ? permissions.join(',') : 'none'}`
+  }
+
+  function openAdminConsole() {
+    if (!terminalUser) {
+      append([
+        { kind: 'error', text: 'admin: not signed in' },
+        { kind: 'muted', text: "run 'login' first" },
+      ])
+      return
+    }
+
+    if (!isAdmin) {
+      append([
+        { kind: 'error', text: `admin: ${identity} does not have the Admin role` },
+        { kind: 'muted', text: describeGrant() },
+      ])
+      return
+    }
+
     append([
-      { kind: 'muted', text: '[sudo] policy check: passed (password not required)' },
-      { kind: 'accent', text: 'mounting privileged view at /admin' },
-      { kind: 'output', text: 'launching admin console…' },
+      { kind: 'muted', text: describeGrant() },
+      { kind: 'accent', text: 'opening admin console…' },
     ])
     window.setTimeout(() => router.push('/admin/'), 520)
   }
 
   function returnHome() {
-    window.sessionStorage.removeItem('kelev-admin')
-    router.push('/')
+    router.push(landingRoute(terminalUser))
   }
 
   function startSnake() {
@@ -402,7 +419,10 @@ export function UsersTerminal() {
     }
 
     if (command === 'whoami') {
-      append([{ kind: 'output', text: identity }])
+      append([
+        { kind: 'output', text: identity },
+        ...(terminalUser ? [{ kind: 'muted' as const, text: describeGrant() }] : []),
+      ])
       return
     }
 
@@ -458,8 +478,8 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : code === 'FORBIDDEN'
-                ? 'ideas: owner permission required'
+              : code === 'UNAUTHORIZED'
+                ? 'ideas: admin role required'
                 : 'ideas: could not read the inbox',
           },
         ])
@@ -494,8 +514,8 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : code === 'FORBIDDEN'
-                ? 'ideas: owner permission required'
+              : code === 'UNAUTHORIZED'
+                ? 'ideas: admin role required'
                 : code === 'NOT_FOUND'
                   ? 'ideas: no suggestion found for that receipt'
                   : 'ideas: could not update that suggestion',
@@ -512,20 +532,7 @@ export function UsersTerminal() {
     }
 
     if (command === 'admin') {
-      append([{ kind: 'accent', text: 'you forgot sudo' }])
-      return
-    }
-
-    if (command === 'sudo -l') {
-      append([
-        { kind: 'output', text: 'guest may run the following commands on kelev.dev:' },
-        { kind: 'accent', text: '(root) NOPASSWD: admin' },
-      ])
-      return
-    }
-
-    if (command === 'sudo admin') {
-      elevate()
+      openAdminConsole()
       return
     }
 
@@ -752,7 +759,7 @@ export function UsersTerminal() {
       titleId="users-title"
       left={
         <PageIntro title="shell" titleId="users-title" subhead="let's hope you know what you're doing" body="">
-          <Link className={exitLinkClasses} href={terminalUser ? '/dashboard/' : '/'}>
+          <Link className={exitLinkClasses} href={landingRoute(terminalUser)}>
             get me outta here
           </Link>
         </PageIntro>

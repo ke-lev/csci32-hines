@@ -4,6 +4,12 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never }
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core'
+/** Enum representing valid permissions for authorization */
+export type PermissionName = 'UserRead' | 'UserWrite'
+
+/** Enum representing valid roles for users */
+export type RoleName = 'Admin' | 'Basic'
+
 export type SavePersonalDrawingInput = {
   strokes: Array<Array<number>>
 }
@@ -31,12 +37,25 @@ export type UpdateTipIdeaInput = {
   status: string
 }
 
+export type FindManyUsersQueryVariables = Exact<{ [key: string]: never }>
+
+export type FindManyUsersQuery = { findManyUsers: Array<{ user_id: string; username: string }> }
+
 export type SignUpMutationVariables = Exact<{
   input: SignUpInput
 }>
 
 export type SignUpMutation = {
-  signUp: { token: string; user: { user_id: string; username: string; email: string | null } }
+  signUp: {
+    token: string
+    user: {
+      user_id: string
+      username: string
+      email: string | null
+      role: RoleName | null
+      permissions: Array<PermissionName>
+    }
+  }
 }
 
 export type SignInMutationVariables = Exact<{
@@ -44,12 +63,29 @@ export type SignInMutationVariables = Exact<{
 }>
 
 export type SignInMutation = {
-  signIn: { token: string; user: { user_id: string; username: string; email: string | null } }
+  signIn: {
+    token: string
+    user: {
+      user_id: string
+      username: string
+      email: string | null
+      role: RoleName | null
+      permissions: Array<PermissionName>
+    }
+  }
 }
 
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never }>
 
-export type CurrentUserQuery = { currentUser: { user_id: string; username: string; email: string | null } }
+export type CurrentUserQuery = {
+  currentUser: {
+    user_id: string
+    username: string
+    email: string | null
+    role: RoleName | null
+    permissions: Array<PermissionName>
+  }
+}
 
 export type MyPersonalPageQueryVariables = Exact<{ [key: string]: never }>
 
@@ -111,6 +147,32 @@ export type UpdateTipIdeaMutation = {
   updateTipIdea: { body: string; createdAt: string; receipt: string; shippedHref: string | null; status: string }
 }
 
+export const FindManyUsersDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'FindManyUsers' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'findManyUsers' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'user_id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'username' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<FindManyUsersQuery, FindManyUsersQueryVariables>
 export const SignUpDocument = {
   kind: 'Document',
   definitions: [
@@ -151,6 +213,8 @@ export const SignUpDocument = {
                       { kind: 'Field', name: { kind: 'Name', value: 'user_id' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'username' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'role' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'permissions' } },
                     ],
                   },
                 },
@@ -202,6 +266,8 @@ export const SignInDocument = {
                       { kind: 'Field', name: { kind: 'Name', value: 'user_id' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'username' } },
                       { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'role' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'permissions' } },
                     ],
                   },
                 },
@@ -232,6 +298,8 @@ export const CurrentUserDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'user_id' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'username' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'role' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'permissions' } },
               ],
             },
           },

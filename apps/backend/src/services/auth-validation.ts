@@ -4,6 +4,15 @@ export const MAX_USERNAME_INPUT_LENGTH = 64
 export const MAX_EMAIL_LENGTH = 254
 export const MIN_PASSWORD_LENGTH = 6
 export const MAX_PASSWORD_LENGTH = 72
+// bcrypt hashes at most 72 bytes and silently drops the rest, so anything longer has a truncated
+// twin that unlocks the same account. The limit is bytes, not UTF-16 code units: 36 accented
+// characters are 72 bytes, and one emoji can be four.
+export const MAX_PASSWORD_BYTES = 72
+
+export function getPasswordByteLength(password: string) {
+  return new TextEncoder().encode(password).length
+}
+
 
 export type SignupField = 'username' | 'email' | 'password'
 
@@ -67,8 +76,8 @@ export function validateSignupInput(input: SignupInputLike): SignupValidation {
     fieldErrors.password = 'password is required'
   } else if (password.length < MIN_PASSWORD_LENGTH) {
     fieldErrors.password = `password needs at least ${MIN_PASSWORD_LENGTH} characters`
-  } else if (password.length > MAX_PASSWORD_LENGTH) {
-    fieldErrors.password = `keep your password under ${MAX_PASSWORD_LENGTH} characters`
+  } else if (getPasswordByteLength(password) > MAX_PASSWORD_BYTES) {
+    fieldErrors.password = `keep your password under ${MAX_PASSWORD_BYTES} bytes — accents and emoji count as more than one`
   }
 
   if (Object.keys(fieldErrors).length > 0) {

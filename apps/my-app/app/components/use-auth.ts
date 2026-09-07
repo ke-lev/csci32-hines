@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { useRouter } from 'next/navigation'
 import { ClientError } from 'graphql-request'
 import { graphql } from '../generated/gql'
-import type { SignInInput, SignUpInput, SignUpMutation } from '../generated/graphql'
+import type { PermissionName, SignInInput, SignUpInput, SignUpMutation } from '../generated/graphql'
 import { clearAuthToken, gqlClient, initializeAuth, setAuthToken } from '../services/graphql-client'
+import { clearStoredSession, readStoredSession, writeStoredSession } from '../services/auth-session'
 
 type AuthPayload = SignUpMutation['signUp']
 type AuthUser = AuthPayload['user']
-type AdminAuth = { admin: true }
 type AuthField = 'username' | 'email' | 'password'
 
 export type AuthError = {
@@ -18,33 +18,21 @@ export type AuthError = {
   message: string
 }
 
-const ADMIN_USERNAME = 'admin'
-const ADMIN_PASSWORD = 'password'
 const AUTH_CHANGE_EVENT = 'kelev-auth-change'
 
 const subscribeToHydration = () => () => {}
 
 function getStoredUser(): AuthUser | null {
-  if (typeof window === 'undefined') return null
+  const session = readStoredSession()
+  if (!session) return null
 
-  if (!localStorage.getItem('authToken')) {
-    localStorage.removeItem('authUser')
-    return null
-  }
-
-  const storedUser = localStorage.getItem('authUser')
-  if (!storedUser) return null
-
-  try {
-    const parsed = JSON.parse(storedUser) as unknown
-    if (!isAuthUser(parsed)) throw new Error('invalid stored user')
-    return parsed
-  } catch {
-    localStorage.removeItem('authUser')
-    localStorage.removeItem('authToken')
+  if (!isAuthUser(session.user)) {
+    clearStoredSession()
     clearAuthToken()
     return null
   }
+
+  return session.user
 }
 
 function isAuthUser(value: unknown): value is AuthUser {
@@ -54,8 +42,18 @@ function isAuthUser(value: unknown): value is AuthUser {
   return (
     typeof candidate.user_id === 'string' &&
     typeof candidate.username === 'string' &&
-    (candidate.email === null || typeof candidate.email === 'string')
+    (candidate.email === null || typeof candidate.email === 'string') &&
+    (candidate.role === null || typeof candidate.role === 'string') &&
+    Array.isArray(candidate.permissions)
   )
+}
+
+// where a session belongs: admins in the console, signed-in users on their dashboard,
+// and anyone signed out back on the homepage
+export function landingRoute(user: AuthUser | null) {
+  if (!user) return '/'
+
+  return user.role === 'Admin' ? '/admin/' : '/dashboard/'
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -74,14 +72,15 @@ function isAuthFailure(caughtError: unknown) {
 }
 
 function saveSession(payload: AuthPayload) {
+  // one write, so a tab listening on `storage` can never catch a half-built session
+  writeStoredSession(payload.token, payload.user)
   setAuthToken(payload.token)
-  localStorage.setItem('authUser', JSON.stringify(payload.user))
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
 }
 
 function clearSession() {
+  clearStoredSession()
   clearAuthToken()
-  localStorage.removeItem('authUser')
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
 }
 
@@ -93,6 +92,8 @@ const SIGN_UP_MUTATION = graphql(`
         user_id
         username
         email
+        role
+        permissions
       }
     }
   }
@@ -106,6 +107,8 @@ const SIGN_IN_MUTATION = graphql(`
         user_id
         username
         email
+        role
+        permissions
       }
     }
   }
@@ -117,6 +120,8 @@ const CURRENT_USER_QUERY = graphql(`
       user_id
       username
       email
+      role
+      permissions
     }
   }
 `)
@@ -126,6 +131,10 @@ export function useAuth() {
   const [error, setError] = useState<AuthError | null>(null)
   const [user, setUser] = useState<AuthUser | null>(getStoredUser)
   const [isSessionChecked, setIsSessionChecked] = useState(false)
+  // bumped whenever the stored token changes under us, so the effect below revalidates the new
+  // session instead of trusting whatever the previous one resolved to
+  const [sessionGeneration, setSessionGeneration] = useState(0)
+  const validatedTokenRef = useRef<string | null>(null)
   const errorRef = useRef<AuthError | null>(null)
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -173,10 +182,10 @@ export function useAuth() {
     if (!isHydrated) return
 
     let cancelled = false
-    const token = localStorage.getItem('authToken')
     const storedUser = getStoredUser()
 
-    if (!token || !storedUser) {
+    if (!storedUser) {
+      validatedTokenRef.current = null
       clearAuthToken()
       window.queueMicrotask(() => {
         if (cancelled) return
@@ -190,34 +199,45 @@ export function useAuth() {
     }
 
     initializeAuth()
+    // the response is only meaningful for the token that asked for it. another tab can swap the
+    // session mid-flight, and without this check a slow answer for account A would be stored
+    // against account B's token, or A's stale 401 would clear B's perfectly good session.
+    const requestToken = readStoredSession()?.token ?? null
+    validatedTokenRef.current = requestToken
+    const isStale = () => cancelled || (readStoredSession()?.token ?? null) !== requestToken
+
     void gqlClient
       .request(CURRENT_USER_QUERY)
       .then((result) => {
-        if (cancelled) return
+        if (isStale()) return
 
         setUser(result.currentUser)
-        localStorage.setItem('authUser', JSON.stringify(result.currentUser))
+        // refresh the cached copy with the server's answer, keeping the token it belongs to
+        if (requestToken) writeStoredSession(requestToken, result.currentUser)
       })
       .catch((caughtError: unknown) => {
-        if (!cancelled) recoverSession(caughtError)
+        if (!isStale()) recoverSession(caughtError)
       })
       .finally(() => {
-        if (!cancelled) setIsSessionChecked(true)
+        if (!isStale()) setIsSessionChecked(true)
       })
 
     return () => {
       cancelled = true
     }
-  }, [isHydrated, recoverSession])
+  }, [isHydrated, recoverSession, sessionGeneration])
 
   useEffect(() => {
     if (!isHydrated) return
 
     const syncFromStorage = () => {
-      const token = localStorage.getItem('authToken')
       const storedUser = getStoredUser()
 
-      if (!token || !storedUser) {
+      if ((readStoredSession()?.token ?? null) !== validatedTokenRef.current) {
+        setSessionGeneration((generation) => generation + 1)
+      }
+
+      if (!storedUser) {
         clearAuthToken()
         setUser(null)
         setIsSessionChecked(true)
@@ -252,7 +272,7 @@ export function useAuth() {
       saveSession(result.signUp)
       setUser(result.signUp.user)
       setIsSessionChecked(true)
-      router.push('/dashboard')
+      router.push(landingRoute(result.signUp.user))
 
       return result.signUp
     } catch (caughtError) {
@@ -263,23 +283,10 @@ export function useAuth() {
     }
   }
 
-  const signIn = async (input: SignInInput): Promise<AuthPayload | AdminAuth | null> => {
+  const signIn = async (input: SignInInput): Promise<AuthPayload | null> => {
     try {
       setIsLoading(true)
       setAuthError(null)
-
-      // This remains the local admin-console bit until backend roles exist.
-      if (
-        input.username.trim().toLowerCase().replace(/\s+/g, '-') === ADMIN_USERNAME &&
-        input.password === ADMIN_PASSWORD
-      ) {
-        clearSession()
-        window.sessionStorage.setItem('kelev-admin', 'root')
-        setUser(null)
-        setIsSessionChecked(true)
-        router.push('/admin')
-        return { admin: true }
-      }
 
       const result = await gqlClient.request(SIGN_IN_MUTATION, { input })
       if (!result.signIn) return null
@@ -287,7 +294,7 @@ export function useAuth() {
       saveSession(result.signIn)
       setUser(result.signIn.user)
       setIsSessionChecked(true)
-      router.push('/dashboard')
+      router.push(landingRoute(result.signIn.user))
 
       return result.signIn
     } catch (caughtError) {
@@ -300,19 +307,27 @@ export function useAuth() {
 
   const signOut = () => {
     clearSession()
-    window.sessionStorage.removeItem('kelev-admin')
     setUser(null)
     setIsSessionChecked(true)
     setAuthError(null)
   }
 
+  // permissions are baked into the JWT at sign-in, so a role change on the backend
+  // only takes effect here once the user signs out and back in
+  const permissions: PermissionName[] = user?.permissions ?? []
+  const hasPermission = (permission: PermissionName) => permissions.includes(permission)
+  const isAdmin = user?.role === 'Admin'
+
   return {
     clearError,
     error,
     getLastError: () => errorRef.current,
+    hasPermission,
+    isAdmin,
     isHydrated,
     isLoading,
     isSessionChecked,
+    permissions,
     recoverSession,
     signIn,
     signOut,
