@@ -24,6 +24,8 @@ function getDefaultIntro(username: string): IntroCopy {
   }
 }
 
+const BLANK_INTRO: IntroCopy = { body: '', subhead: '', title: '' }
+
 // the h1 sets leading-[0.84], so glyphs paint outside the line box and overflow-hidden would
 // clip ascenders and descenders. the padding gives them room; the negative margin takes that
 // room back out of the layout so the intro sits exactly where it does on every other page.
@@ -75,8 +77,14 @@ export function Dashboard() {
   const username = isHydrated ? user?.username || user?.email || 'user' : 'user'
   const defaultIntro = getDefaultIntro(username)
   const committedIntro = savedIntro || defaultIntro
-  const previewIntro = draftIntro || committedIntro
   const canEditIntro = isReady && isSettled && !isSavingIntro
+
+  // until the session is checked and the saved page has arrived there is nothing true to show, so
+  // the fields stay empty rather than painting the default copy and swapping it for the account's
+  // own words a moment later. the three inputs are fixed-height, so blank holds the same layout.
+  // this also gates the intro reveal, so the animation plays on the copy instead of on the blank.
+  const isIntroResolved = isReady && isSettled
+  const previewIntro = draftIntro || (isIntroResolved ? committedIntro : BLANK_INTRO)
   const hasUnsavedChanges = canEditIntro && draftIntro !== null && !introCopyMatches(draftIntro, committedIntro)
   const canRestoreDefaults = canEditIntro && !introCopyMatches(previewIntro, defaultIntro)
 
@@ -134,11 +142,15 @@ export function Dashboard() {
     <PageShell
       breadcrumbs={[
         { label: 'users', href: '/users/' },
-        { label: username, href: '/dashboard/' },
+        // the account crumb waits on the session too, rather than painting the 'user' fallback and
+        // swapping it for the real name. it is appended to a left-aligned row, so nothing already
+        // on screen moves when it arrives, and `users /` alone is the nav /users itself renders.
+        ...(isReady ? [{ label: username, href: '/dashboard/' }] : []),
       ]}
       titleId="dashboard-title"
       left={
         <PageIntro
+          isRevealed={isIntroResolved}
           body={
             <textarea
               aria-label="short body, optional"
