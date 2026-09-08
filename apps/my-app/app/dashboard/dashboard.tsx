@@ -13,7 +13,7 @@ import {
   MAX_INTRO_TITLE_LENGTH,
   validateIntroInput,
 } from '../lib/personal-page'
-import { PersonalDrawing } from './personal-drawing'
+import { Room } from '../talk/room'
 import { usePersonalPage, type IntroCopy } from './use-personal-page'
 
 function getDefaultIntro(username: string): IntroCopy {
@@ -52,7 +52,7 @@ export function Dashboard() {
 
   const userId = user?.user_id ?? null
   const isReady = isHydrated && isSessionChecked && Boolean(user)
-  const { isSettled, loadError, saveDrawing, saveIntro, savedIntro, savedStrokes } = usePersonalPage({
+  const { isSettled, loadError, saveIntro, savedIntro } = usePersonalPage({
     recoverSession,
     userId,
   })
@@ -236,15 +236,7 @@ export function Dashboard() {
           </div>
         </PageIntro>
       }
-      right={
-        <PersonalDrawing
-          isReady={isReady && isSettled}
-          key={user?.user_id || 'pending'}
-          loadError={loadError}
-          onSubmit={saveDrawing}
-          savedStrokes={savedStrokes}
-        />
-      }
+      right={<Room canPost={isReady} />}
       rightInset={false}
     />
   )
