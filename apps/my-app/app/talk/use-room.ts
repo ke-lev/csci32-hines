@@ -45,6 +45,13 @@ export type RoomLine = {
 
 export type PostResult = { ok: true } | { ok: false; reason: string }
 
+function compareRoomLines(left: RoomLine, right: RoomLine) {
+  if (left.createdAt !== right.createdAt) return left.createdAt < right.createdAt ? -1 : 1
+  if (left.messageId === right.messageId) return 0
+
+  return left.messageId < right.messageId ? -1 : 1
+}
+
 /**
  * Polls rather than subscribes. graphql-request has no subscription transport, and at this room's
  * size a five-second cursor poll is indistinguishable from a live socket. Polling pauses while the
@@ -58,7 +65,8 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
   const [hasOlder, setHasOlder] = useState(true)
   const newestCursor = useRef<string | null>(null)
 
-  // cursors sort lexically in timeline order (see room-cursor.ts), so merging never decodes them
+  // Rows are ordered by the same pair encoded by the cursor. Comparing the explicit fields keeps
+  // the merge correct because base64url itself does not preserve the source string's ordering.
   const merge = useCallback((incoming: RoomLine[]) => {
     if (!incoming.length) return
 
@@ -68,7 +76,7 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
 
       if (!added.length) return current
 
-      const next = [...current, ...added].sort((left, right) => (left.cursor < right.cursor ? -1 : 1))
+      const next = [...current, ...added].sort(compareRoomLines)
       newestCursor.current = next[next.length - 1]?.cursor ?? null
 
       return next
