@@ -30,8 +30,8 @@ void fastify.register(userServicePlugin)
 const start = async () => {
   try {
     await registerGraphQL(fastify)
-    // 0.0.0.0 so a platform load balancer (Railway/Render/etc.) can reach the server: the
-    // platform injects PORT and routes to it. locally PORT is unset, so this stays on 4000.
+    // Honor the host port and accept connections through its load balancer.
+    // Local development defaults to port 4000.
     const port = Number(process.env.PORT ?? 4000)
     await fastify.listen({ port, host: '0.0.0.0' })
   } catch (err) {
