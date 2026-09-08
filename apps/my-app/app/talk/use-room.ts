@@ -1,5 +1,6 @@
 'use client'
 
+import { ClientError } from 'graphql-request'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
@@ -33,6 +34,9 @@ const POST_MESSAGE_MUTATION = graphql(`
 
 const POLL_INTERVAL_MS = 5_000
 const PAGE_SIZE = 50
+// A forward cursor can only ever add, so a moderated line would sit there until reload. Every sixth
+// poll re-reads the newest page instead, which is half a minute of lag on a rare event.
+const RECONCILE_EVERY = 6
 
 export type RoomLine = {
   messageId: string
@@ -43,6 +47,8 @@ export type RoomLine = {
   cursor: string
 }
 
+export type RoomStatus = 'connecting' | 'live' | 'retrying'
+
 export type PostResult = { ok: true } | { ok: false; reason: string }
 
 function compareRoomLines(left: RoomLine, right: RoomLine) {
@@ -50,6 +56,17 @@ function compareRoomLines(left: RoomLine, right: RoomLine) {
   if (left.messageId === right.messageId) return 0
 
   return left.messageId < right.messageId ? -1 : 1
+}
+
+/** The server's own words when it refuses a message — the rate limit's countdown, say. */
+function refusalReason(caughtError: unknown, fallback: string) {
+  if (!(caughtError instanceof ClientError)) return fallback
+
+  const graphQLError = caughtError.response.errors?.[0]
+
+  if (graphQLError?.extensions?.code !== 'BAD_USER_INPUT') return fallback
+
+  return graphQLError.message || fallback
 }
 
 /**
@@ -60,10 +77,14 @@ function compareRoomLines(left: RoomLine, right: RoomLine) {
 export function useRoom({ recoverSession }: { recoverSession: (caughtError: unknown) => boolean }) {
   const [messages, setMessages] = useState<RoomLine[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
+  const [status, setStatus] = useState<RoomStatus>('connecting')
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isPosting, setIsPosting] = useState(false)
   const [hasOlder, setHasOlder] = useState(true)
-  const newestCursor = useRef<string | null>(null)
+  // Only a poll moves this. Posting used to advance it to your own line, which skipped anyone who
+  // spoke since the last poll: their row is older than yours, so the next `after` query missed it.
+  const polledCursor = useRef<string | null>(null)
+  const syncCount = useRef(0)
 
   // Rows are ordered by the same pair encoded by the cursor. Comparing the explicit fields keeps
   // the merge correct because base64url itself does not preserve the source string's ordering.
@@ -76,46 +97,91 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
 
       if (!added.length) return current
 
-      const next = [...current, ...added].sort(compareRoomLines)
-      newestCursor.current = next[next.length - 1]?.cursor ?? null
-
-      return next
+      return [...current, ...added].sort(compareRoomLines)
     })
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
+  // The newest page is the whole truth about its own range: anything loaded inside it that the
+  // server no longer returns has been moderated away, and anything older is left alone.
+  const applyWindow = useCallback((window: RoomLine[]) => {
+    setMessages((current) => {
+      if (!window.length) return current.length ? [] : current
 
-    async function poll() {
-      try {
-        const result = await gqlClient.request(ROOM_MESSAGES_QUERY, {
-          after: newestCursor.current,
-          limit: PAGE_SIZE,
-        })
+      const oldest = window[0]
+      const newest = window[window.length - 1]
+      const live = new Set(window.map((line) => line.messageId))
+      // Outside the window nothing can be judged: older lines are history the window never covered,
+      // and a newer one is a message posted while this request was in flight.
+      const kept = current.filter(
+        (line) =>
+          compareRoomLines(line, oldest) < 0 || compareRoomLines(line, newest) > 0 || live.has(line.messageId),
+      )
+      const keptIds = new Set(kept.map((line) => line.messageId))
+      const added = window.filter((line) => !keptIds.has(line.messageId))
 
-        if (cancelled) return
+      if (!added.length && kept.length === current.length) return current
 
-        merge(result.roomMessages as RoomLine[])
-        setLoadError(null)
-        setIsLoaded(true)
-      } catch (caughtError) {
-        if (cancelled || recoverSession(caughtError)) return
+      return [...kept, ...added].sort(compareRoomLines)
+    })
+  }, [])
 
-        setLoadError('could not reach the room')
-      }
+  const sync = useCallback(async () => {
+    const isFirstSync = syncCount.current === 0
+    const isReconcile = !polledCursor.current || syncCount.current % RECONCILE_EVERY === 0
+    syncCount.current += 1
+
+    try {
+      const result = await gqlClient.request(ROOM_MESSAGES_QUERY, {
+        after: isReconcile ? null : polledCursor.current,
+        limit: PAGE_SIZE,
+      })
+      const rows = result.roomMessages as RoomLine[]
+
+      if (isReconcile) applyWindow(rows)
+      else merge(rows)
+
+      if (rows.length) polledCursor.current = rows[rows.length - 1].cursor
+      else if (isReconcile) polledCursor.current = null
+
+      // Only the opening page can answer this: once history has been paged in, the newest page says
+      // nothing about what sits behind the oldest line held.
+      if (isFirstSync) setHasOlder(rows.length === PAGE_SIZE)
+
+      setLoadError(null)
+      setStatus('live')
+      setIsLoaded(true)
+    } catch (caughtError) {
+      if (recoverSession(caughtError)) return
+
+      setStatus('retrying')
+      setLoadError('could not reach the room')
     }
+  }, [applyWindow, merge, recoverSession])
 
-    void poll()
+  useEffect(() => {
+    void sync()
 
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') void poll()
+      if (document.visibilityState === 'visible') void sync()
     }, POLL_INTERVAL_MS)
 
-    return () => {
-      cancelled = true
-      clearInterval(timer)
+    // coming back to the tab should not cost a five-second wait for the room to catch up
+    function catchUp() {
+      if (document.visibilityState === 'visible') void sync()
     }
-  }, [merge, recoverSession])
+
+    document.addEventListener('visibilitychange', catchUp)
+
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', catchUp)
+    }
+  }, [sync])
+
+  const retry = useCallback(() => {
+    setStatus('connecting')
+    void sync()
+  }, [sync])
 
   const loadOlder = useCallback(async () => {
     const oldest = messages[0]?.cursor
@@ -155,7 +221,7 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
           return { ok: false, reason: 'your session expired - sign in again' }
         }
 
-        return { ok: false, reason: 'could not send that' }
+        return { ok: false, reason: refusalReason(caughtError, 'could not send that') }
       } finally {
         setIsPosting(false)
       }
@@ -163,5 +229,5 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
     [merge, recoverSession],
   )
 
-  return { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post }
+  return { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, retry, status }
 }
