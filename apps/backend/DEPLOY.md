@@ -21,13 +21,16 @@ Import the same Git repository into Vercel again, with these settings:
 | include source files outside the root directory | enabled (needed for `@repo/database`) |
 | Node.js version | 22.x |
 
-`vercel.json` installs from the workspace root and leaves the custom build command
-empty. The root `postinstall` generates Prisma. Vercel compiles `src/app.ts` into
-a function; do not set an output directory or a `yarn workspace backend start`
-command in Vercel. Explicit plugin imports let the function builder trace the
-backend dependencies without runtime directory discovery. The entrypoint loads
-the Reflect polyfill before dynamically importing `server.ts`, preventing
-decorated classes from executing before the polyfill.
+`vercel.json` installs from the workspace root, runs `yarn build`, and selects
+`dist` as the output directory. The root `postinstall` generates Prisma. Keep
+these checked-in settings; no start command is needed in Vercel.
+
+Vercel's Fastify builder selects entrypoints containing a direct Fastify import.
+The bootstrap retains that import so the builder selects `dist/app.js`, which
+loads the Reflect polyfill before dynamically importing the bundled server.
+Deploying `src/server.ts` directly bypasses that bootstrap and leaves extensionless
+ESM imports that can crash with `ERR_MODULE_NOT_FOUND`. Explicit plugin imports
+let the compiler include the backend plugins without runtime directory discovery.
 
 ## 2. set backend environment variables before deploying
 
