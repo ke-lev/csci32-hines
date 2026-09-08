@@ -1,6 +1,7 @@
 import { UserResolver } from '@/resolvers/UserResolver'
 import { TipIdeaResolver } from '@/resolvers/TipIdeaResolver'
 import { PersonalPageResolver } from '@/resolvers/PersonalPageResolver'
+import { RoomResolver } from '@/resolvers/RoomResolver'
 import { buildSchema, registerEnumType } from 'type-graphql'
 import type { NonEmptyArray } from 'type-graphql'
 import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
@@ -25,10 +26,13 @@ registerEnumType(RoleName, {
   description: 'Enum representing valid roles for users',
 })
 
-const resolvers: NonEmptyArray<typeof UserResolver | typeof TipIdeaResolver | typeof PersonalPageResolver> = [
+const resolvers: NonEmptyArray<
+  typeof UserResolver | typeof TipIdeaResolver | typeof PersonalPageResolver | typeof RoomResolver
+> = [
   UserResolver,
   TipIdeaResolver,
   PersonalPageResolver,
+  RoomResolver,
 ]
 
 export interface Context {
