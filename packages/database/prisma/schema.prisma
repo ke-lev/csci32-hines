@@ -30,9 +30,11 @@ model User {
   emailVerified DateTime?
   passwordHash  String?
   role_id       String?
+  created_at    DateTime  @default(now())
   role          Role?     @relation(fields: [role_id], references: [role_id])
 
   personalPage PersonalPage?
+  messages     Message[]
 }
 
 model Role {
@@ -99,4 +101,25 @@ model TipIdea {
 
   @@index([created_at])
   @@index([status, created_at])
+}
+
+enum MessageKind {
+  user
+  system
+}
+
+/// One public room. `kind` discriminates a posted message from a system line emitted by a real
+/// site event, so both share one ordered timeline and one pagination path. cuid is not
+/// monotonic, so ordering and cursors are always (created_at, message_id).
+model Message {
+  message_id String      @id @default(cuid())
+  kind       MessageKind
+  body       String
+  user_id    String?
+  created_at DateTime    @default(now())
+  deleted_at DateTime?
+
+  user User? @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([created_at, message_id])
 }
