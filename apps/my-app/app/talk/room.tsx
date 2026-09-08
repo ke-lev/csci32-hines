@@ -7,6 +7,7 @@ import { Button } from '@repo/ui/button'
 import { Variant } from '@repo/ui/variant'
 import { useAuth } from '../components/use-auth'
 import { MAX_MESSAGE_LENGTH } from '../lib/room'
+import { handleTone } from './handle-tone'
 import { useProfile } from './use-profile'
 import { useRoom, type RoomLine } from './use-room'
 
@@ -42,7 +43,7 @@ function formatDay(iso: string) {
 
 export function Room({ canPost }: { canPost: boolean }) {
   const pathname = usePathname()
-  const { recoverSession } = useAuth()
+  const { recoverSession, user } = useAuth()
   const { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, retry, status } = useRoom({
     recoverSession,
   })
@@ -173,7 +174,7 @@ export function Room({ canPost }: { canPost: boolean }) {
           ) : (
             <>
               <button
-                className="text-accent underline underline-offset-2"
+                className={`${handleTone(line.authorUsername, user?.username)} underline underline-offset-2`}
                 onClick={() => void open(line.authorUsername ?? '')}
                 type="button"
               >
@@ -193,7 +194,9 @@ export function Room({ canPost }: { canPost: boolean }) {
         <div className="border-b border-line px-[clamp(18px,2vw,28px)] py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="m-0 font-mono text-[0.72rem] text-accent">{profile.username}</p>
+              <p className={`m-0 font-mono text-[0.72rem] ${handleTone(profile.username, user?.username)}`}>
+                {profile.username}
+              </p>
               {profile.state === 'ready' ? (
                 <>
                   {profile.introSubhead ? (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
+import { handleTone } from '../talk/handle-tone'
 import { ROOM_MESSAGES_QUERY, type RoomLine } from '../talk/use-room'
 import { controlClasses, noticeClasses, rowClasses, toolbarClasses } from './console-styles'
 
@@ -158,7 +159,7 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
                 </span>
               ) : (
                 <>
-                  <span className="text-accent">{author}</span> <span className="text-foreground">{line.body}</span>
+                  <span className={handleTone(author)}>{author}</span> <span className="text-foreground">{line.body}</span>
                 </>
               )}
             </span>
