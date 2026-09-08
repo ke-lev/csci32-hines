@@ -20,4 +20,14 @@ describe('terminal site routes', () => {
     expect(getTerminalTree()).toContain('└── roll/')
     expect(getTerminalTree()).toContain('welcome/')
   })
+
+  it('only exposes the dashboard to a signed-in shell', () => {
+    expect(resolveSiteRoute('dashboard')).toBeUndefined()
+    expect(getTerminalListing()).not.toContain('dashboard/')
+    expect(getTerminalTree()).not.toContain('dashboard/')
+
+    expect(resolveSiteRoute('dashboard', true)?.href).toBe('/dashboard/')
+    expect(getTerminalListing(true)).toContain('dashboard/')
+    expect(getTerminalTree(true)).toContain('dashboard/')
+  })
 })

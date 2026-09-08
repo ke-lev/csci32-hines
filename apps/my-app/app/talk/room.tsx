@@ -44,9 +44,8 @@ function formatDay(iso: string) {
 export function Room({ canPost }: { canPost: boolean }) {
   const pathname = usePathname()
   const { recoverSession, user } = useAuth()
-  const { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, retry, status } = useRoom({
-    recoverSession,
-  })
+  const { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, postingAllowance, retry, status } =
+    useRoom({ canPost, recoverSession })
   const { close, open, profile } = useProfile()
   const [draft, setDraft] = useState('')
   const [sendError, setSendError] = useState<string | null>(null)
@@ -305,6 +304,13 @@ export function Room({ canPost }: { canPost: boolean }) {
         {sendError ? (
           <p className="m-0 mt-2 font-mono text-[0.66rem] tracking-[0.06em] text-danger lowercase" role="alert">
             {sendError}
+          </p>
+        ) : null}
+
+        {canPost && postingAllowance && postingAllowance.remaining <= 3 ? (
+          <p className="m-0 mt-2 font-mono text-[0.66rem] tracking-[0.06em] text-muted lowercase" aria-live="polite">
+            {postingAllowance.remaining} {postingAllowance.remaining === 1 ? 'post' : 'posts'} left · resets in{' '}
+            {postingAllowance.resetInSeconds}s
           </p>
         ) : null}
 

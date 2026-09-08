@@ -153,6 +153,7 @@ export type RoomMessagesQueryVariables = Exact<{
   after?: string | null | undefined
   before?: string | null | undefined
   limit?: number | null | undefined
+  includePostingAllowance?: boolean
 }>
 
 export type RoomMessagesQuery = {
@@ -164,6 +165,7 @@ export type RoomMessagesQuery = {
     createdAt: string
     cursor: string
   }>
+  postingAllowance?: { remaining: number; resetAt: string }
 }
 
 export type PostMessageMutationVariables = Exact<{
@@ -558,6 +560,12 @@ export const RoomMessagesDocument = {
           variable: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
           type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
         },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'includePostingAllowance' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'Boolean' } } },
+          defaultValue: { kind: 'BooleanValue', value: false },
+        },
       ],
       selectionSet: {
         kind: 'SelectionSet',
@@ -591,6 +599,30 @@ export const RoomMessagesDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'authorUsername' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'cursor' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'postingAllowance' },
+            directives: [
+              {
+                kind: 'Directive',
+                name: { kind: 'Name', value: 'include' },
+                arguments: [
+                  {
+                    kind: 'Argument',
+                    name: { kind: 'Name', value: 'if' },
+                    value: { kind: 'Variable', name: { kind: 'Name', value: 'includePostingAllowance' } },
+                  },
+                ],
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'remaining' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'resetAt' } },
               ],
             },
           },

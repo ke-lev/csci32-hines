@@ -352,9 +352,14 @@ export function NameDrawingPage() {
             aria-live="polite"
             className="flex items-center justify-between gap-4 border-t border-line px-[clamp(18px,2vw,28px)] py-4 font-mono text-[0.66rem] tracking-[0.06em] lowercase"
           >
-            <p className="m-0 min-w-0 flex-1 truncate text-foreground">
-              {failureReason ? <span className="text-muted">{failureReason}</span> : displayName}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="m-0 truncate text-foreground">
+                {failureReason ? <span className="text-muted">{failureReason}</span> : displayName}
+              </p>
+              <p className="m-0 mt-1 text-[0.64rem] tracking-[0.03em] text-muted">
+                signing publishes this name and drawing on the roll
+              </p>
+            </div>
             <div className="flex shrink-0 items-center gap-3">
               <Link
                 className="text-muted underline underline-offset-4 transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"

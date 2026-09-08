@@ -12,7 +12,7 @@ import { validateSignupField } from '../components/auth-validation'
 import { landingRoute, useAuth } from '../components/use-auth'
 import { useReactorMeltdown } from '../components/use-reactor-meltdown'
 import { countCommand, recordSnakeScore } from '../lib/session-stats'
-import { getTerminalListing, getTerminalTree, resolveSiteRoute, SITE_ROUTES } from '../lib/site-routes'
+import { getTerminalListing, getTerminalTree, getVisibleSiteRoutes, resolveSiteRoute } from '../lib/site-routes'
 import { gqlClient } from '../services/graphql-client'
 import { readTimelinePost } from '../timeline/read-post'
 import { graphql } from '../generated/gql'
@@ -131,6 +131,13 @@ const authBarWidth = 44
 // reaches on its own. Only a request that actually came back gets to draw a full bar.
 const authBarCeiling = 0.96
 const authBarEaseMs = 380
+
+const pageInfo = [
+  '/users',
+  'the shell recognizes a small command grammar rather than handing input to a real operating system. help, navigation, account flows, history, the snake game, and a few site-specific commands are implemented here; the boot text and filesystem framing are set dressing.',
+  '**real commands:** login and signup call the GraphQL backend, route commands navigate the site, and timeline reads fetch actual posts. ls and tree are generated from the same route registry used by open.',
+  '**room tail:** the talk command reads the shared room through the same cursor query as /talk, so those lines are real too.',
+]
 
 function renderAuthBar(ratio: number) {
   const filled = Math.round(authBarWidth * ratio)
@@ -454,7 +461,10 @@ export function UsersTerminal() {
         { kind: 'output', text: guestCommands.join('  ') },
         {
           kind: 'muted',
-          links: SITE_ROUTES.map((route) => ({ href: route.href, label: route.command })),
+          links: getVisibleSiteRoutes(Boolean(terminalUser)).map((route) => ({
+            href: route.href,
+            label: route.command,
+          })),
           text: 'destinations: ',
         },
         {
@@ -512,12 +522,12 @@ export function UsersTerminal() {
     }
 
     if (command === 'ls' || command === 'ls -la') {
-      append([{ kind: 'output', text: getTerminalListing() }])
+      append([{ kind: 'output', text: getTerminalListing(Boolean(terminalUser)) }])
       return
     }
 
     if (command === 'tree' || command === 'tree -L 2') {
-      append([{ kind: 'output', text: getTerminalTree() }])
+      append([{ kind: 'output', text: getTerminalTree(Boolean(terminalUser)) }])
       return
     }
 
@@ -558,7 +568,7 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : (code === 'FORBIDDEN' || code === 'UNAUTHORIZED')
+              : code === 'FORBIDDEN' || code === 'UNAUTHORIZED'
                 ? 'ideas: admin role required'
                 : 'ideas: could not read the inbox',
           },
@@ -622,7 +632,7 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : (code === 'FORBIDDEN' || code === 'UNAUTHORIZED')
+              : code === 'FORBIDDEN' || code === 'UNAUTHORIZED'
                 ? 'ideas: admin role required'
                 : code === 'NOT_FOUND'
                   ? 'ideas: no suggestion found for that receipt'
@@ -702,7 +712,7 @@ export function UsersTerminal() {
 
     if (command.startsWith('open ')) {
       const destination = command.slice(5)
-      const route = resolveSiteRoute(destination)
+      const route = resolveSiteRoute(destination, Boolean(terminalUser))
 
       if (route) {
         append([{ kind: 'accent', text: `opening ${route.href}` }])
@@ -870,6 +880,7 @@ export function UsersTerminal() {
   return (
     <PageShell
       breadcrumbs={[{ label: 'users', href: '/users/' }]}
+      info={pageInfo}
       rightInset={false}
       titleId="users-title"
       left={

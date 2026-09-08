@@ -7,7 +7,6 @@ const baseUrl = 'https://csci32-hines.vercel.app'
 const publicRoutes = [
   '/',
   '/buttons/',
-  '/cursive/',
   '/input/',
   '/games/',
   '/games/random-number-guesser/',

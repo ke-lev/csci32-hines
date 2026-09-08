@@ -1,11 +1,23 @@
 import 'reflect-metadata'
-import { Arg, Authorized, Ctx, Field, ID, Int, Mutation, ObjectType, Query, Resolver, registerEnumType } from 'type-graphql'
+import {
+  Arg,
+  Authorized,
+  Ctx,
+  Field,
+  ID,
+  Int,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+  registerEnumType,
+} from 'type-graphql'
 import { MessageKind, PermissionName } from '@repo/database'
 import type { Context } from '@/utils/graphql'
 import { requireCurrentUser } from '@/utils/graphql'
 import { decodeRoomCursor, encodeRoomCursor } from '@/services/room-cursor'
 import { validateMessageBody } from '@/services/message-validation'
-import { checkRateLimit } from '@/utils/rate-limit'
+import { checkRateLimit, peekRateLimit } from '@/utils/rate-limit'
 import { GraphQLError } from 'graphql'
 
 registerEnumType(MessageKind, {
@@ -39,6 +51,15 @@ export class RoomMessage {
   cursor!: string
 }
 
+@ObjectType()
+export class PostingAllowance {
+  @Field(() => Int)
+  remaining!: number
+
+  @Field(() => String)
+  resetAt!: string
+}
+
 type MessageRow = {
   message_id: string
   kind: MessageKind
@@ -68,6 +89,14 @@ function toView(row: MessageRow): RoomMessage {
 
 @Resolver()
 export class RoomResolver {
+  @Query(() => PostingAllowance)
+  postingAllowance(@Ctx() context: Context): PostingAllowance {
+    const currentUser = requireCurrentUser(context)
+    const allowance = peekRateLimit({ key: currentUser.user_id, limit: POSTS_PER_WINDOW, windowMs: WINDOW_MS })
+
+    return { remaining: allowance.remaining, resetAt: new Date(allowance.resetAt).toISOString() }
+  }
+
   /**
    * Public on purpose: the room is readable without an account, which is what makes signing up
    * worth anything. Deleted lines are filtered here rather than removed, so the cursors either

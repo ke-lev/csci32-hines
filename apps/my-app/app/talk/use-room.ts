@@ -7,7 +7,7 @@ import { gqlClient } from '../services/graphql-client'
 import { checkMessageBody } from '../lib/room'
 
 export const ROOM_MESSAGES_QUERY = graphql(`
-  query RoomMessages($after: String, $before: String, $limit: Int) {
+  query RoomMessages($after: String, $before: String, $limit: Int, $includePostingAllowance: Boolean! = false) {
     roomMessages(after: $after, before: $before, limit: $limit) {
       messageId
       kind
@@ -15,6 +15,10 @@ export const ROOM_MESSAGES_QUERY = graphql(`
       authorUsername
       createdAt
       cursor
+    }
+    postingAllowance @include(if: $includePostingAllowance) {
+      remaining
+      resetAt
     }
   }
 `)
@@ -51,6 +55,8 @@ export type RoomStatus = 'connecting' | 'live' | 'retrying'
 
 export type PostResult = { ok: true } | { ok: false; reason: string }
 
+export type PostingAllowance = { remaining: number; resetInSeconds: number }
+
 function compareRoomLines(left: RoomLine, right: RoomLine) {
   if (left.createdAt !== right.createdAt) return left.createdAt < right.createdAt ? -1 : 1
   if (left.messageId === right.messageId) return 0
@@ -74,13 +80,20 @@ function refusalReason(caughtError: unknown, fallback: string) {
  * size a five-second cursor poll is indistinguishable from a live socket. Polling pauses while the
  * tab is hidden, so a backgrounded dashboard is not a standing query every five seconds.
  */
-export function useRoom({ recoverSession }: { recoverSession: (caughtError: unknown) => boolean }) {
+export function useRoom({
+  canPost,
+  recoverSession,
+}: {
+  canPost: boolean
+  recoverSession: (caughtError: unknown) => boolean
+}) {
   const [messages, setMessages] = useState<RoomLine[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
   const [status, setStatus] = useState<RoomStatus>('connecting')
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isPosting, setIsPosting] = useState(false)
   const [hasOlder, setHasOlder] = useState(true)
+  const [postingAllowance, setPostingAllowance] = useState<PostingAllowance | null>(null)
   // Only a poll moves this. Posting used to advance it to your own line, which skipped anyone who
   // spoke since the last poll: their row is older than yours, so the next `after` query missed it.
   const polledCursor = useRef<string | null>(null)
@@ -113,8 +126,7 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
       // Outside the window nothing can be judged: older lines are history the window never covered,
       // and a newer one is a message posted while this request was in flight.
       const kept = current.filter(
-        (line) =>
-          compareRoomLines(line, oldest) < 0 || compareRoomLines(line, newest) > 0 || live.has(line.messageId),
+        (line) => compareRoomLines(line, oldest) < 0 || compareRoomLines(line, newest) > 0 || live.has(line.messageId),
       )
       const keptIds = new Set(kept.map((line) => line.messageId))
       const added = window.filter((line) => !keptIds.has(line.messageId))
@@ -133,9 +145,20 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
     try {
       const result = await gqlClient.request(ROOM_MESSAGES_QUERY, {
         after: isReconcile ? null : polledCursor.current,
+        includePostingAllowance: canPost,
         limit: PAGE_SIZE,
       })
       const rows = result.roomMessages as RoomLine[]
+
+      const allowance = result.postingAllowance
+      setPostingAllowance(
+        canPost && allowance
+          ? {
+              remaining: allowance.remaining,
+              resetInSeconds: Math.max(0, Math.ceil((new Date(allowance.resetAt).getTime() - Date.now()) / 1000)),
+            }
+          : null,
+      )
 
       if (isReconcile) applyWindow(rows)
       else merge(rows)
@@ -156,7 +179,7 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
       setStatus('retrying')
       setLoadError('could not reach the room')
     }
-  }, [applyWindow, merge, recoverSession])
+  }, [applyWindow, canPost, merge, recoverSession])
 
   useEffect(() => {
     void sync()
@@ -229,5 +252,5 @@ export function useRoom({ recoverSession }: { recoverSession: (caughtError: unkn
     [merge, recoverSession],
   )
 
-  return { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, retry, status }
+  return { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post, postingAllowance, retry, status }
 }

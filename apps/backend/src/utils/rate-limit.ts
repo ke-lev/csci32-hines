@@ -16,6 +16,16 @@ export type RateLimitOptions = {
   now?: number
 }
 
+export function peekRateLimit({ key, limit, windowMs, now = Date.now() }: RateLimitOptions) {
+  const existing = windows.get(key)
+
+  if (!existing || existing.resetAt <= now) {
+    return { remaining: limit, resetAt: now + windowMs }
+  }
+
+  return { remaining: Math.max(0, limit - existing.count), resetAt: existing.resetAt }
+}
+
 export function checkRateLimit({ key, limit, windowMs, now = Date.now() }: RateLimitOptions) {
   const existing = windows.get(key)
 
