@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useAuth } from '../components/use-auth'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
 import { handleTone } from '../talk/handle-tone'
@@ -31,6 +32,7 @@ function formatStamp(iso: string) {
 }
 
 export function TalkPanel({ onCountChange }: TalkPanelProps) {
+  const { user } = useAuth()
   const [lines, setLines] = useState<RoomLine[]>([])
   const [panelState, setPanelState] = useState<PanelState>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -159,7 +161,7 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
                 </span>
               ) : (
                 <>
-                  <span className={handleTone(author)}>{author}</span> <span className="text-foreground">{line.body}</span>
+                  <span className={handleTone(author, user?.username)}>{author}</span> <span className="text-foreground">{line.body}</span>
                 </>
               )}
             </span>

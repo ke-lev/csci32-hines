@@ -1,19 +1,13 @@
-import { pickFor } from '../input/seeded-random'
-
 /**
- * The palette stays narrow on purpose, so handles are toned rather than colored: the accent means
- * "you" and nothing else, and every other speaker takes a deterministic step on the warm neutral
- * ramp. Muted is left out because timestamps and system lines already own it, and a handle should
- * never read as chrome.
+ * Two colors carry the room: everyone speaking is blue, and you are green. It reads instantly —
+ * your own lines pick themselves out of a fast-moving transcript without needing to read the name.
  *
- * Same name, same tone, on every device — the seed is the handle itself, hashed by the same
- * function that turns a name into a face on /input.
+ * This does spend both signal colors on identity rather than state, which is a deliberate
+ * exception to the palette's rare-signal and semantic-wash rules for this one surface.
  */
-const HANDLE_TONES = ['text-foreground', 'text-subhead', 'text-footer'] as const
-
 export function handleTone(username: string | null | undefined, currentUsername?: string | null) {
   if (!username) return 'text-muted'
-  if (currentUsername && username === currentUsername) return 'text-accent'
+  if (currentUsername && username === currentUsername) return 'text-success'
 
-  return pickFor(username, 'room-handle', HANDLE_TONES)
+  return 'text-accent'
 }
