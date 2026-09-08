@@ -56,6 +56,18 @@ export function landingRoute(user: AuthUser | null) {
   return user.role === 'Admin' ? '/admin/' : '/dashboard/'
 }
 
+/**
+ * A sign-in that started somewhere else — the room's prompt, say — returns there. Only in-app paths
+ * are honored, so the parameter cannot be pointed at another origin.
+ */
+export function routeAfterAuth(user: AuthUser | null) {
+  const next = new URLSearchParams(window.location.search).get('next')
+
+  if (next && next.startsWith('/') && !next.startsWith('//')) return next
+
+  return landingRoute(user)
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object'
 }
@@ -272,7 +284,7 @@ export function useAuth() {
       saveSession(result.signUp)
       setUser(result.signUp.user)
       setIsSessionChecked(true)
-      router.push(landingRoute(result.signUp.user))
+      router.push(routeAfterAuth(result.signUp.user))
 
       return result.signUp
     } catch (caughtError) {
@@ -294,7 +306,7 @@ export function useAuth() {
       saveSession(result.signIn)
       setUser(result.signIn.user)
       setIsSessionChecked(true)
-      router.push(landingRoute(result.signIn.user))
+      router.push(routeAfterAuth(result.signIn.user))
 
       return result.signIn
     } catch (caughtError) {

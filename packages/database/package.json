@@ -12,6 +12,7 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
     "db:generate": "prisma generate",
+    "db:backfill:room": "tsx prisma/backfill-guestbook-lines.ts",
     "seed": "tsx prisma/seed.ts",
     "db:seed:roles": "tsx prisma/seed-roles.ts",
     "db:validate": "prisma validate"

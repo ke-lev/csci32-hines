@@ -16,15 +16,14 @@ export type FindManyUsersInput = {
   take?: number | null | undefined
 }
 
+/** Whether a room line was posted by an account or emitted by a site event */
+export type MessageKind = 'system' | 'user'
+
 /** Enum representing valid permissions for authorization */
 export type PermissionName = 'UserRead' | 'UserWrite'
 
 /** Enum representing valid roles for users */
 export type RoleName = 'Admin' | 'Basic'
-
-export type SavePersonalDrawingInput = {
-  strokes: Array<Array<number>>
-}
 
 export type SavePersonalIntroInput = {
   introBody?: string | null | undefined
@@ -60,6 +59,12 @@ export type FindManyUsersQueryVariables = Exact<{
 }>
 
 export type FindManyUsersQuery = { totalUsers: number; findManyUsers: Array<{ user_id: string; username: string }> }
+
+export type DeleteMessageMutationVariables = Exact<{
+  messageId: string | number
+}>
+
+export type DeleteMessageMutation = { deleteMessage: boolean }
 
 export type SignUpMutationVariables = Exact<{
   input: SignUpInput
@@ -114,7 +119,6 @@ export type MyPersonalPageQuery = {
     introTitle: string | null
     introSubhead: string | null
     introBody: string | null
-    strokes: Array<Array<number>>
     updatedAt: string
   } | null
 }
@@ -128,22 +132,52 @@ export type SavePersonalIntroMutation = {
     introTitle: string | null
     introSubhead: string | null
     introBody: string | null
-    strokes: Array<Array<number>>
     updatedAt: string
   }
 }
 
-export type SavePersonalDrawingMutationVariables = Exact<{
-  input: SavePersonalDrawingInput
+export type PublicProfileQueryVariables = Exact<{
+  username: string
 }>
 
-export type SavePersonalDrawingMutation = {
-  savePersonalDrawing: {
+export type PublicProfileQuery = {
+  publicProfile: {
+    username: string
     introTitle: string | null
     introSubhead: string | null
     introBody: string | null
-    strokes: Array<Array<number>>
-    updatedAt: string
+  } | null
+}
+
+export type RoomMessagesQueryVariables = Exact<{
+  after?: string | null | undefined
+  before?: string | null | undefined
+  limit?: number | null | undefined
+}>
+
+export type RoomMessagesQuery = {
+  roomMessages: Array<{
+    messageId: string
+    kind: MessageKind
+    body: string
+    authorUsername: string | null
+    createdAt: string
+    cursor: string
+  }>
+}
+
+export type PostMessageMutationVariables = Exact<{
+  body: string
+}>
+
+export type PostMessageMutation = {
+  postMessage: {
+    messageId: string
+    kind: MessageKind
+    body: string
+    authorUsername: string | null
+    createdAt: string
+    cursor: string
   }
 }
 
@@ -218,6 +252,39 @@ export const FindManyUsersDocument = {
     },
   ],
 } as unknown as DocumentNode<FindManyUsersQuery, FindManyUsersQueryVariables>
+export const DeleteMessageDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteMessage' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'messageId' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteMessage' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'messageId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'messageId' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteMessageMutation, DeleteMessageMutationVariables>
 export const SignUpDocument = {
   kind: 'Document',
   definitions: [
@@ -372,7 +439,6 @@ export const MyPersonalPageDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'introTitle' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introSubhead' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introBody' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strokes' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
               ],
             },
@@ -418,7 +484,6 @@ export const SavePersonalIntroDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'introTitle' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introSubhead' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introBody' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strokes' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
               ],
             },
@@ -428,21 +493,18 @@ export const SavePersonalIntroDocument = {
     },
   ],
 } as unknown as DocumentNode<SavePersonalIntroMutation, SavePersonalIntroMutationVariables>
-export const SavePersonalDrawingDocument = {
+export const PublicProfileDocument = {
   kind: 'Document',
   definitions: [
     {
       kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'SavePersonalDrawing' },
+      operation: 'query',
+      name: { kind: 'Name', value: 'PublicProfile' },
       variableDefinitions: [
         {
           kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'SavePersonalDrawingInput' } },
-          },
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'username' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
         },
       ],
       selectionSet: {
@@ -450,22 +512,21 @@ export const SavePersonalDrawingDocument = {
         selections: [
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'savePersonalDrawing' },
+            name: { kind: 'Name', value: 'publicProfile' },
             arguments: [
               {
                 kind: 'Argument',
-                name: { kind: 'Name', value: 'input' },
-                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+                name: { kind: 'Name', value: 'username' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'username' } },
               },
             ],
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'username' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introTitle' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introSubhead' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'introBody' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strokes' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
               ],
             },
           },
@@ -473,7 +534,115 @@ export const SavePersonalDrawingDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<SavePersonalDrawingMutation, SavePersonalDrawingMutationVariables>
+} as unknown as DocumentNode<PublicProfileQuery, PublicProfileQueryVariables>
+export const RoomMessagesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'RoomMessages' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'after' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'before' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'roomMessages' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'after' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'after' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'before' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'before' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'messageId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'kind' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'authorUsername' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cursor' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RoomMessagesQuery, RoomMessagesQueryVariables>
+export const PostMessageDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'PostMessage' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'body' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'postMessage' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'body' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'body' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'messageId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'kind' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'authorUsername' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cursor' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PostMessageMutation, PostMessageMutationVariables>
 export const TipIdeasDocument = {
   kind: 'Document',
   definitions: [

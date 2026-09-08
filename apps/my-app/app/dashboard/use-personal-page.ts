@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ClientError } from 'graphql-request'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
-import type { IntroFieldErrors, StoredStroke } from '../lib/personal-page'
+import type { IntroFieldErrors } from '../lib/personal-page'
 
 export type IntroCopy = {
   body: string
@@ -13,7 +13,6 @@ export type IntroCopy = {
 }
 
 export type SaveIntroResult = { ok: true } | { fieldErrors: IntroFieldErrors; ok: false; reason: string }
-export type SaveDrawingResult = { ok: true } | { ok: false; reason: string }
 
 const MY_PERSONAL_PAGE_QUERY = graphql(`
   query MyPersonalPage {
@@ -21,7 +20,6 @@ const MY_PERSONAL_PAGE_QUERY = graphql(`
       introTitle
       introSubhead
       introBody
-      strokes
       updatedAt
     }
   }
@@ -33,19 +31,6 @@ const SAVE_PERSONAL_INTRO_MUTATION = graphql(`
       introTitle
       introSubhead
       introBody
-      strokes
-      updatedAt
-    }
-  }
-`)
-
-const SAVE_PERSONAL_DRAWING_MUTATION = graphql(`
-  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {
-    savePersonalDrawing(input: $input) {
-      introTitle
-      introSubhead
-      introBody
-      strokes
       updatedAt
     }
   }
@@ -55,7 +40,6 @@ type PersonalPageResult = {
   introBody?: string | null
   introSubhead?: string | null
   introTitle?: string | null
-  strokes: number[][]
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -103,7 +87,6 @@ export function usePersonalPage({
   userId: string | null
 }) {
   const [savedIntro, setSavedIntro] = useState<IntroCopy | null>(null)
-  const [savedStrokes, setSavedStrokes] = useState<StoredStroke[] | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -116,7 +99,6 @@ export function usePersonalPage({
   if (userId !== loadedUserId) {
     setLoadedUserId(userId)
     setSavedIntro(null)
-    setSavedStrokes(null)
     setIsLoaded(false)
     setLoadError(null)
   }
@@ -132,15 +114,14 @@ export function usePersonalPage({
         if (cancelled) return
 
         setSavedIntro(toIntroCopy(result.myPersonalPage))
-        setSavedStrokes(result.myPersonalPage?.strokes ?? [])
         setLoadError(null)
         setIsLoaded(true)
       })
       .catch((caughtError: unknown) => {
         if (cancelled || recoverSession(caughtError)) return
 
-        // the page stays usable, but savedStrokes stays null so nothing pretends to know what is
-        // stored - the interface says so, and saving from here replaces whatever is there
+        // the page stays usable, but the saved copy stays unknown so saving from here replaces
+        // whatever is stored
         setLoadError('could not load your saved page')
         setIsLoaded(false)
       })
@@ -158,7 +139,6 @@ export function usePersonalPage({
         })
 
         setSavedIntro(toIntroCopy(result.savePersonalIntro))
-        setSavedStrokes(result.savePersonalIntro.strokes)
 
         return { ok: true }
       } catch (caughtError) {
@@ -176,26 +156,6 @@ export function usePersonalPage({
     [recoverSession],
   )
 
-  const saveDrawing = useCallback(
-    async (strokes: StoredStroke[]): Promise<SaveDrawingResult> => {
-      try {
-        const result = await gqlClient.request(SAVE_PERSONAL_DRAWING_MUTATION, { input: { strokes } })
-
-        setSavedIntro(toIntroCopy(result.savePersonalDrawing))
-        setSavedStrokes(result.savePersonalDrawing.strokes)
-
-        return { ok: true }
-      } catch (caughtError) {
-        if (recoverSession(caughtError)) {
-          return { ok: false, reason: 'your session expired - sign in again' }
-        }
-
-        return { ok: false, reason: extractReason(caughtError, 'could not save your drawing') }
-      }
-    },
-    [recoverSession],
-  )
-
   // settled means the load finished one way or the other, so the page can stop waiting on it
-  return { isLoaded, isSettled: isLoaded || loadError !== null, loadError, saveDrawing, saveIntro, savedIntro, savedStrokes }
+  return { isLoaded, isSettled: isLoaded || loadError !== null, loadError, saveIntro, savedIntro }
 }
