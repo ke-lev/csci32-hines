@@ -1,3 +1,5 @@
+// Vercel detects Fastify entrypoints by a direct framework import.
+import 'fastify'
 import 'reflect-metadata'
 import dotenv from 'dotenv'
 
