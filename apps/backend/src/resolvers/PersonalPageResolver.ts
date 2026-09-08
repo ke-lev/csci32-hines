@@ -74,8 +74,50 @@ function toView(row: PersonalPageRow): PersonalPage {
   }
 }
 
+@ObjectType()
+class PublicProfile {
+  @Field(() => String)
+  username!: string
+
+  @Field(() => String, { nullable: true })
+  introTitle?: string | null
+
+  @Field(() => String, { nullable: true })
+  introSubhead?: string | null
+
+  @Field(() => String, { nullable: true })
+  introBody?: string | null
+}
+
 @Resolver()
 export class PersonalPageResolver {
+  /**
+   * Public: this is what a handle in the room resolves to. The selection is written out rather
+   * than spread, so the password hash and email cannot reach it by accident.
+   */
+  @Query(() => PublicProfile, { nullable: true })
+  async publicProfile(
+    @Ctx() context: Context,
+    @Arg('username', () => String) username: string,
+  ): Promise<PublicProfile | null> {
+    const row = await context.prisma.user.findUnique({
+      where: { username },
+      select: {
+        username: true,
+        personalPage: { select: { intro_title: true, intro_subhead: true, intro_body: true } },
+      },
+    })
+
+    if (!row) return null
+
+    return {
+      username: row.username,
+      introTitle: row.personalPage?.intro_title ?? null,
+      introSubhead: row.personalPage?.intro_subhead ?? null,
+      introBody: row.personalPage?.intro_body ?? null,
+    }
+  }
+
   @Query(() => PersonalPage, { nullable: true })
   async myPersonalPage(@Ctx() context: Context): Promise<PersonalPage | null> {
     const currentUser = requireCurrentUser(context)
