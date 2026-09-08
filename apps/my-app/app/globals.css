@@ -119,20 +119,20 @@
     will-change: opacity, transform;
   }
 
-  .terms-scroll {
+  .dialog-scroll {
     scrollbar-color: var(--color-muted) transparent;
     scrollbar-width: thin;
   }
 
-  .terms-scroll::-webkit-scrollbar {
+  .dialog-scroll::-webkit-scrollbar {
     width: 8px;
   }
 
-  .terms-scroll::-webkit-scrollbar-track {
+  .dialog-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .terms-scroll::-webkit-scrollbar-thumb {
+  .dialog-scroll::-webkit-scrollbar-thumb {
     border: 2px solid var(--color-background);
     border-radius: 9999px;
     background: var(--color-muted);

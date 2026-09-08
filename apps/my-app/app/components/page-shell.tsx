@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
-import { TermsModal } from './terms-modal'
+import { InfoModal } from './info-modal'
 import { ThemeToggle } from './theme-toggle'
 import { TipsModal } from './tips-modal'
 
@@ -14,13 +14,16 @@ type Breadcrumb = {
 
 type PageShellProps = {
   breadcrumbs: Breadcrumb[]
+  // the technical account of the page, one string per paragraph, shown in the footer behind
+  // "how it works". pages that leave it out get no button rather than an empty dialog.
+  info?: string[]
   left: ReactNode
   right: ReactNode
   rightInset?: boolean
   titleId: string
 }
 
-export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId }: PageShellProps) {
+export function PageShell({ breadcrumbs, info, left, right, rightInset = true, titleId }: PageShellProps) {
   return (
     <main className="flex h-svh flex-col overflow-hidden px-8 py-7 max-[900px]:h-auto max-[900px]:min-h-svh max-[900px]:p-6 max-[560px]:p-5 short:h-auto short:min-h-svh short:overflow-visible">
       <header className="flex items-center justify-between border-b border-line pb-6">
@@ -66,7 +69,7 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
       </section>
 
       <footer className="flex items-center justify-between gap-5 border-t border-line pt-5 font-mono text-[0.66rem] tracking-[0.08em] text-foreground lowercase">
-        <TermsModal />
+        <div className="flex items-center gap-2.5">{info ? <InfoModal paragraphs={info} /> : null}</div>
         <div className="flex items-center gap-2.5">
           <p className="m-0">git&apos;n init © 2026</p>
           <Button
