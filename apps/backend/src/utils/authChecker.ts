@@ -1,6 +1,7 @@
 import type { AuthChecker } from 'type-graphql'
 import type { PermissionName } from '@repo/database'
 import type { Context } from './graphql'
+import { forbiddenError, unauthenticatedError } from './auth-errors'
 
 /**
  * TypeGraphQL calls this after the GraphQL context has verified the bearer token.
@@ -14,7 +15,7 @@ import type { Context } from './graphql'
  */
 export const customAuthChecker: AuthChecker<Context, PermissionName> = ({ context }, requiredPermissions) => {
   if (!context.auth || !context.currentUser) {
-    return false
+    throw unauthenticatedError()
   }
 
   if (requiredPermissions.length === 0) {
@@ -22,5 +23,9 @@ export const customAuthChecker: AuthChecker<Context, PermissionName> = ({ contex
   }
 
   const userPermissions = context.currentUser.permissions
-  return requiredPermissions.every((permission) => userPermissions.includes(permission))
+  if (!requiredPermissions.every((permission) => userPermissions.includes(permission))) {
+    throw forbiddenError()
+  }
+
+  return true
 }

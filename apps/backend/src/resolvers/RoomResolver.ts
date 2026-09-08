@@ -1,8 +1,12 @@
 import 'reflect-metadata'
-import { Arg, Ctx, Field, ID, Int, ObjectType, Query, Resolver, registerEnumType } from 'type-graphql'
-import { MessageKind } from '@repo/database'
+import { Arg, Authorized, Ctx, Field, ID, Int, Mutation, ObjectType, Query, Resolver, registerEnumType } from 'type-graphql'
+import { MessageKind, PermissionName } from '@repo/database'
 import type { Context } from '@/utils/graphql'
+import { requireCurrentUser } from '@/utils/graphql'
 import { decodeRoomCursor, encodeRoomCursor } from '@/services/room-cursor'
+import { validateMessageBody } from '@/services/message-validation'
+import { checkRateLimit } from '@/utils/rate-limit'
+import { GraphQLError } from 'graphql'
 
 registerEnumType(MessageKind, {
   name: 'MessageKind',
@@ -11,6 +15,8 @@ registerEnumType(MessageKind, {
 
 export const ROOM_PAGE_SIZE = 50
 export const ROOM_MAX_PAGE_SIZE = 100
+const POSTS_PER_WINDOW = 10
+const WINDOW_MS = 60_000
 
 @ObjectType()
 export class RoomMessage {
@@ -115,5 +121,49 @@ export class RoomResolver {
     })
 
     return rows.reverse().map(toView)
+  }
+
+  /**
+   * The room's only write path. The body is normalized server-side, and the rate limit is keyed on
+   * the account rather than the IP, because the session is the thing being spent here.
+   */
+  @Mutation(() => RoomMessage)
+  async postMessage(@Ctx() context: Context, @Arg('body', () => String) body: string): Promise<RoomMessage> {
+    const currentUser = requireCurrentUser(context)
+    const validation = validateMessageBody(body)
+
+    if (!validation.ok) {
+      throw new GraphQLError(validation.reason, { extensions: { code: 'BAD_USER_INPUT' } })
+    }
+
+    const limit = checkRateLimit({ key: currentUser.user_id, limit: POSTS_PER_WINDOW, windowMs: WINDOW_MS })
+
+    if (!limit.allowed) {
+      throw new GraphQLError(`slow down - try again in ${Math.ceil(limit.retryAfterMs / 1000)}s`, {
+        extensions: { code: 'BAD_USER_INPUT' },
+      })
+    }
+
+    const row = await context.prisma.message.create({
+      data: { body: validation.value, kind: MessageKind.user, user_id: currentUser.user_id },
+      select: messageSelection,
+    })
+
+    return toView(row)
+  }
+
+  /**
+   * Soft delete: the row stays so the cursors either side of it keep resolving, and the read query
+   * filters it out. This is the first real job the Admin role has had.
+   */
+  @Authorized(PermissionName.UserWrite)
+  @Mutation(() => Boolean)
+  async deleteMessage(@Ctx() context: Context, @Arg('messageId', () => ID) messageId: string): Promise<boolean> {
+    const updated = await context.prisma.message.updateMany({
+      where: { message_id: messageId, deleted_at: null },
+      data: { deleted_at: new Date() },
+    })
+
+    return updated.count > 0
   }
 }
