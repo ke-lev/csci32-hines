@@ -2,12 +2,6 @@ export const MAX_INTRO_TITLE_LENGTH = 80
 export const MAX_INTRO_SUBHEAD_LENGTH = 140
 export const MAX_INTRO_BODY_LENGTH = 240
 
-export const VIEW_BOX_WIDTH = 1000
-export const VIEW_BOX_HEIGHT = 720
-export const MAX_STROKE_COUNT = 64
-export const MAX_POINTS_PER_STROKE = 900
-export const MAX_TOTAL_POINTS = 20_000
-
 export type IntroField = 'introTitle' | 'introSubhead' | 'introBody'
 
 export type IntroFieldErrors = Partial<Record<IntroField, string>>
@@ -26,11 +20,6 @@ export type ValidatedIntro = {
 
 export type IntroValidation = { ok: true; value: ValidatedIntro } | { fieldErrors: IntroFieldErrors; ok: false }
 
-/** A stroke is one flat [x, y, x, y, ...] run of pad coordinates, so an odd length is malformed. */
-export type NormalizedStroke = number[]
-
-export type StrokesValidation = { ok: true; value: NormalizedStroke[] } | { ok: false; reason: string }
-
 /** Drops control characters but keeps tab and newline, which the intro fields legitimately use. */
 function stripControlCharacters(value: string) {
   let stripped = ''
@@ -44,14 +33,6 @@ function stripControlCharacters(value: string) {
   }
 
   return stripped
-}
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(Math.max(value, minimum), maximum)
-}
-
-function roundCoordinate(value: number) {
-  return Math.round(value * 10) / 10
 }
 
 /** Normalizes line endings and strips control characters so stored copy stays printable text. */
@@ -95,64 +76,4 @@ export function validateIntroInput(input: IntroInputLike): IntroValidation {
   }
 
   return { ok: true, value: { introBody, introSubhead, introTitle } }
-}
-
-/**
- * Clamps every point into the pad's view box and rounds it to one decimal, then rejects anything
- * over the stroke, point, or total-point budget. Runs on write and on read, because the strokes
- * column is JSON and nothing but this function guarantees its shape.
- */
-export function normalizeStrokes(value: unknown): StrokesValidation {
-  if (!Array.isArray(value)) {
-    return { ok: false, reason: 'strokes must be a list' }
-  }
-
-  if (value.length > MAX_STROKE_COUNT) {
-    return { ok: false, reason: `keep the drawing under ${MAX_STROKE_COUNT} strokes` }
-  }
-
-  const strokes: NormalizedStroke[] = []
-  let totalPoints = 0
-
-  for (const rawStroke of value) {
-    if (!Array.isArray(rawStroke)) {
-      return { ok: false, reason: 'every stroke must be a list of coordinates' }
-    }
-
-    if (rawStroke.length % 2 !== 0) {
-      return { ok: false, reason: 'every stroke needs an even number of coordinates' }
-    }
-
-    const pointCount = rawStroke.length / 2
-
-    if (pointCount === 0) continue
-
-    if (pointCount > MAX_POINTS_PER_STROKE) {
-      return { ok: false, reason: `keep each stroke under ${MAX_POINTS_PER_STROKE} points` }
-    }
-
-    totalPoints += pointCount
-
-    if (totalPoints > MAX_TOTAL_POINTS) {
-      return { ok: false, reason: `keep the drawing under ${MAX_TOTAL_POINTS.toLocaleString()} points` }
-    }
-
-    const stroke: NormalizedStroke = []
-
-    for (let index = 0; index < rawStroke.length; index += 1) {
-      const coordinate = rawStroke[index]
-
-      if (typeof coordinate !== 'number' || !Number.isFinite(coordinate)) {
-        return { ok: false, reason: 'every coordinate must be a finite number' }
-      }
-
-      const limit = index % 2 === 0 ? VIEW_BOX_WIDTH : VIEW_BOX_HEIGHT
-
-      stroke.push(roundCoordinate(clamp(coordinate, 0, limit)))
-    }
-
-    strokes.push(stroke)
-  }
-
-  return { ok: true, value: strokes }
 }

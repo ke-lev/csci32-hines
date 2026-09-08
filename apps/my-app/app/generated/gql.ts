@@ -19,9 +19,8 @@ type Documents = {
   '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignUpDocument
   '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignInDocument
   '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n': typeof types.CurrentUserDocument
-  '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.MyPersonalPageDocument
-  '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalIntroDocument
-  '\n  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {\n    savePersonalDrawing(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalDrawingDocument
+  '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n': typeof types.MyPersonalPageDocument
+  '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalIntroDocument
   '\n  query PublicProfile($username: String!) {\n    publicProfile(username: $username) {\n      username\n      introTitle\n      introSubhead\n      introBody\n    }\n  }\n': typeof types.PublicProfileDocument
   '\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n': typeof types.RoomMessagesDocument
   '\n  mutation PostMessage($body: String!) {\n    postMessage(body: $body) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n': typeof types.PostMessageDocument
@@ -39,12 +38,10 @@ const documents: Documents = {
     types.SignInDocument,
   '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n':
     types.CurrentUserDocument,
-  '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n':
+  '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n':
     types.MyPersonalPageDocument,
-  '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n':
+  '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n':
     types.SavePersonalIntroDocument,
-  '\n  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {\n    savePersonalDrawing(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n':
-    types.SavePersonalDrawingDocument,
   '\n  query PublicProfile($username: String!) {\n    publicProfile(username: $username) {\n      username\n      introTitle\n      introSubhead\n      introBody\n    }\n  }\n':
     types.PublicProfileDocument,
   '\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n':
@@ -105,20 +102,14 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n',
-): (typeof documents)['\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n']
+  source: '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n',
+): (typeof documents)['\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n',
-): (typeof documents)['\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n']
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(
-  source: '\n  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {\n    savePersonalDrawing(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n',
-): (typeof documents)['\n  mutation SavePersonalDrawing($input: SavePersonalDrawingInput!) {\n    savePersonalDrawing(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      strokes\n      updatedAt\n    }\n  }\n']
+  source: '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n',
+): (typeof documents)['\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -61,16 +61,13 @@ model RolePermission {
   @@unique([role_id, permission_id])
 }
 
-/// One editable homepage per account: the dashboard intro copy and the drawing pad strokes.
-/// Strokes are stored normalized to the pad's 1000x720 view box as one flat [x, y, x, y, ...]
-/// array per stroke; see personal-page-validation.ts for the bounds enforced on every write.
+/// One editable homepage per account: the dashboard profile copy.
 model PersonalPage {
   page_id       String   @id @default(cuid())
   user_id       String   @unique
   intro_title   String?
   intro_subhead String?
   intro_body    String?
-  strokes       Json     @default("[]")
   updated_at    DateTime @default(now()) @updatedAt
 
   user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
