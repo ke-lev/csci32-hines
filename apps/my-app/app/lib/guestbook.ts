@@ -3,6 +3,7 @@ import 'server-only'
 import { prisma } from '@repo/database'
 import { unstable_cache } from 'next/cache'
 import type { DrawingKindName } from '../input/guestbook-name'
+import { writeGuestbookSystemLine } from './system-lines'
 
 export const GUESTBOOK_PAGE_SIZE = 48
 export const GUESTBOOK_CACHE_TAG = 'guestbook'
@@ -26,11 +27,19 @@ export type GuestbookPage = {
  * is a no-op rather than a duplicate row, so a double-click costs one query and nothing else.
  */
 export async function signGuestbook(seed: string, kind: DrawingKindName) {
+  const existing = await prisma.guestbookEntry.findUnique({
+    select: { entry_id: true },
+    where: { seed_kind: { kind, seed } },
+  })
+
   await prisma.guestbookEntry.upsert({
     create: { kind, seed },
     update: {},
     where: { seed_kind: { kind, seed } },
   })
+
+  // signing the same name twice is a no-op today and must stay one, so it must not announce twice
+  if (!existing) await writeGuestbookSystemLine(seed, kind)
 }
 
 /** Reads one bounded page, newest first. The table is never read whole. */
