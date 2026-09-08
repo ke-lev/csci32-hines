@@ -56,57 +56,6 @@
     animation: page-intro-description-reveal 760ms 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .cursive-home-title {
-    width: calc(100% + 32px);
-    margin-block: 0;
-    margin-inline-start: -32px;
-    color: var(--color-foreground);
-  }
-
-  .cursive-title-art {
-    aspect-ratio: 9 / 4;
-    width: 100%;
-    overflow: visible;
-  }
-
-  .cursive-title-stroke {
-    stroke: currentColor;
-    stroke-width: 8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 1;
-    animation: cursive-title-draw 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .cursive-title-stroke-second {
-    animation-delay: 240ms;
-  }
-
-  @keyframes cursive-title-draw {
-    from {
-      stroke-dashoffset: 1;
-    }
-  }
-
-  @media (max-width: 900px) {
-    .cursive-home-title {
-      width: calc(100% + 24px);
-      margin-inline-start: -24px;
-    }
-  }
-
-  @media (max-width: 560px) {
-    .cursive-home-title {
-      width: calc(100% + 20px);
-      margin-inline-start: -20px;
-    }
-
-    .cursive-title-stroke {
-      stroke-width: 6;
-    }
-  }
-
   @keyframes tips-view-enter {
     from {
       opacity: 0;

@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   alternates: { canonical: '/input/roll/' },
 }
 
+const pageInfo = [
+  '/input/roll',
+  'each guestbook signature stores the normalized name seed, drawing kind, and signing time. this page reads the newest 48 entries at a time and uses the page query string to move through older batches.',
+  '**redrawn, not stored:** there is no portrait image in the database. each face or cat is regenerated here from the saved seed using the same deterministic drawing code as /input, so the same signature always produces the same portrait.',
+]
+
 function parsePage(value: string | string[] | undefined) {
   const raw = Array.isArray(value) ? value[0] : value
   const parsed = Number(raw)
@@ -90,6 +96,7 @@ export default async function RollPage({
         { label: 'input', href: '/input/' },
         { label: 'roll', href: '/input/roll/' },
       ]}
+      info={pageInfo}
       titleId="roll-title"
       left={
         <PageIntro

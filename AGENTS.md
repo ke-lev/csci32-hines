@@ -8,6 +8,14 @@ use Conventional Commits for every commit message, PR title, and squash or merge
 - use branch names like `feat/roles-and-permissions` or `docs/commit-conventions`; this is the repo's branch naming convention, since Conventional Commits does not define branch names
 - write PR bodies in plain prose describing the change and its verification; the title carries the Conventional Commits format
 
+# subagents
+
+use subagents when a task is precise, bounded, and mostly simple code or verification work. use the
+least expensive capable model. Codex should prefer Luna with max reasoning.
+
+the parent agent owns integration, review, and final verification. keep ambiguous, architectural,
+high-risk, and user-facing decisions with the parent unless the user explicitly delegates them.
+
 # todo.md
 
 `todo.md` at the repo root is the only backlog. there is no `ideas.md`, no `review.md`, and no

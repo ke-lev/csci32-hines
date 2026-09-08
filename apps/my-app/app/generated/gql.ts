@@ -22,7 +22,7 @@ type Documents = {
   '\n  query MyPersonalPage {\n    myPersonalPage {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n': typeof types.MyPersonalPageDocument
   '\n  mutation SavePersonalIntro($input: SavePersonalIntroInput!) {\n    savePersonalIntro(input: $input) {\n      introTitle\n      introSubhead\n      introBody\n      updatedAt\n    }\n  }\n': typeof types.SavePersonalIntroDocument
   '\n  query PublicProfile($username: String!) {\n    publicProfile(username: $username) {\n      username\n      introTitle\n      introSubhead\n      introBody\n    }\n  }\n': typeof types.PublicProfileDocument
-  '\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n': typeof types.RoomMessagesDocument
+  '\n  query RoomMessages($after: String, $before: String, $limit: Int, $includePostingAllowance: Boolean! = false) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n    postingAllowance @include(if: $includePostingAllowance) {\n      remaining\n      resetAt\n    }\n  }\n': typeof types.RoomMessagesDocument
   '\n  mutation PostMessage($body: String!) {\n    postMessage(body: $body) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n': typeof types.PostMessageDocument
   '\n  query TipIdeas {\n    findManyTipIdeas {\n      body\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.TipIdeasDocument
   '\n  mutation UpdateTipIdea($input: UpdateTipIdeaInput!) {\n    updateTipIdea(input: $input) {\n      body\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.UpdateTipIdeaDocument
@@ -44,7 +44,7 @@ const documents: Documents = {
     types.SavePersonalIntroDocument,
   '\n  query PublicProfile($username: String!) {\n    publicProfile(username: $username) {\n      username\n      introTitle\n      introSubhead\n      introBody\n    }\n  }\n':
     types.PublicProfileDocument,
-  '\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n':
+  '\n  query RoomMessages($after: String, $before: String, $limit: Int, $includePostingAllowance: Boolean! = false) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n    postingAllowance @include(if: $includePostingAllowance) {\n      remaining\n      resetAt\n    }\n  }\n':
     types.RoomMessagesDocument,
   '\n  mutation PostMessage($body: String!) {\n    postMessage(body: $body) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n':
     types.PostMessageDocument,
@@ -120,8 +120,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n',
-): (typeof documents)['\n  query RoomMessages($after: String, $before: String, $limit: Int) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n  }\n']
+  source: '\n  query RoomMessages($after: String, $before: String, $limit: Int, $includePostingAllowance: Boolean! = false) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n    postingAllowance @include(if: $includePostingAllowance) {\n      remaining\n      resetAt\n    }\n  }\n',
+): (typeof documents)['\n  query RoomMessages($after: String, $before: String, $limit: Int, $includePostingAllowance: Boolean! = false) {\n    roomMessages(after: $after, before: $before, limit: $limit) {\n      messageId\n      kind\n      body\n      authorUsername\n      createdAt\n      cursor\n    }\n    postingAllowance @include(if: $includePostingAllowance) {\n      remaining\n      resetAt\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -54,6 +54,12 @@ const FIND_MANY_USERS_QUERY = graphql(`
 
 const USERS_PAGE_SIZE = 10
 
+const pageInfo = [
+  '/admin',
+  'routes and timeline posts are assembled from files at build time. account rows and room messages come from the database when their tabs are opened.',
+  '**access check:** the browser restores the signed session, the backend verifies its JWT, reloads the account and role bindings, and only grants this view when that account has the Admin role. protected mutations still enforce their permission on the server.',
+]
+
 function pad(value: number) {
   return String(value).padStart(2, '0')
 }
@@ -190,6 +196,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
         { label: 'users', href: '/users/' },
         { label: 'admin', href: '/admin/' },
       ]}
+      info={pageInfo}
       rightInset={false}
       titleId="admin-title"
       left={
@@ -197,7 +204,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
           title="admin console"
           titleId="admin-title"
           subhead={isGranted ? 'what the site actually knows about itself' : 'this route expects an admin session.'}
-          body={isGranted ? 'routes and posts are baked in at build\nusers come straight from the database' : undefined}
+          body={isGranted ? 'browse routes and posts, search accounts, and moderate the shared room' : undefined}
         />
       }
       right={

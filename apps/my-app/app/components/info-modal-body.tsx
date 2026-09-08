@@ -28,6 +28,8 @@ function withLeadIn(paragraph: string) {
 export function InfoDialog({ onClose, paragraphs }: InfoDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   useDialog(dialogRef, onClose)
+  const routeLabel = paragraphs[0]?.match(/^\/[a-z0-9/-]*$/) ? paragraphs[0] : null
+  const prose = routeLabel ? paragraphs.slice(1) : paragraphs
 
   return (
     <div
@@ -71,7 +73,10 @@ export function InfoDialog({ onClose, paragraphs }: InfoDialogProps) {
           tabIndex={0}
         >
           <div className="flex max-w-[70ch] flex-col gap-[1.5em] text-[0.92rem] leading-[1.7] text-foreground sm:text-[0.98rem]">
-            {paragraphs.map((paragraph) => (
+            {routeLabel ? (
+              <p className="m-0 font-mono text-[0.64rem] tracking-[0.12em] text-muted lowercase">{routeLabel}</p>
+            ) : null}
+            {prose.map((paragraph) => (
               <p className="m-0" key={paragraph}>
                 {withLeadIn(paragraph)}
               </p>

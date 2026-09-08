@@ -26,6 +26,12 @@ function getDefaultIntro(username: string): IntroCopy {
 
 const BLANK_INTRO: IntroCopy = { body: '', subhead: '', title: '' }
 
+const pageInfo = [
+  '/dashboard',
+  'the title, subhead, and short body on the left are live form controls. edits stay in a local preview until you choose save intro; restore defaults only loads the original copy into that preview.',
+  '**when you save:** the backend validates the three fields and upserts one personal-page row keyed to the signed-in account. that stored intro is loaded on later visits and is also what other people see when they open your profile from the room.',
+]
+
 // the h1 sets leading-[0.84], so glyphs paint outside the line box and overflow-hidden would
 // clip ascenders and descenders. the padding gives them room; the negative margin takes that
 // room back out of the layout so the intro sits exactly where it does on every other page.
@@ -124,7 +130,8 @@ export function Dashboard() {
     setIsSavingIntro(false)
 
     if (!result.ok) {
-      const fieldError = result.fieldErrors.introTitle || result.fieldErrors.introSubhead || result.fieldErrors.introBody
+      const fieldError =
+        result.fieldErrors.introTitle || result.fieldErrors.introSubhead || result.fieldErrors.introBody
 
       // the draft stays put on failure, so nothing typed is lost to a bad round trip
       setIntroError(fieldError || result.reason)
@@ -147,6 +154,7 @@ export function Dashboard() {
         // on screen moves when it arrives, and `users /` alone is the nav /users itself renders.
         ...(isReady ? [{ label: username, href: '/dashboard/' }] : []),
       ]}
+      info={pageInfo}
       titleId="dashboard-title"
       left={
         <PageIntro
