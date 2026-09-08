@@ -558,7 +558,7 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : code === 'UNAUTHORIZED'
+              : (code === 'FORBIDDEN' || code === 'UNAUTHORIZED')
                 ? 'ideas: admin role required'
                 : 'ideas: could not read the inbox',
           },
@@ -622,7 +622,7 @@ export function UsersTerminal() {
             kind: 'error',
             text: sessionExpired
               ? 'session expired — log in again'
-              : code === 'UNAUTHORIZED'
+              : (code === 'FORBIDDEN' || code === 'UNAUTHORIZED')
                 ? 'ideas: admin role required'
                 : code === 'NOT_FOUND'
                   ? 'ideas: no suggestion found for that receipt'
