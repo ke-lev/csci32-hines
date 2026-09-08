@@ -5,6 +5,7 @@ import { Button } from '@repo/ui/button'
 import { Variant } from '@repo/ui/variant'
 import { useAuth } from '../components/use-auth'
 import { MAX_MESSAGE_LENGTH } from '../lib/room'
+import { useProfile } from './use-profile'
 import { useRoom } from './use-room'
 
 const MOTD = 'one room. be nice.'
@@ -16,6 +17,7 @@ function formatTime(iso: string) {
 export function Room({ canPost }: { canPost: boolean }) {
   const { recoverSession } = useAuth()
   const { hasOlder, isLoaded, isPosting, loadError, loadOlder, messages, post } = useRoom({ recoverSession })
+  const { close, isLoading: isProfileLoading, open, profile } = useProfile()
   const [draft, setDraft] = useState('')
   const [sendError, setSendError] = useState<string | null>(null)
   const transcript = useRef<HTMLDivElement>(null)
@@ -45,6 +47,34 @@ export function Room({ canPost }: { canPost: boolean }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {profile ? (
+        <div className="border-b border-line px-[clamp(18px,2vw,28px)] py-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="m-0 font-mono text-[0.72rem] text-accent">{profile.username}</p>
+              {profile.introSubhead ? (
+                <p className="m-0 mt-1 text-sm leading-[1.5] text-subhead">{profile.introSubhead}</p>
+              ) : null}
+              {profile.introBody ? (
+                <p className="m-0 mt-1 text-sm leading-[1.5] text-muted">{profile.introBody}</p>
+              ) : null}
+              {!profile.introSubhead && !profile.introBody ? (
+                <p className="m-0 mt-1 font-mono text-[0.66rem] text-muted lowercase">
+                  {isProfileLoading ? 'loading...' : 'no profile yet'}
+                </p>
+              ) : null}
+            </div>
+            <button
+              className="font-mono text-[0.66rem] text-muted lowercase underline"
+              onClick={close}
+              type="button"
+            >
+              close
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="min-h-0 flex-1 overflow-y-auto px-[clamp(18px,2vw,28px)] py-4" ref={transcript}>
         <p className="m-0 font-mono text-[0.64rem] tracking-[0.06em] text-muted lowercase">{MOTD}</p>
 
@@ -66,7 +96,13 @@ export function Room({ canPost }: { canPost: boolean }) {
                 <span className="text-muted">* {line.body}</span>
               ) : (
                 <>
-                  <span className="text-accent">{line.authorUsername ?? 'someone'}</span>{' '}
+                  <button
+                    className="text-accent underline underline-offset-2"
+                    onClick={() => void open(line.authorUsername ?? '')}
+                    type="button"
+                  >
+                    {line.authorUsername ?? 'someone'}
+                  </button>{' '}
                   <span className="text-foreground">{line.body}</span>
                 </>
               )}

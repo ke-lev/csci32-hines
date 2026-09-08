@@ -156,6 +156,19 @@ export type SavePersonalDrawingMutation = {
   }
 }
 
+export type PublicProfileQueryVariables = Exact<{
+  username: string
+}>
+
+export type PublicProfileQuery = {
+  publicProfile: {
+    username: string
+    introTitle: string | null
+    introSubhead: string | null
+    introBody: string | null
+  } | null
+}
+
 export type RoomMessagesQueryVariables = Exact<{
   after?: string | null | undefined
   before?: string | null | undefined
@@ -548,6 +561,48 @@ export const SavePersonalDrawingDocument = {
     },
   ],
 } as unknown as DocumentNode<SavePersonalDrawingMutation, SavePersonalDrawingMutationVariables>
+export const PublicProfileDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'PublicProfile' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'username' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'publicProfile' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'username' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'username' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'username' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'introTitle' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'introSubhead' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'introBody' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PublicProfileQuery, PublicProfileQueryVariables>
 export const RoomMessagesDocument = {
   kind: 'Document',
   definitions: [
