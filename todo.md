@@ -1,37 +1,67 @@
 # todo
 
-revised after feedback on the september 4 review. keep the technical fixes and the terminal / suggestion-box directions. creative work now centers on the existing UI and a user's own intro and drawing. [ideas.md](ideas.md) holds possibilities to choose from, not a list to implement wholesale. course lab sections still need their normal explanation and go-ahead.
+## roll out "how it works" to the rest of the pages
 
-## fix first
+`/input` is the proof of concept and it shipped. the mechanism is done; what's left is copy.
 
-- [x] protect `findManyUsers` with verified backend authentication/authorization; omit email from any public projection. verify anonymous and insufficient-permission requests fail without returning records.
-- [x] enforce signup email/password rules and input bounds on the server, mirror them in form and terminal, and apply password-creation rules only to signup. test invalid inputs without creating rows and confirm both login paths accept the same valid credentials.
-- [x] add a verified current-user query and session-expiry recovery. clear rejected sessions, synchronize logout across tabs, and verify refresh with valid, expired, missing, and malformed session data.
-- [x] restore Tab and Shift+Tab traversal in `/users` while keeping an explicit autocomplete interaction. verify the input, exit link, and footer remain keyboard reachable.
-- [x] use a shared route registry for terminal `open`, `ls`, and `tree`; include input, roll, and games. verify `open games` and `open input` navigate successfully.
-- [x] show safe field-specific signup errors in the terminal and preserve nonsecret answers during correction; keep passwords out of output/history and login credential failures generic.
+### how it works (the mechanism)
 
-## small useful improvements
+- `PageShell` takes `info?: string[]` - one string per paragraph. pass it and the footer grows a
+  `how it works` button, leave it out and there's no button at all.
+- `**lead-in:**` at the front of a string renders bold. that's the only markup.
+- copy lives in a `const pageInfo = [...]` at the top of the page file.
+- `components/use-dialog.ts` holds the escape / scroll-lock / focus-trap behavior. `tips-modal-body.tsx`
+  still has its own hand-rolled copy of that effect - worth retrofitting when touching it.
 
-- [x] correct README guestbook removal guidance to account for the one-hour cache, or add authenticated removal with tag invalidation when moderation exists.
-- [x] label the roll count as signatures rather than distinct people, and explain public name/portrait storage beside signing.
-- [x] resolve the 10 lint warnings at their configuration/source: declare relevant Turbo environment dependencies, narrow the resolver type, and fix the generated lint-disable configuration.
-- [x] document backend setup and deployment alongside frontend setup: required variable names, database migrations, API URL, CORS origin, and how to start the built API. keep secret values out of documentation.
+### the split
 
-## keep: terminal integration
+three tiers, and the whole point is keeping them separate:
 
-- [x] build on the existing account commands: make `help` destinations clickable and expose the existing `/welcome` form as an alternative entry point.
-- [x] add `cat timeline/<slug>` for reading existing posts in the shell. give unknown posts a useful error and keep rendering plain text.
+- **h1** - the title
+- **subhead** - the joke
+- **body** - what you can actually *do* here (the affordances, keep them visible)
+- **how it works** - the technical account
 
-## keep: suggestion-box follow-through
+do not move affordances into the dialog. `/input` originally had the pipeline and the four "you can
+do this" bullets crammed into one `body`; only the pipeline moved.
 
-- [x] after real backend permissions exist, add an owner-only view of the ideas already being submitted; support “heard,” “trying it,” and “shipped.”
-- [x] return an opaque receipt code on submission so a visitor can check status without exposing their suggestion text. optionally attach a shipped site's route or timeline link.
+### pages worth doing, roughly in order
 
-## proposed next UI experiment
+1. **`/games/random-number-guesser`** - easiest win, the `body` is *already* pure mechanism
+   ("after every miss, the possible interval tightens and the midpoint becomes your next recommended
+   move"). straight move, then write a real body about what you can do.
+2. **`/admin`** - same deal, `body` is already technical ("routes and posts are baked in at build /
+   users come straight from the database"). expand it with how the access check actually works.
+3. **`/talk`** - the most to say and nothing said yet: the polling cursor, why moderation doesn't
+   reach open rooms, rate limiting, why there are no dms or threads. overlaps with the open bugs in
+   `ideas.md` - probably fix those first so the copy isn't describing broken behavior.
+4. **`/users`** (shell) - what the terminal actually parses, what's real vs set dressing, how the
+   room tail works.
+5. **`/welcome`** - `body` already gestures at it ("real accounts. real backend"). password hashing,
+   jwt, where the session lives.
+6. **`/games/game-of-life`** - `body` is empty right now, so this is net-new: conway's rules, the
+   tick loop, grid wrapping.
+7. **`/input/roll`** - guestbook storage, pagination, how each portrait is redrawn from just a seed.
+8. **`/dashboard`** - the editable intro copy and how it persists. note the `body` here is a live
+   `<textarea>`, not a string, so it's a different shape from every other page.
 
-- [x] prototype an editable personal intro on `/dashboard`: title, subhead, and optional short body, rendered through the existing `PageIntro`. preview edits in place with explicit save/cancel and restore-default controls.
-- [x] make the whole right card one drawing pad: one pen, always live, edge to edge, with a bottom row of submit (primary) and scrap (secondary, clears the pad). no account details or mode toggle in the card; sign out stays in the `/users` shell.
-- [x] persist one intro and one drawing per account behind verified ownership. `PersonalPage` holds bounded intro text and stroke data normalized to the pad view box; `myPersonalPage`, `savePersonalIntro`, and `savePersonalDrawing` are all keyed on the session user. verified refresh, save failure, malformed stored data, anonymous access, and cross-account read and overwrite against a local database. public sharing is still a separate decision.
-- [ ] inspect the dashboard in a browser: desktop/mobile, both themes, and reduced motion. project checks (`check-types`, `lint`, `test`, `build`) pass and the `PersonalPage` migration is applied, but nothing here has been seen rendered yet.
-- [ ] decide what a full-card pad should do to touch scrolling. the pad is always live now, so on a phone a finger drag over the card draws instead of scrolling the page. options: only start a stroke after a short press, ignore touch below some width, or keep it and accept the card as a dead zone for scrolling.
+**skip:** `/games`, `/buttons` (index + joke page, the `body` is idea notes), `/timeline`,
+`error`, `not-found`. `/cursive` needs a look - it has no `PageIntro` body at all.
+
+### open calls
+
+- **the `/input` opener.** first entry is the literal string `/input` and it renders as plain prose,
+  which reads a little odd. could style entry one as a mono route label. decide once, apply to all.
+- **mobile.** the footer is a long scroll from the intro copy it's explaining. an inline
+  `how it works ->` at the end of the body, opening the same dialog, would fix it. two triggers, one
+  dialog.
+- **`string[]` can't hold a link.** fine so far. if a page needs one, widen to `string[] | ReactNode` -
+  the dialog won't need to change.
+- **keep it honest.** the `/input` tangent describes dead code (hair, glasses - computed, never
+  drawn). that goes stale the moment any of it gets wired up. same risk on every page.
+
+### unrelated but noticed
+
+`.next` keeps accumulating duplicate `* 2.*` generated files - there were 110, and they break
+`check-types`. `apps/my-app/AGENTS.md` documents the cleanup. on a `~/Desktop` path this is usually
+a sync client copying build output; excluding `.next` from it would stop the bleeding.

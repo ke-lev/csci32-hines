@@ -14,6 +14,8 @@ read the signed-in [BWM Two course overview](https://beginnertowebmaster.com/cou
 
 ## findings
 
+> i think most of these have been solved now
+
 ### high: the user directory has no authorization boundary
 
 `apps/backend/src/resolvers/UserResolver.ts` exposes `findManyUsers`, including the `email` field, without an authorization check. `src/services/UserService.ts` reads every user without pagination. `src/utils/graphql.ts` puts services into context but never verifies a bearer token or establishes a current user.
@@ -51,20 +53,34 @@ reproduced `open games` → `open: route not found: games`. `users/users-termina
 ## design and product opportunities
 
 - the desktop homepage composition works, and the 390px mobile homepage had no horizontal overflow, including the expanded Thursday controls. on mobile, the first experiment starts well below the heading, controls, and Spotify card. consider a compact “try the portrait” link near the intro while preserving the shared panel silhouette.
+
+> meh, mayyybe idk - not now
+
 - `/input` leads with hashing, decimals, and vector-path mechanics. keep a short invitation near the form and move that explanation into an optional “how it works” view. the mechanics are interesting course evidence, but the drawing is the reason to engage.
+
+> i actually was already thinking about putting a little "i" circle in maybe the footer? when clicked it would show a little popup explaining the technical stuff on the current page - thatd give more room and make the site more consistent i think
+
 - the timeline can link directly from each build note to the experiment it discusses. a small “lab → my detour” note would make the learning visible to an instructor without turning the homepage into a syllabus.
+
+> no
+
 - keep the terms parody as a set piece; give guestbook signing plain copy explaining that the submitted normalized name and portrait become public. humor and understandable submission behavior can coexist.
+
+> ok
+
 - the class photo counts signatures as “people.” because face and cat are separate unique entries for the same name, “10 signatures” would be more accurate than claiming 10 distinct people.
+
+> yep
 
 ## verification and limits
 
-| check | result |
-| --- | --- |
-| `yarn check-types` | passed |
-| `yarn lint` | passed with 10 warnings: 8 undeclared environment references, one broad `Function` type, one unused generated disable directive |
-| `yarn test` | all 33 tests passed across six files |
-| `yarn build` | passed for all five build tasks |
-| `yarn dev` | Next.js and Fastify started successfully |
-| Chrome | desktop homepage, portrait and guestbook reads, terminal commands/focus, and 390×844 homepage checked |
+| check              | result                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `yarn check-types` | passed                                                                                                                          |
+| `yarn lint`        | passed with 10 warnings: 8 undeclared environment references, one broad `Function` type, one unused generated disable directive |
+| `yarn test`        | all 33 tests passed across six files                                                                                            |
+| `yarn build`       | passed for all five build tasks                                                                                                 |
+| `yarn dev`         | Next.js and Fastify started successfully                                                                                        |
+| Chrome             | desktop homepage, portrait and guestbook reads, terminal commands/focus, and 390×844 homepage checked                           |
 
 Turbo reused some unchanged task results. the tests cover deterministic drawings, input validation, rate limiting, dates, and random-number helpers; they do not establish end-to-end authentication or authorization correctness. browser review used local development, not the Vercel deployment. mobile coverage was the homepage only; no comprehensive screen-reader, contrast, performance, or all-route accessibility audit was performed. no signup, guestbook, tip, or moderation writes were submitted. no lab issue logs were changed because this task reviewed the project rather than executing a lab.
