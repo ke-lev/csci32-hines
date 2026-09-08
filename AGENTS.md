@@ -8,6 +8,41 @@ use Conventional Commits for every commit message, PR title, and squash or merge
 - use branch names like `feat/roles-and-permissions` or `docs/commit-conventions`; this is the repo's branch naming convention, since Conventional Commits does not define branch names
 - write PR bodies in plain prose describing the change and its verification; the title carries the Conventional Commits format
 
+# todo.md
+
+`todo.md` at the repo root is the only backlog. there is no `ideas.md`, no `review.md`, and no
+per-topic todo file. reviews, audits, bug sweeps, and idea dumps all append here.
+
+it has exactly two sections, split by the kind of answer the item needs:
+
+- `## calls` needs a decision from the user. one bold headline plus at most one line of context. no
+  file paths, no rationale paragraphs, no tradeoff lists. if it needs those to be understood, it is
+  not a call
+- `## work` needs code. write it so an agent with no context can start without asking anything: the
+  files involved, the mechanism, how to verify it. long is correct here
+
+verbosity is earned by a yes. an idea stays one line until the user approves it; approval is what
+buys it a technical writeup.
+
+## the sweep
+
+before adding anything to `todo.md`, act on every `>` verdict already in it:
+
+- `> no`, or any other refusal, including a soft one like `not now` - delete the item
+- `> yes` on a call - rewrite it as a `## work` item with real detail, then drop the `>` line
+- a note, correction, or redirect - fold it into the item's own text, then drop the `>` line
+- anything ambiguous - leave the item exactly as it is and raise it in conversation
+
+never write a `>` line. those are the user's.
+
+## done means deleted
+
+delete finished items. no strikethroughs, no `## done` section, no "shipped" notes. git history and
+the timeline posts in `apps/my-app/app/timeline/posts/` are the record of what happened.
+
+when something claims to be already fixed, verify it against the code before recording it either
+way. do not carry a stale finding forward on the strength of a review that asserted it.
+
 # lab issue logs
 
 when the user shares a `docs.superhuman.com` course lab, create or continue a matching issue log in `labissues/` while working through the lab
