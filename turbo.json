@@ -23,6 +23,7 @@
         "NEXT_PUBLIC_API_URL",
         "NEXT_PUBLIC_TIPS_URL",
         "NODE_ENV",
+        "PORT",
         "PRIVATE_KEY",
         "PUBLIC_KEY",
         "SPOTIFY_CLIENT_ID",
