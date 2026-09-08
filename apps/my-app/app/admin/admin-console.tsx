@@ -7,6 +7,7 @@ import { PageShell } from '../components/page-shell'
 import { useAuth } from '../components/use-auth'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
+import { controlClasses, interactiveRowClasses, noticeClasses, rowClasses, toolbarClasses } from './console-styles'
 import { TalkPanel } from './talk-panel'
 
 type AccessState = 'checking' | 'granted' | 'denied'
@@ -57,13 +58,6 @@ function pad(value: number) {
   return String(value).padStart(2, '0')
 }
 
-const rowClasses =
-  'grid w-full items-center gap-4 border-b border-line px-[clamp(18px,2vw,28px)] py-3.5 text-left last:border-b-0'
-const interactiveRowClasses = `${rowClasses} transition-colors duration-180 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none`
-const noticeClasses = 'px-[clamp(18px,2vw,28px)] py-4 text-xs text-muted'
-const controlClasses =
-  'rounded-xs border border-line bg-background px-2.5 py-1.5 font-mono text-[0.64rem] tracking-[0.05em] text-foreground transition-colors duration-180 hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-background motion-reduce:transition-none'
-
 export function AdminConsole({ posts }: AdminConsoleProps) {
   const router = useRouter()
   const { isAdmin, isHydrated, isSessionChecked, signOut } = useAuth()
@@ -77,6 +71,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
   const [userPage, setUserPage] = useState(0)
   const [userSort, setUserSort] = useState<'ASC' | 'DESC'>('ASC')
   const [activeTab, setActiveTab] = useState<TabId>('routes')
+  const [talkCount, setTalkCount] = useState<number | null>(null)
   const adminScrollRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
 
@@ -186,7 +181,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
     { id: 'routes', label: 'routes', value: pad(routes.length) },
     { id: 'posts', label: 'timeline posts', value: pad(posts.length) },
     { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(userCount) : '--' },
-    { id: 'talk', label: 'talk', value: '--' },
+    { id: 'talk', label: 'talk', value: talkCount === null ? '--' : pad(talkCount) },
   ]
 
   return (
@@ -340,7 +335,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
 
                 {activeTab === 'users' && (
                   <>
-                    <div className="flex flex-wrap items-center gap-2.5 border-b border-line bg-surface px-[clamp(18px,2vw,28px)] py-3">
+                    <div className={toolbarClasses}>
                       <input
                         aria-label="Filter users by username or email"
                         className="min-w-[14ch] flex-1 rounded-xs border border-line bg-background px-2.5 py-1.5 font-mono text-[0.68rem] text-foreground placeholder:text-muted focus:border-foreground focus:outline-none focus-visible:outline-none"
@@ -405,7 +400,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
                   </>
                 )}
 
-                {activeTab === 'talk' && <TalkPanel />}
+                {activeTab === 'talk' && <TalkPanel onCountChange={setTalkCount} />}
               </div>
             </div>
 
