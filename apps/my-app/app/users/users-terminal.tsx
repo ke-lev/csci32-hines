@@ -16,6 +16,7 @@ import { getTerminalListing, getTerminalTree, resolveSiteRoute, SITE_ROUTES } fr
 import { gqlClient } from '../services/graphql-client'
 import { readTimelinePost } from '../timeline/read-post'
 import { graphql } from '../generated/gql'
+import { ROOM_MESSAGES_QUERY } from '../talk/use-room'
 
 type Line = {
   id: number
@@ -100,6 +101,7 @@ const guestCommands = [
   'login',
   'signup',
   'ideas',
+  'talk',
   'logout',
   'whoami',
   'pwd',
@@ -562,6 +564,34 @@ export function UsersTerminal() {
           },
         ])
       }
+      return
+    }
+
+    if (command === 'talk') {
+      try {
+        const result = await gqlClient.request(ROOM_MESSAGES_QUERY, { limit: 10 })
+
+        if (result.roomMessages.length === 0) {
+          append([{ kind: 'muted', text: 'the room is empty' }])
+          return
+        }
+
+        append(
+          result.roomMessages.map((line) =>
+            line.kind === 'system'
+              ? { kind: 'muted' as const, text: `* ${line.body}` }
+              : { kind: 'output' as const, text: `<${line.authorUsername ?? 'someone'}> ${line.body}` },
+          ),
+        )
+      } catch (caughtError) {
+        if (recoverSession(caughtError)) {
+          append([{ kind: 'error', text: 'session expired — log in again' }])
+          return
+        }
+
+        append([{ kind: 'error', text: 'talk: could not reach the room' }])
+      }
+
       return
     }
 
