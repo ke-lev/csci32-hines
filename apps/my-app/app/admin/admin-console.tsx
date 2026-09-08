@@ -7,11 +7,12 @@ import { PageShell } from '../components/page-shell'
 import { useAuth } from '../components/use-auth'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
+import { TalkPanel } from './talk-panel'
 
 type AccessState = 'checking' | 'granted' | 'denied'
 type ConsoleUser = { user_id: string; username: string }
 type UsersState = 'idle' | 'loaded' | 'error'
-type TabId = 'routes' | 'posts' | 'users'
+type TabId = 'routes' | 'posts' | 'users' | 'talk'
 
 export type ConsolePost = {
   dateLabel: string
@@ -36,7 +37,7 @@ const routes = [
   { path: '/admin/', label: 'admin', access: 'root' },
 ]
 
-const tabOrder: TabId[] = ['routes', 'posts', 'users']
+const tabOrder: TabId[] = ['routes', 'posts', 'users', 'talk']
 
 // One request for the page and its total: a count fetched separately can disagree with the
 // rows beside it, which is how pagers end up offering a "next" that lands on nothing.
@@ -185,6 +186,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
     { id: 'routes', label: 'routes', value: pad(routes.length) },
     { id: 'posts', label: 'timeline posts', value: pad(posts.length) },
     { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(userCount) : '--' },
+    { id: 'talk', label: 'talk', value: '--' },
   ]
 
   return (
@@ -255,7 +257,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
               }}
             >
               <div
-                className="grid grid-cols-3 gap-px border-b border-line bg-line"
+                className="grid grid-cols-4 gap-px border-b border-line bg-line"
                 role="tablist"
                 aria-label="Console sections"
               >
@@ -402,6 +404,8 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
                     </div>
                   </>
                 )}
+
+                {activeTab === 'talk' && <TalkPanel />}
               </div>
             </div>
 

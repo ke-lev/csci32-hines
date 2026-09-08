@@ -64,6 +64,12 @@ export type FindManyUsersQueryVariables = Exact<{
 
 export type FindManyUsersQuery = { totalUsers: number; findManyUsers: Array<{ user_id: string; username: string }> }
 
+export type DeleteMessageMutationVariables = Exact<{
+  messageId: string | number
+}>
+
+export type DeleteMessageMutation = { deleteMessage: boolean }
+
 export type SignUpMutationVariables = Exact<{
   input: SignUpInput
 }>
@@ -253,6 +259,39 @@ export const FindManyUsersDocument = {
     },
   ],
 } as unknown as DocumentNode<FindManyUsersQuery, FindManyUsersQueryVariables>
+export const DeleteMessageDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteMessage' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'messageId' } },
+          type: { kind: 'NonNullType', type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteMessage' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'messageId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'messageId' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteMessageMutation, DeleteMessageMutationVariables>
 export const SignUpDocument = {
   kind: 'Document',
   definitions: [
