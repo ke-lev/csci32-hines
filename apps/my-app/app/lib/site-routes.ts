@@ -13,6 +13,7 @@ export const SITE_ROUTES = [
   { command: 'games', href: '/games/', label: 'games', path: 'games' },
   { command: 'timeline', href: '/timeline/', label: 'timeline', path: 'timeline' },
   { command: 'users', href: '/users/', label: 'users shell', path: 'users' },
+  { command: 'talk', href: '/talk/', label: 'talk', path: 'talk' },
   { command: 'welcome', href: '/welcome/', label: 'welcome form', path: 'welcome' },
 ] as const satisfies readonly SiteRoute[]
 

@@ -7,6 +7,7 @@ describe('terminal site routes', () => {
     expect(resolveSiteRoute('/input/')?.href).toBe('/input/')
     expect(resolveSiteRoute('input/roll')?.href).toBe('/input/roll/')
     expect(resolveSiteRoute('roll')?.href).toBe('/input/roll/')
+    expect(resolveSiteRoute('talk')?.href).toBe('/talk/')
     expect(resolveSiteRoute('welcome')?.href).toBe('/welcome/')
   })
 
@@ -14,6 +15,7 @@ describe('terminal site routes', () => {
     expect(getTerminalListing()).toContain('input/')
     expect(getTerminalListing()).toContain('input/roll/')
     expect(getTerminalListing()).toContain('games/')
+    expect(getTerminalListing()).toContain('talk/')
     expect(getTerminalTree()).toContain('timeline/')
     expect(getTerminalTree()).toContain('└── roll/')
     expect(getTerminalTree()).toContain('welcome/')
