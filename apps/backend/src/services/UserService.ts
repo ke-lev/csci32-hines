@@ -1,4 +1,4 @@
-import { BASIC_ROLE_ID, PermissionName, Prisma, PrismaClient, RoleName } from '@repo/database'
+import { BASIC_ROLE_ID, MessageKind, PermissionName, Prisma, PrismaClient, RoleName } from '@repo/database'
 import type { SignUpInput } from '@/resolvers/types/AuthTypes'
 import type { SignInInput } from '@/resolvers/types/SignInTypes'
 import type { FindManyUsersFilters } from '@/resolvers/types/FindManyUsersFilters'
@@ -166,6 +166,11 @@ export class UserService {
         role: { connect: { role_id: BASIC_ROLE_ID } },
       },
       select: userWithRoleSelect,
+    })
+    // new accounts announce themselves. existing ones are not backfilled: User.created_at arrived
+    // with the room, so every older account would claim to have joined at the migration.
+    await this.prisma.message.create({
+      data: { body: `${created.username} joined`, kind: MessageKind.system },
     })
     const user = flattenUser(created)
     // These claims are a convenience for the client. Authorization reads permissions from the
