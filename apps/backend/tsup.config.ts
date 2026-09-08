@@ -1,12 +1,10 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  // app.ts plus every plugin: @fastify/autoload discovers plugins by reading the
-  // filesystem at runtime, so dist/ has to keep the same shape as src/
-  entry: ['src/app.ts', 'src/plugins/*.ts'],
+  // app.ts loads the Reflect polyfill before importing the server and its plugins.
+  entry: ['src/app.ts'],
   outDir: 'dist',
-  // esm only. under --format cjs, tsup compiles `import.meta.url` in app.ts to
-  // undefined and fileURLToPath throws on startup
+  // The bootstrap uses top-level await to preserve polyfill initialization order.
   format: ['esm'],
   target: 'node22',
   // @repo/database exports raw TypeScript (./src/client.ts). left external, node

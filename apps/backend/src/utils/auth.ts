@@ -18,7 +18,7 @@ function readPrivateKey(): string {
     throw new Error('Missing PRIVATE_KEY in .env')
   }
 
-  return key
+  return key.replace(/\\n/g, '\n')
 }
 
 function readPublicKey(): string {
@@ -28,7 +28,7 @@ function readPublicKey(): string {
     throw new Error('Missing PUBLIC_KEY in .env')
   }
 
-  return key
+  return key.replace(/\\n/g, '\n')
 }
 
 function getAlgorithm(): Algorithm {
