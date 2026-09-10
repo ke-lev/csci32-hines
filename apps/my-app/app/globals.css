@@ -68,25 +68,6 @@
     will-change: opacity, transform;
   }
 
-  .dialog-scroll {
-    scrollbar-color: var(--color-muted) transparent;
-    scrollbar-width: thin;
-  }
-
-  .dialog-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .dialog-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .dialog-scroll::-webkit-scrollbar-thumb {
-    border: 2px solid var(--color-background);
-    border-radius: 9999px;
-    background: var(--color-muted);
-  }
-
   @keyframes procedural-face-arrival {
     from {
       opacity: 0.35;

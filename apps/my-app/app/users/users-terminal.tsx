@@ -132,13 +132,6 @@ const authBarWidth = 44
 const authBarCeiling = 0.96
 const authBarEaseMs = 380
 
-const pageInfo = [
-  '/users',
-  'the shell recognizes a small command grammar rather than handing input to a real operating system. help, navigation, account flows, history, the snake game, and a few site-specific commands are implemented here; the boot text and filesystem framing are set dressing.',
-  '**real commands:** login and signup call the GraphQL backend, route commands navigate the site, and timeline reads fetch actual posts. ls and tree are generated from the same route registry used by open.',
-  '**room tail:** the talk command reads the shared room through the same cursor query as /talk, so those lines are real too.',
-]
-
 function renderAuthBar(ratio: number) {
   const filled = Math.round(authBarWidth * ratio)
   const percent = `${(ratio * 100).toFixed(1)}%`.padStart(7)
@@ -880,7 +873,6 @@ export function UsersTerminal() {
   return (
     <PageShell
       breadcrumbs={[{ label: 'users', href: '/users/' }]}
-      info={pageInfo}
       rightInset={false}
       titleId="users-title"
       left={

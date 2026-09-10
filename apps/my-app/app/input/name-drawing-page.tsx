@@ -94,22 +94,6 @@ function splitLuckyName(fullName: string): DrawingName {
   }
 }
 
-// the pipeline used to sit in the intro copy, where it crowded out the things you can actually do
-// on the page. it lives behind the footer button now, one string per paragraph.
-const pageInfo = [
-  '/input',
-  'ok so. you type a name, the name becomes a number, the number becomes a face. no model, no server, no request. it is a pure function and that is the entire bit.',
-  '**normalize it:** join first and last, trim it, squash the double spaces, lowercase the whole thing - Ava Maria becomes “ava maria”, and that is your seed.',
-  '**then hash it:** xmur3, one pass, out falls a single 32-bit integer. that’s your checksum. that’s the eight hex characters in the filename when you download the svg. deterministic. thanks CSCI21!',
-  '**then it branches:** your seed is appended to a bunch of “traits.” every trait re-hashes the seed with its own label stapled on - “ava maria:ear-scale”, “ava maria:left-brow”, etc - and runs that through mulberry32 algo that returns a decimal between 0 and 1 for each.',
-  '**then the decimals land in ranges:** skull width 43 to 58. face height 66 to 78. jaw ratio 0.58 to 0.82. plus a bunch more.',
-  '**tangent:** it also works out hair and glasses and then doesn’t draw any of them lol - the renderer never touches it. so your name has a moustache but you’ll never see it. i scrapped it because it didn’t look good, but i didn’t scrap the code - just in case. anyway...',
-  '**then it draws:** traits become landmark coordinates, coordinates get stitched into one continuous svg path, and it animates in real time. single stroke.',
-  '**cat-mode:** same seed, same numbers, the exact landmarks already computed for your face - just routed through a different path with cat ears. it’s your face wearing a cat.',
-  '**sign the guestbook:** adds your seed and drawing kind to a database table.',
-  'proof of concept. very fun',
-]
-
 export function NameDrawingPage() {
   const drawingSvgRef = useRef<SVGSVGElement>(null)
   const luckyNameRef = useRef<DrawingName | null>(null)
@@ -217,7 +201,6 @@ export function NameDrawingPage() {
         { label: 'kelev', href: '/' },
         { label: 'input', href: '/input/' },
       ]}
-      info={pageInfo}
       titleId="input-title"
       left={
         <PageIntro
@@ -355,9 +338,6 @@ export function NameDrawingPage() {
             <div className="min-w-0 flex-1">
               <p className="m-0 truncate text-foreground">
                 {failureReason ? <span className="text-muted">{failureReason}</span> : displayName}
-              </p>
-              <p className="m-0 mt-1 text-[0.64rem] tracking-[0.03em] text-muted">
-                signing publishes this name and drawing on the roll
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-3">
