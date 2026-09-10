@@ -55,7 +55,6 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
         setLines(roomLines)
         setHasOlder(roomLines.length === PAGE_SIZE)
         setPanelState('loaded')
-        onCountChange?.(roomLines.length)
       })
       .catch(() => {
         if (cancelled) return
@@ -67,7 +66,13 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
     return () => {
       cancelled = true
     }
-  }, [onCountChange])
+  }, [])
+
+  useEffect(() => {
+    if (panelState !== 'loaded') return
+
+    onCountChange?.(lines.length)
+  }, [lines.length, onCountChange, panelState])
 
   // Fifty lines is not a moderation queue. The oldest line held is the last one, since the list
   // runs newest first.
@@ -85,10 +90,7 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
       setHasOlder(older.length === PAGE_SIZE)
       setLines((current) => {
         const seen = new Set(current.map((line) => line.messageId))
-        const next = [...current, ...older.filter((line) => !seen.has(line.messageId))]
-        onCountChange?.(next.length)
-
-        return next
+        return [...current, ...older.filter((line) => !seen.has(line.messageId))]
       })
       setError(null)
     } catch {
@@ -103,12 +105,7 @@ export function TalkPanel({ onCountChange }: TalkPanelProps) {
 
     try {
       await gqlClient.request(DELETE_MESSAGE_MUTATION, { messageId })
-      setLines((current) => {
-        const next = current.filter((line) => line.messageId !== messageId)
-        onCountChange?.(next.length)
-
-        return next
-      })
+      setLines((current) => current.filter((line) => line.messageId !== messageId))
       setError(null)
     } catch {
       setError('could not delete that line')

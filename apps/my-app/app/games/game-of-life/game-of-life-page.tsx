@@ -12,12 +12,6 @@ const columns = 24
 const rows = 18
 const tickLength = 180
 
-const pageInfo = [
-  '/games/game-of-life',
-  'every 180 milliseconds the grid computes a new generation. a live cell survives with two or three live neighbors; a dead cell is born with exactly three; every other cell dies or stays empty.',
-  '**edges are edges:** the grid does not wrap. neighbors beyond the border count as empty space. the loop pauses while the tab is hidden and resumes when you return.',
-]
-
 type Cells = boolean[]
 
 function emptyCells(): Cells {
@@ -125,7 +119,6 @@ export function GameOfLifePage() {
         { label: 'games', href: '/games/' },
         { label: 'life', href: '/games/game-of-life/' },
       ]}
-      info={pageInfo}
       titleId="life-title"
       left={
         <PageIntro
