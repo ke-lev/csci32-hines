@@ -25,7 +25,7 @@ export const ROOM_MESSAGES_QUERY = graphql(`
 
 const POST_MESSAGE_MUTATION = graphql(`
   mutation PostMessage($body: String!) {
-    postMessage(body: $body) {
+    postMessage(input: { body: $body }) {
       messageId
       kind
       body
