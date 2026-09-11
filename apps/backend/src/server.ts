@@ -4,6 +4,7 @@ import corsPlugin from './plugins/cors'
 import prismaPlugin from './plugins/prisma'
 import sensiblePlugin from './plugins/sensible'
 import userServicePlugin from './plugins/user-service'
+import messageServicePlugin from './plugins/message-service'
 
 const fastify = Fastify({
   logger:
@@ -26,6 +27,7 @@ void fastify.register(corsPlugin)
 void fastify.register(prismaPlugin)
 void fastify.register(sensiblePlugin)
 void fastify.register(userServicePlugin)
+void fastify.register(messageServicePlugin)
 
 const start = async () => {
   try {

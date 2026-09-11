@@ -16,9 +16,9 @@ import { MessageKind, PermissionName } from '@repo/database'
 import type { Context } from '@/utils/graphql'
 import { requireCurrentUser } from '@/utils/graphql'
 import { decodeRoomCursor, encodeRoomCursor } from '@/services/room-cursor'
-import { validateMessageBody } from '@/services/message-validation'
-import { checkRateLimit, peekRateLimit } from '@/utils/rate-limit'
-import { GraphQLError } from 'graphql'
+import { messageSelection } from '@/services/MessageService'
+import { CreateMessageInput } from '@/resolvers/types/CreateMessageInput'
+import { peekRateLimit } from '@/utils/rate-limit'
 
 registerEnumType(MessageKind, {
   name: 'MessageKind',
@@ -67,14 +67,6 @@ type MessageRow = {
   created_at: Date
   user: { username: string } | null
 }
-
-const messageSelection = {
-  message_id: true,
-  kind: true,
-  body: true,
-  created_at: true,
-  user: { select: { username: true } },
-} as const
 
 function toView(row: MessageRow): RoomMessage {
   return {
@@ -157,26 +149,12 @@ export class RoomResolver {
    * the account rather than the IP, because the session is the thing being spent here.
    */
   @Mutation(() => RoomMessage)
-  async postMessage(@Ctx() context: Context, @Arg('body', () => String) body: string): Promise<RoomMessage> {
+  async postMessage(
+    @Ctx() context: Context,
+    @Arg('input', () => CreateMessageInput) input: CreateMessageInput,
+  ): Promise<RoomMessage> {
     const currentUser = requireCurrentUser(context)
-    const validation = validateMessageBody(body)
-
-    if (!validation.ok) {
-      throw new GraphQLError(validation.reason, { extensions: { code: 'BAD_USER_INPUT' } })
-    }
-
-    const limit = checkRateLimit({ key: currentUser.user_id, limit: POSTS_PER_WINDOW, windowMs: WINDOW_MS })
-
-    if (!limit.allowed) {
-      throw new GraphQLError(`slow down - try again in ${Math.ceil(limit.retryAfterMs / 1000)}s`, {
-        extensions: { code: 'BAD_USER_INPUT' },
-      })
-    }
-
-    const row = await context.prisma.message.create({
-      data: { body: validation.value, kind: MessageKind.user, user_id: currentUser.user_id },
-      select: messageSelection,
-    })
+    const row = await context.messageService.createForUser(input, currentUser.user_id)
 
     return toView(row)
   }

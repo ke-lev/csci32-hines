@@ -8,6 +8,7 @@ import type { FastifyBaseLogger, FastifyInstance, FastifyReply, FastifyRequest }
 import { PermissionName, PrismaClient, RoleName } from '@repo/database'
 import { getBooleanEnvVar } from '@/utils'
 import type { CurrentUser, UserService } from '@/services/UserService'
+import type { MessageService } from '@/services/MessageService'
 import { verifyToken, type AuthTokenPayload } from './auth'
 import { customAuthChecker } from './authChecker'
 import { unauthenticatedError } from './auth-errors'
@@ -39,6 +40,7 @@ export interface Context {
   request: FastifyRequest
   reply: FastifyReply
   userService: UserService
+  messageService: MessageService
   prisma: PrismaClient
   auth: AuthTokenPayload | null
   currentUser: CurrentUser | null
@@ -80,6 +82,7 @@ export async function registerGraphQL(fastify: FastifyInstance) {
         auth,
         currentUser,
         log: fastify.log,
+        messageService: fastify.messageService,
         prisma: fastify.prisma,
         reply,
         request,

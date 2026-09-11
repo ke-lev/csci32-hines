@@ -654,8 +654,17 @@ export const PostMessageDocument = {
             arguments: [
               {
                 kind: 'Argument',
-                name: { kind: 'Name', value: 'body' },
-                value: { kind: 'Variable', name: { kind: 'Name', value: 'body' } },
+                name: { kind: 'Name', value: 'input' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'body' },
+                      value: { kind: 'Variable', name: { kind: 'Name', value: 'body' } },
+                    },
+                  ],
+                },
               },
             ],
             selectionSet: {
