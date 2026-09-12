@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { PageIntro } from '../components/page-intro'
@@ -268,13 +269,22 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
                 />
                 root@kelev
               </p>
-              <button
-                className="font-mono text-[0.68rem] font-[650] tracking-[0.04em] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"
-                type="button"
-                onClick={endSession}
-              >
-                end session
-              </button>
+              <span className="flex items-center gap-4">
+                {/* the console's own doc is unlisted on /help, so this is where it is reachable from */}
+                <Link
+                  className="font-mono text-[0.68rem] font-[650] tracking-[0.04em] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"
+                  href="/help/admin/"
+                >
+                  docs
+                </Link>
+                <button
+                  className="font-mono text-[0.68rem] font-[650] tracking-[0.04em] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-foreground focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent"
+                  type="button"
+                  onClick={endSession}
+                >
+                  end session
+                </button>
+              </span>
             </header>
 
             <div

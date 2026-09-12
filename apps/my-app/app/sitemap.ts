@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { getPublicHelpDocList } from './help/docs'
 import { getTimelinePosts } from './timeline/posts'
 
 const baseUrl = 'https://csci32-hines.vercel.app'
@@ -15,10 +16,12 @@ const publicRoutes = [
   '/timeline/',
   '/users/',
   '/welcome/',
+  '/help/',
+  '/changelog/',
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getTimelinePosts()
+  const [posts, docs] = await Promise.all([getTimelinePosts(), getPublicHelpDocList()])
   const lastModified = new Date()
 
   return [
@@ -27,5 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/timeline/${post.slug}/`,
       lastModified: new Date(`${post.date}T00:00:00Z`),
     })),
+    // the public list, so an admin doc cannot reach the sitemap by being added to the folder
+    ...docs.map((doc) => ({ url: `${baseUrl}/help/${doc.slug}/`, lastModified })),
   ]
 }

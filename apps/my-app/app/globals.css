@@ -316,16 +316,23 @@
     background: #000;
   }
 
+  .doc-scroll {
+    scrollbar-color: var(--color-line) transparent;
+    scrollbar-width: thin;
+  }
+
   .terminal-log {
     scrollbar-color: var(--color-line) transparent;
     scrollbar-width: thin;
   }
 
-  .timeline-post > :first-child {
+  .timeline-post > :first-child,
+  .doc-prose > :first-child {
     margin-top: 0;
   }
 
-  .timeline-post > h2 {
+  .timeline-post > h2,
+  .doc-prose > h2 {
     margin-top: 2.5rem;
     font-size: 1.35rem;
     font-weight: 600;
@@ -334,7 +341,10 @@
 
   .timeline-post > p,
   .timeline-post > ul,
-  .timeline-post > ol {
+  .timeline-post > ol,
+  .doc-prose > p,
+  .doc-prose > ul,
+  .doc-prose > ol {
     margin-top: 1rem;
     max-width: 60ch;
     color: var(--color-subhead);
@@ -343,19 +353,24 @@
   }
 
   .timeline-post > ul,
-  .timeline-post > ol {
+  .timeline-post > ol,
+  .doc-prose > ul,
+  .doc-prose > ol {
     padding-left: 1.15rem;
   }
 
-  .timeline-post > ul {
+  .timeline-post > ul,
+  .doc-prose > ul {
     list-style: square;
   }
 
-  .timeline-post > ol {
+  .timeline-post > ol,
+  .doc-prose > ol {
     list-style: decimal;
   }
 
-  .timeline-post code {
+  .timeline-post code,
+  .doc-prose code {
     border: 1px solid var(--color-line);
     border-radius: 0.35rem;
     padding: 0.12rem 0.35rem;
@@ -365,7 +380,8 @@
   }
 
   @media (max-width: 560px) {
-    .timeline-post > h2 {
+    .timeline-post > h2,
+    .doc-prose > h2 {
       margin-top: 2rem;
     }
   }

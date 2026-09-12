@@ -47,6 +47,12 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
         </nav>
 
         <nav className="flex items-center gap-2" aria-label="Site links">
+          <Link
+            className="mr-1 inline-flex min-h-7 items-center rounded-xs font-mono text-[0.72rem] font-[650] tracking-[0.12em] text-muted lowercase transition-colors duration-180 hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none"
+            href="/help/"
+          >
+            help
+          </Link>
           <ThemeToggle />
           <TipsModal />
         </nav>

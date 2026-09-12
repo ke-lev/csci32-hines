@@ -464,6 +464,11 @@ export function UsersTerminal() {
           kind: 'muted',
           text: 'tip: use ↑/↓ for history, ctrl+space to complete, ctrl+l to clear, and ctrl+c to exit',
         },
+        {
+          kind: 'muted',
+          links: [{ href: '/help/', label: 'help' }],
+          text: 'this lists shell commands. for what each page does, read the docs: ',
+        },
       ])
       return
     }

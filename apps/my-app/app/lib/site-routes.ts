@@ -15,6 +15,8 @@ export const SITE_ROUTES = [
   { command: 'timeline', href: '/timeline/', label: 'timeline', path: 'timeline' },
   { command: 'users', href: '/users/', label: 'users shell', path: 'users' },
   { command: 'talk', href: '/talk/', label: 'talk', path: 'talk' },
+  { command: 'help', href: '/help/', label: 'help docs', path: 'help' },
+  { command: 'changelog', href: '/changelog/', label: 'changelog', path: 'changelog' },
   { command: 'welcome', href: '/welcome/', label: 'welcome form', path: 'welcome' },
   { command: 'dashboard', href: '/dashboard/', label: 'dashboard', path: 'dashboard', requiresAuth: true },
 ] as const satisfies readonly SiteRoute[]
