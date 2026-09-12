@@ -7,13 +7,15 @@ import { PageShell } from '../components/page-shell'
 import { useAuth } from '../components/use-auth'
 import { graphql } from '../generated/gql'
 import { gqlClient } from '../services/graphql-client'
+import { ROOM_MESSAGES_QUERY } from '../talk/use-room'
 import { controlClasses, interactiveRowClasses, noticeClasses, rowClasses, toolbarClasses } from './console-styles'
 import { TalkPanel } from './talk-panel'
+import { TIP_IDEAS_QUERY, TipsPanel } from './tips-panel'
 
 type AccessState = 'checking' | 'granted' | 'denied'
 type ConsoleUser = { user_id: string; username: string }
 type UsersState = 'idle' | 'loaded' | 'error'
-type TabId = 'routes' | 'posts' | 'users' | 'talk'
+type TabId = 'routes' | 'posts' | 'users' | 'tips' | 'talk'
 
 export type ConsolePost = {
   dateLabel: string
@@ -38,7 +40,7 @@ const routes = [
   { path: '/admin/', label: 'admin', access: 'root' },
 ]
 
-const tabOrder: TabId[] = ['routes', 'posts', 'users', 'talk']
+const tabOrder: TabId[] = ['routes', 'posts', 'users', 'tips', 'talk']
 
 // One request for the page and its total: a count fetched separately can disagree with the
 // rows beside it, which is how pagers end up offering a "next" that lands on nothing.
@@ -53,6 +55,7 @@ const FIND_MANY_USERS_QUERY = graphql(`
 `)
 
 const USERS_PAGE_SIZE = 10
+const TALK_COUNT_PAGE_SIZE = 50
 
 function pad(value: number) {
   return String(value).padStart(2, '0')
@@ -71,6 +74,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
   const [userPage, setUserPage] = useState(0)
   const [userSort, setUserSort] = useState<'ASC' | 'DESC'>('ASC')
   const [activeTab, setActiveTab] = useState<TabId>('routes')
+  const [tipsCount, setTipsCount] = useState<number | null>(null)
   const [talkCount, setTalkCount] = useState<number | null>(null)
   const adminScrollRef = useRef<HTMLDivElement>(null)
   const tabRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
@@ -96,6 +100,26 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
 
     return () => window.clearTimeout(timer)
   }, [userSearch])
+
+  useEffect(() => {
+    if (access !== 'granted') return
+
+    let cancelled = false
+
+    const tipsRequest = gqlClient.request(TIP_IDEAS_QUERY).then((result) => {
+      if (!cancelled) setTipsCount(result.findManyTipIdeas.length)
+    })
+    const talkRequest = gqlClient.request(ROOM_MESSAGES_QUERY, { limit: TALK_COUNT_PAGE_SIZE }).then((result) => {
+      if (!cancelled) setTalkCount(result.roomMessages.length)
+    })
+
+    // Counts are independent: one unavailable inbox should not keep the other metric blank.
+    void Promise.allSettled([tipsRequest, talkRequest])
+
+    return () => {
+      cancelled = true
+    }
+  }, [access])
 
   useEffect(() => {
     if (access !== 'granted') return
@@ -179,8 +203,9 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
   const hasNextUserPage = (userPage + 1) * USERS_PAGE_SIZE < userCount
   const tabs: { id: TabId; label: string; value: string }[] = [
     { id: 'routes', label: 'routes', value: pad(routes.length) },
-    { id: 'posts', label: 'timeline posts', value: pad(posts.length) },
+    { id: 'posts', label: 'posts', value: pad(posts.length) },
     { id: 'users', label: 'users', value: usersState === 'loaded' ? pad(userCount) : '--' },
+    { id: 'tips', label: 'tips', value: tipsCount === null ? '--' : pad(tipsCount) },
     { id: 'talk', label: 'talk', value: talkCount === null ? '--' : pad(talkCount) },
   ]
 
@@ -194,10 +219,21 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
       titleId="admin-title"
       left={
         <PageIntro
-          title="admin console"
+          title={
+            <>
+              admin
+              <br />
+              console
+            </>
+          }
           titleId="admin-title"
-          subhead={isGranted ? 'what the site actually knows about itself' : 'this route expects an admin session.'}
-          body={isGranted ? 'browse routes and posts, search accounts, and moderate the shared room' : undefined}
+          subhead={isGranted ? 'welcome root' : 'admin role required'}
+          subheadAs={isGranted ? 'h2' : 'p'}
+          body={
+            isGranted
+              ? 'site overview\nuser lookup\ntips view\nchat moderation'
+              : 'this route expects an admin session.'
+          }
         />
       }
       right={
@@ -252,7 +288,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
               }}
             >
               <div
-                className="grid grid-cols-4 gap-px border-b border-line bg-line"
+                className="grid grid-cols-5 gap-px border-b border-line bg-line"
                 role="tablist"
                 aria-label="Console sections"
               >
@@ -261,7 +297,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
 
                   return (
                     <button
-                      className={`relative px-4 py-5 text-left transition-colors duration-180 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent motion-reduce:transition-none ${
+                      className={`relative px-2 py-5 text-left transition-colors duration-180 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:px-4 motion-reduce:transition-none ${
                         isActive ? 'bg-row-hover' : 'bg-background hover:bg-row-hover'
                       }`}
                       id={`admin-tab-${tab.id}`}
@@ -399,6 +435,8 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
                     </div>
                   </>
                 )}
+
+                {activeTab === 'tips' && <TipsPanel onCountChange={setTipsCount} />}
 
                 {activeTab === 'talk' && <TalkPanel onCountChange={setTalkCount} />}
               </div>
