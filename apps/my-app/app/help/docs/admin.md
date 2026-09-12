@@ -15,7 +15,8 @@ checks the signed-in session and denies anyone without the role.
 
 five tabs: routes and posts report what the site actually serves, users lists and
 searches accounts, tips collects ideas submitted through the sitewide tips menu,
-and talk holds the room.
+and talk holds the room. when email notifications are configured, each new tip
+also sends the administrator a link back to this inbox.
 
 ## how to use
 

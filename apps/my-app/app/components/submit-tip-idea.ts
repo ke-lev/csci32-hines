@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers'
 import { checkRateLimit } from '../lib/rate-limit'
+import { sendTipNotification } from '../lib/tip-email'
 import { saveTipIdea } from '../lib/tip-ideas'
 
 export type SubmitTipIdeaResult = { ok: true } | { ok: false; reason: string }
@@ -36,7 +37,16 @@ export async function submitTipIdea(body: string): Promise<SubmitTipIdeaResult> 
   }
 
   try {
-    await saveTipIdea(idea)
+    const saved = await saveTipIdea(idea)
+
+    // The database is the source of truth for the visitor's submission. A temporary email
+    // outage should not report failure after the tip has already landed in the admin inbox.
+    try {
+      await sendTipNotification({ body: idea, receipt: saved.receipt })
+    } catch (error) {
+      console.error('tip saved, but email notification failed', error)
+    }
+
     return { ok: true }
   } catch (error) {
     console.error('failed to save tip idea', error)
