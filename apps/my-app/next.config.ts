@@ -25,6 +25,12 @@ const nextConfig: NextConfig = {
   // @repo/database exports raw TypeScript from src/, so Next has to compile it rather than
   // treat it as a prebuilt dependency the way @repo/ui is.
   transpilePackages: ['@repo/database'],
+  // the info modal's server action reads a doc for whatever page the reader is on, so the
+  // markdown has to reach every route's bundle. file tracing only finds it on the routes
+  // that render a doc themselves, because the directory path is built from process.cwd().
+  outputFileTracingIncludes: {
+    '/**': ['./app/help/docs/**/*.md'],
+  },
   serverExternalPackages: ['@prisma/client', 'prisma'],
   webpack: (config, { isServer }) => {
     // NodeNext imports use .js extensions even when the workspace source is TypeScript.
