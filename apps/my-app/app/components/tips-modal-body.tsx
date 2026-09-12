@@ -208,22 +208,16 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                         ? 'sending...'
                         : ''}
                 </span>
-                {feedbackText.trim() ? (
-                  <Button
-                    className="disabled:cursor-wait disabled:hover:translate-y-0 disabled:active:scale-100"
-                    disabled={submitStatus === 'submitting'}
-                    onClick={sendIdea}
-                    size={Size.SMALL}
-                    type="button"
-                    variant={Variant.PRIMARY}
-                  >
-                    send idea
-                  </Button>
-                ) : (
-                  <button className={modalFooterControlClasses} disabled type="button">
-                    send idea
-                  </button>
-                )}
+                <Button
+                  className="disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-footer disabled:hover:translate-y-0 disabled:active:scale-100"
+                  disabled={!feedbackText.trim() || submitStatus === 'submitting'}
+                  onClick={sendIdea}
+                  size={Size.SMALL}
+                  type="button"
+                  variant={Variant.PRIMARY}
+                >
+                  send idea
+                </Button>
               </div>
             </ModalFooter>
           </>
