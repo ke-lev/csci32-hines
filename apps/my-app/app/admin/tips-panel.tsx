@@ -7,9 +7,23 @@ import { gqlClient } from '../services/graphql-client'
 import { controlClasses, toolbarClasses } from './console-styles'
 
 export const TIP_IDEAS_QUERY = graphql(`
-  query TipIdeas {
+  query AdminTipIdeas {
     findManyTipIdeas {
       body
+      closedAt
+      createdAt
+      receipt
+      shippedHref
+      status
+    }
+  }
+`)
+
+const SET_TIP_IDEA_CLOSED_MUTATION = graphql(`
+  mutation SetTipIdeaClosed($input: SetTipIdeaClosedInput!) {
+    setTipIdeaClosed(input: $input) {
+      body
+      closedAt
       createdAt
       receipt
       shippedHref
@@ -20,6 +34,7 @@ export const TIP_IDEAS_QUERY = graphql(`
 
 type TipIdea = {
   body: string
+  closedAt: string | null
   createdAt: string
   receipt: string
   shippedHref: string | null
@@ -27,6 +42,7 @@ type TipIdea = {
 }
 
 type PanelState = 'loading' | 'loaded' | 'error'
+type TipFilter = 'open' | 'closed' | 'all'
 
 type TipsPanelProps = {
   onCountChange?: (count: number) => void
@@ -70,6 +86,9 @@ export function TipsPanel({ onCountChange }: TipsPanelProps) {
   const [ideas, setIdeas] = useState<TipIdea[]>([])
   const [panelState, setPanelState] = useState<PanelState>('loading')
   const [requestId, setRequestId] = useState(0)
+  const [filter, setFilter] = useState<TipFilter>('open')
+  const [pendingReceipt, setPendingReceipt] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -91,8 +110,35 @@ export function TipsPanel({ onCountChange }: TipsPanelProps) {
   }, [requestId])
 
   useEffect(() => {
-    if (panelState === 'loaded') onCountChange?.(ideas.length)
-  }, [ideas.length, onCountChange, panelState])
+    if (panelState === 'loaded') onCountChange?.(ideas.filter((idea) => !idea.closedAt).length)
+  }, [ideas, onCountChange, panelState])
+
+  const openCount = ideas.filter((idea) => !idea.closedAt).length
+  const closedCount = ideas.length - openCount
+  const visibleIdeas = ideas.filter((idea) => {
+    if (filter === 'all') return true
+    return filter === 'closed' ? Boolean(idea.closedAt) : !idea.closedAt
+  })
+
+  async function setClosed(idea: TipIdea, closed: boolean) {
+    setPendingReceipt(idea.receipt)
+    setActionError(null)
+
+    try {
+      const result = await gqlClient.request(SET_TIP_IDEA_CLOSED_MUTATION, {
+        input: { closed, receipt: idea.receipt },
+      })
+      setIdeas((current) =>
+        current.map((currentIdea) =>
+          currentIdea.receipt === idea.receipt ? result.setTipIdeaClosed : currentIdea,
+        ),
+      )
+    } catch {
+      setActionError(`could not mark ${idea.receipt} ${closed ? 'closed' : 'open'}. try again.`)
+    } finally {
+      setPendingReceipt(null)
+    }
+  }
 
   if (panelState === 'loading') {
     return (
@@ -162,28 +208,45 @@ export function TipsPanel({ onCountChange }: TipsPanelProps) {
 
   return (
     <>
-      <div className={`${toolbarClasses} justify-between`}>
+      <div className={`${toolbarClasses} justify-between gap-y-3`}>
         <p className="m-0 text-xs font-medium text-foreground" aria-live="polite">
-          {ideas.length === 1 ? '1 submission' : `${ideas.length} submissions`}
+          {openCount} open <span className="text-muted">· {closedCount} closed</span>
         </p>
-        <span className="inline-flex items-center gap-1.5 font-mono text-[0.64rem] text-muted">
-          newest first
-          <svg
-            className="size-3"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M8 3v10m-3-3 3 3 3-3" />
-          </svg>
-        </span>
+        <div aria-label="filter tips" className="flex items-center gap-1" role="group">
+          {(['open', 'closed', 'all'] as const).map((option) => (
+            <button
+              aria-pressed={filter === option}
+              className={`${controlClasses} w-[5.5rem] aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:text-background aria-pressed:hover:bg-foreground`}
+              key={option}
+              onClick={() => setFilter(option)}
+              type="button"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {ideas.map((idea) => (
+      {actionError ? (
+        <p className="m-0 border-b border-line px-[clamp(18px,2vw,28px)] py-3 text-xs leading-5 text-danger" role="alert">
+          {actionError}
+        </p>
+      ) : null}
+
+      {visibleIdeas.length === 0 ? (
+        <div className="px-[clamp(18px,2vw,28px)] py-10" role="status">
+          <h3 className="m-0 text-base font-medium tracking-[-0.02em]">no {filter} tips</h3>
+          <p className="mt-2 max-w-[34ch] text-sm leading-6 text-muted">
+            {filter === 'open'
+              ? 'everything in the inbox is closed.'
+              : filter === 'closed'
+                ? 'closed tips will collect here.'
+                : 'there are no submitted tips yet.'}
+          </p>
+        </div>
+      ) : null}
+
+      {visibleIdeas.map((idea) => (
         <article className={tipRowClasses} key={idea.receipt}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <time className="font-mono text-[0.68rem] tabular-nums text-muted" dateTime={idea.createdAt}>
@@ -206,31 +269,43 @@ export function TipsPanel({ onCountChange }: TipsPanelProps) {
             </ReactMarkdown>
           </div>
 
-          <footer className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <footer className="mt-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
             <span className="min-w-0 font-mono text-[0.64rem] leading-5 text-muted [overflow-wrap:anywhere]">
               <span className="select-none">receipt </span>
               <span className="select-all">{idea.receipt}</span>
             </span>
-            {idea.shippedHref ? (
-              <a
-                className="inline-flex min-h-8 min-w-0 items-center gap-1.5 text-xs text-success underline decoration-success/40 underline-offset-4 transition-colors hover:decoration-success focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
-                href={idea.shippedHref}
-              >
-                <span className="[overflow-wrap:anywhere]">shipped at {idea.shippedHref}</span>
-                <svg
-                  className="size-3 shrink-0"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-2">
+              {idea.shippedHref ? (
+                <a
+                  className="inline-flex min-h-8 min-w-0 items-center gap-1.5 text-xs text-success underline decoration-success/40 underline-offset-4 transition-colors hover:decoration-success focus-visible:rounded-xs focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
+                  href={idea.shippedHref}
                 >
-                  <path d="M4 12 12 4M4 4h8v8" />
-                </svg>
-              </a>
-            ) : null}
+                  <span className="[overflow-wrap:anywhere]">shipped at {idea.shippedHref}</span>
+                  <svg
+                    className="size-3 shrink-0"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 12 12 4M4 4h8v8" />
+                  </svg>
+                </a>
+              ) : null}
+              <label className="inline-flex min-h-8 cursor-pointer items-center gap-2 font-mono text-[0.64rem] text-subhead select-none has-disabled:cursor-wait has-disabled:text-muted">
+                <input
+                  checked={Boolean(idea.closedAt)}
+                  className="size-4 cursor-pointer accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-wait"
+                  disabled={pendingReceipt === idea.receipt}
+                  onChange={(event) => void setClosed(idea, event.currentTarget.checked)}
+                  type="checkbox"
+                />
+                {pendingReceipt === idea.receipt ? 'saving…' : 'closed'}
+              </label>
+            </div>
           </footer>
         </article>
       ))}

@@ -15,6 +15,9 @@ class TipIdea {
   @Field(() => String)
   createdAt!: string
 
+  @Field(() => String, { nullable: true })
+  closedAt?: string | null
+
   @Field(() => String)
   receipt!: string
 
@@ -37,6 +40,15 @@ class UpdateTipIdeaInput {
   shippedHref?: string
 }
 
+@InputType()
+class SetTipIdeaClosedInput {
+  @Field(() => String)
+  receipt!: string
+
+  @Field(() => Boolean)
+  closed!: boolean
+}
+
 function isIdeaStatus(value: string): value is IdeaStatus {
   return IDEA_STATUSES.includes(value as IdeaStatus)
 }
@@ -47,6 +59,7 @@ function isSafeInternalHref(value: string) {
 
 function toView(row: {
   body: string
+  closed_at: Date | null
   created_at: Date
   receipt: string
   shipped_href: string | null
@@ -54,6 +67,7 @@ function toView(row: {
 }): TipIdea {
   return {
     body: row.body,
+    closedAt: row.closed_at?.toISOString() ?? null,
     createdAt: row.created_at.toISOString(),
     receipt: row.receipt,
     shippedHref: row.shipped_href,
@@ -70,6 +84,7 @@ export class TipIdeaResolver {
       orderBy: [{ created_at: 'desc' }, { idea_id: 'desc' }],
       select: {
         body: true,
+        closed_at: true,
         created_at: true,
         idea_id: true,
         receipt: true,
@@ -110,6 +125,36 @@ export class TipIdeaResolver {
         },
         select: {
           body: true,
+          closed_at: true,
+          created_at: true,
+          idea_id: true,
+          receipt: true,
+          shipped_href: true,
+          status: true,
+        },
+      })
+
+      return toView(row)
+    } catch {
+      throw new GraphQLError('idea not found', {
+        extensions: { code: 'NOT_FOUND' },
+      })
+    }
+  }
+
+  @Mutation(() => TipIdea)
+  @Authorized(PermissionName.UserWrite)
+  async setTipIdeaClosed(
+    @Arg('input', () => SetTipIdeaClosedInput) input: SetTipIdeaClosedInput,
+    @Ctx() context: Context,
+  ): Promise<TipIdea> {
+    try {
+      const row = await context.prisma.tipIdea.update({
+        where: { receipt: input.receipt.trim() },
+        data: { closed_at: input.closed ? new Date() : null },
+        select: {
+          body: true,
+          closed_at: true,
           created_at: true,
           idea_id: true,
           receipt: true,

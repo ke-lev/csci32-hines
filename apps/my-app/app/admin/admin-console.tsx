@@ -107,7 +107,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
     let cancelled = false
 
     const tipsRequest = gqlClient.request(TIP_IDEAS_QUERY).then((result) => {
-      if (!cancelled) setTipsCount(result.findManyTipIdeas.length)
+      if (!cancelled) setTipsCount(result.findManyTipIdeas.filter((idea) => !idea.closedAt).length)
     })
     const talkRequest = gqlClient.request(ROOM_MESSAGES_QUERY, { limit: TALK_COUNT_PAGE_SIZE }).then((result) => {
       if (!cancelled) setTalkCount(result.roomMessages.length)

@@ -16,6 +16,8 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
 type Documents = {
   '\n  query FindManyUsers($params: FindManyUsersInput) {\n    findManyUsers(params: $params) {\n      user_id\n      username\n    }\n    totalUsers(params: $params)\n  }\n': typeof types.FindManyUsersDocument
   '\n  mutation DeleteMessage($messageId: ID!) {\n    deleteMessage(messageId: $messageId)\n  }\n': typeof types.DeleteMessageDocument
+  '\n  query AdminTipIdeas {\n    findManyTipIdeas {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.AdminTipIdeasDocument
+  '\n  mutation SetTipIdeaClosed($input: SetTipIdeaClosedInput!) {\n    setTipIdeaClosed(input: $input) {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n': typeof types.SetTipIdeaClosedDocument
   '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignUpDocument
   '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n': typeof types.SignInDocument
   '\n  query CurrentUser {\n    currentUser {\n      user_id\n      username\n      email\n      role\n      permissions\n    }\n  }\n': typeof types.CurrentUserDocument
@@ -32,6 +34,10 @@ const documents: Documents = {
     types.FindManyUsersDocument,
   '\n  mutation DeleteMessage($messageId: ID!) {\n    deleteMessage(messageId: $messageId)\n  }\n':
     types.DeleteMessageDocument,
+  '\n  query AdminTipIdeas {\n    findManyTipIdeas {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n':
+    types.AdminTipIdeasDocument,
+  '\n  mutation SetTipIdeaClosed($input: SetTipIdeaClosedInput!) {\n    setTipIdeaClosed(input: $input) {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n':
+    types.SetTipIdeaClosedDocument,
   '\n  mutation SignUp($input: SignUpInput!) {\n    signUp(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n':
     types.SignUpDocument,
   '\n  mutation SignIn($input: SignInInput!) {\n    signIn(input: $input) {\n      token\n      user {\n        user_id\n        username\n        email\n        role\n        permissions\n      }\n    }\n  }\n':
@@ -80,6 +86,18 @@ export function graphql(
 export function graphql(
   source: '\n  mutation DeleteMessage($messageId: ID!) {\n    deleteMessage(messageId: $messageId)\n  }\n',
 ): (typeof documents)['\n  mutation DeleteMessage($messageId: ID!) {\n    deleteMessage(messageId: $messageId)\n  }\n']
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query AdminTipIdeas {\n    findManyTipIdeas {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n',
+): (typeof documents)['\n  query AdminTipIdeas {\n    findManyTipIdeas {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n']
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  mutation SetTipIdeaClosed($input: SetTipIdeaClosedInput!) {\n    setTipIdeaClosed(input: $input) {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n',
+): (typeof documents)['\n  mutation SetTipIdeaClosed($input: SetTipIdeaClosedInput!) {\n    setTipIdeaClosed(input: $input) {\n      body\n      closedAt\n      createdAt\n      receipt\n      shippedHref\n      status\n    }\n  }\n']
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

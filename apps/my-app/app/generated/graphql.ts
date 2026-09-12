@@ -31,6 +31,11 @@ export type SavePersonalIntroInput = {
   introTitle: string
 }
 
+export type SetTipIdeaClosedInput = {
+  closed: boolean
+  receipt: string
+}
+
 export type SignInInput = {
   password: string
   username: string
@@ -65,6 +70,34 @@ export type DeleteMessageMutationVariables = Exact<{
 }>
 
 export type DeleteMessageMutation = { deleteMessage: boolean }
+
+export type AdminTipIdeasQueryVariables = Exact<{ [key: string]: never }>
+
+export type AdminTipIdeasQuery = {
+  findManyTipIdeas: Array<{
+    body: string
+    closedAt: string | null
+    createdAt: string
+    receipt: string
+    shippedHref: string | null
+    status: string
+  }>
+}
+
+export type SetTipIdeaClosedMutationVariables = Exact<{
+  input: SetTipIdeaClosedInput
+}>
+
+export type SetTipIdeaClosedMutation = {
+  setTipIdeaClosed: {
+    body: string
+    closedAt: string | null
+    createdAt: string
+    receipt: string
+    shippedHref: string | null
+    status: string
+  }
+}
 
 export type SignUpMutationVariables = Exact<{
   input: SignUpInput
@@ -287,6 +320,83 @@ export const DeleteMessageDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteMessageMutation, DeleteMessageMutationVariables>
+export const AdminTipIdeasDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'AdminTipIdeas' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'findManyTipIdeas' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'closedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'receipt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'shippedHref' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AdminTipIdeasQuery, AdminTipIdeasQueryVariables>
+export const SetTipIdeaClosedDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'SetTipIdeaClosed' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'SetTipIdeaClosedInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'setTipIdeaClosed' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'closedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'receipt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'shippedHref' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SetTipIdeaClosedMutation, SetTipIdeaClosedMutationVariables>
 export const SignUpDocument = {
   kind: 'Document',
   definitions: [
