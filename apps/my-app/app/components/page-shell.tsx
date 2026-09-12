@@ -4,6 +4,7 @@ import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
 import { HelpDocModal } from './help-doc-modal'
+import { panelFrameSizeClasses } from './panel-frame'
 import { ThemeToggle } from './theme-toggle'
 import { TipsModal } from './tips-modal'
 
@@ -58,7 +59,9 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
         aria-labelledby={titleId}
       >
         {left}
-        <div className="flex h-[var(--panel-h)] w-full max-w-[620px] justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background max-[900px]:h-[min(520px,62svh)] max-[900px]:max-w-none max-[560px]:h-[420px]">
+        <div
+          className={`${panelFrameSizeClasses} flex justify-self-center overflow-hidden rounded-[2rem] border border-line bg-background`}
+        >
           <div className={`flex min-w-0 flex-1 flex-col ${rightInset ? 'p-[clamp(12px,1.4vw,20px)]' : ''}`}>
             {right}
           </div>
