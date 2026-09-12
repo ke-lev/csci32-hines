@@ -48,12 +48,6 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
         </nav>
 
         <nav className="flex items-center gap-2" aria-label="Site links">
-          <Link
-            className="mr-1 inline-flex min-h-7 items-center rounded-xs font-mono text-[0.72rem] font-[650] tracking-[0.12em] text-muted lowercase transition-colors duration-180 hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none"
-            href="/help/"
-          >
-            help
-          </Link>
           <ThemeToggle />
           <TipsModal />
         </nav>
@@ -72,9 +66,12 @@ export function PageShell({ breadcrumbs, left, right, rightInset = true, titleId
       </section>
 
       <footer className="flex items-center justify-end gap-5 border-t border-line pt-5 font-mono text-[0.66rem] tracking-[0.08em] text-foreground lowercase">
+        <div className="mr-auto">
+          <HelpDocModal />
+        </div>
+
         <div className="flex items-center gap-2.5">
           <p className="m-0">git&apos;n init © 2026</p>
-          <HelpDocModal />
           <Button
             className="size-9 min-h-0 border-0 bg-black p-0 text-white hover:border-0 hover:bg-black"
             href="https://github.com/ke-lev"

@@ -13,14 +13,32 @@ did), and the panel on the right holds three ways in: buttons, input, and games.
 it is not the full route index. those three are the front door; the users shell
 knows the whole route table.
 
-the header strip above it is on every page — a link back to these docs, the
-light/dark toggle, and the tips button for sending an idea.
+the chrome around it is on every page: the theme toggle and the tips button up
+top, and an info button in the footer that opens the doc for whatever page you
+are on.
 
 ## how to use
 
-1. pick buttons, input, or games from the panel on the right
-2. hit the thursday control in the intro to find out whether it is, in fact,
-   thursday
-3. open the timeline for the semester devlog
-4. use the theme toggle in the header if the contrast is wrong for the room
-5. run `ls` in the users shell for the routes this panel does not list
+1. nav
+
+- filepath breadcrumbs: show cwd on the site tree
+  - `users/` links to a users terminal
+- dark/light/system theme icon: changes theme
+- tips: shows the tips modal, where you can send ideas to admin, or send money to me
+
+2. left side intro
+
+- timeline: links to `/timeline` - semester devlog
+- thursday: checks if it's thursday
+- spotify: shows recently played
+
+3. right side card
+
+- `/buttons` links to button lab (some fun buttons)
+- `/input` links to input lab (a lot going on there)
+- `/games` links to games lab (not much there)
+
+4. footer
+
+- info `i`: opens this page's doc in a modal, from any page that has one
+- github: links out to the source
