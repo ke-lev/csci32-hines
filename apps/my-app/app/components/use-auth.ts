@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 import { ClientError } from 'graphql-request'
 import { graphql } from '../generated/gql'
 import type { PermissionName, SignInInput, SignUpInput, SignUpMutation } from '../generated/graphql'
@@ -19,8 +20,25 @@ export type AuthError = {
 }
 
 const AUTH_CHANGE_EVENT = 'kelev-auth-change'
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 const subscribeToHydration = () => () => {}
+
+function identifyUser(user: AuthUser) {
+  if (!isPostHogConfigured) return
+
+  posthog.identify(user.user_id, {
+    email: user.email ?? undefined,
+    username: user.username,
+    role: user.role ?? undefined,
+  })
+}
+
+function resetPostHog() {
+  if (isPostHogConfigured) posthog.reset()
+}
 
 function getStoredUser(): AuthUser | null {
   const session = readStoredSession()
@@ -147,6 +165,7 @@ export function useAuth() {
   // session instead of trusting whatever the previous one resolved to
   const [sessionGeneration, setSessionGeneration] = useState(0)
   const validatedTokenRef = useRef<string | null>(null)
+  const identifiedTokenRef = useRef<string | null>(null)
   const errorRef = useRef<AuthError | null>(null)
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -182,6 +201,8 @@ export function useAuth() {
   const recoverSession = useCallback((caughtError: unknown) => {
     if (!isAuthFailure(caughtError)) return false
 
+    resetPostHog()
+    identifiedTokenRef.current = null
     clearSession()
     setUser(null)
     setIsSessionChecked(true)
@@ -224,6 +245,11 @@ export function useAuth() {
         if (isStale()) return
 
         setUser(result.currentUser)
+        if (identifiedTokenRef.current !== requestToken) {
+          if (identifiedTokenRef.current) resetPostHog()
+          identifyUser(result.currentUser)
+          identifiedTokenRef.current = requestToken
+        }
         // refresh the cached copy with the server's answer, keeping the token it belongs to
         if (requestToken) writeStoredSession(requestToken, result.currentUser)
       })
@@ -250,6 +276,8 @@ export function useAuth() {
       }
 
       if (!storedUser) {
+        if (identifiedTokenRef.current) resetPostHog()
+        identifiedTokenRef.current = null
         clearAuthToken()
         setUser(null)
         setIsSessionChecked(true)
@@ -281,6 +309,10 @@ export function useAuth() {
       const result = await gqlClient.request(SIGN_UP_MUTATION, { input })
       if (!result.signUp) return null
 
+      if (identifiedTokenRef.current) resetPostHog()
+      identifyUser(result.signUp.user)
+      if (isPostHogConfigured) posthog.capture('account_signed_up')
+      identifiedTokenRef.current = result.signUp.token
       saveSession(result.signUp)
       setUser(result.signUp.user)
       setIsSessionChecked(true)
@@ -303,6 +335,10 @@ export function useAuth() {
       const result = await gqlClient.request(SIGN_IN_MUTATION, { input })
       if (!result.signIn) return null
 
+      if (identifiedTokenRef.current) resetPostHog()
+      identifyUser(result.signIn.user)
+      if (isPostHogConfigured) posthog.capture('account_signed_in')
+      identifiedTokenRef.current = result.signIn.token
       saveSession(result.signIn)
       setUser(result.signIn.user)
       setIsSessionChecked(true)
@@ -318,6 +354,8 @@ export function useAuth() {
   }
 
   const signOut = () => {
+    resetPostHog()
+    identifiedTokenRef.current = null
     clearSession()
     setUser(null)
     setIsSessionChecked(true)

@@ -3,6 +3,7 @@
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
+import posthog from 'posthog-js'
 import { useEffect } from 'react'
 import { PageIntro } from './components/page-intro'
 import { PageShell } from './components/page-shell'
@@ -12,8 +13,13 @@ type ErrorPageProps = {
   reset: () => void
 }
 
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
+
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
+    if (isPostHogConfigured) posthog.captureException(error)
     console.error(error)
   }, [error])
 
