@@ -7,7 +7,6 @@ import { hasHelpDocForPath, normalizeRoutePath } from '../lib/site-routes'
 export type HelpDocPayload = {
   content: string
   slug: string
-  summary: string
   title: string
 }
 
@@ -28,5 +27,5 @@ export async function loadHelpDocForPath(pathname: string): Promise<HelpDocPaylo
     return null
   }
 
-  return { content: doc.content, slug: doc.slug, summary: doc.summary, title: doc.title }
+  return { content: doc.content, slug: doc.slug, title: doc.title }
 }

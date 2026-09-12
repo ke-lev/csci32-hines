@@ -84,27 +84,22 @@ export function HelpDocDialog({ onClose, pathname }: HelpDocDialogProps) {
       <div
         aria-labelledby="help-doc-dialog-title"
         aria-modal="true"
-        className="flex max-h-[calc(100svh-2.5rem)] w-full max-w-[560px] flex-col overflow-hidden rounded-[2rem] border border-line bg-background font-sans outline-none"
+        className="flex max-h-[min(36rem,calc(100svh-6rem))] w-full max-w-[560px] flex-col overflow-hidden rounded-[2rem] border border-line bg-background font-sans outline-none"
         onMouseDown={(event) => event.stopPropagation()}
         ref={dialogRef}
         role="dialog"
         tabIndex={-1}
       >
-        <header className="relative shrink-0 border-b border-line px-6 pt-6 pb-6 sm:px-8 sm:pt-8">
-          <p className="mb-6 font-mono text-[0.64rem] font-semibold tracking-[0.11em] text-foreground">
+        <header className="relative shrink-0 border-b border-line px-6 pt-5 pb-5 sm:px-8 sm:pt-6">
+          <p className="mb-4 font-mono text-[0.64rem] font-semibold tracking-[0.11em] text-foreground">
             about this page
           </p>
           <h2
-            className="m-0 text-[clamp(2.2rem,7vw,3.2rem)] leading-[0.92] font-[520] tracking-[-0.06em] lowercase"
+            className="m-0 text-[clamp(1.9rem,6vw,2.6rem)] leading-[0.95] font-[520] tracking-[-0.05em] lowercase"
             id="help-doc-dialog-title"
           >
             {state.kind === 'ready' ? state.doc.title : 'help'}
           </h2>
-          {state.kind === 'ready' ? (
-            <p className="mt-4 mb-0 max-w-[46ch] text-[0.98rem] leading-[1.55] text-subhead text-balance">
-              {state.doc.summary}
-            </p>
-          ) : null}
           <button
             aria-label="close"
             className="absolute top-5 right-5 grid size-10 place-items-center rounded-full border border-line text-foreground transition-[background-color,border-color,transform] duration-180 hover:-translate-y-0.5 hover:border-muted hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
