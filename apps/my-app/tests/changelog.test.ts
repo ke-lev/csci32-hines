@@ -26,6 +26,7 @@ describe('changelog entries', () => {
       expect(CHANGELOG_KINDS).toContain(entry.kind)
       expect(entry.title.length, `${entry.slug} title`).toBeGreaterThan(0)
       expect(entry.content.length, `${entry.slug} body`).toBeGreaterThan(0)
+      expect(entry.timestamp, `${entry.slug} timestamp`).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)
     }
   })
 

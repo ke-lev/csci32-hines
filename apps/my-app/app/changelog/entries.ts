@@ -2,7 +2,7 @@ import 'server-only'
 
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { parseChangelogEntry } from './entry-schema'
+import { parseChangelogEntry, sortChangelogEntries } from './entry-schema'
 
 const entriesDirectory = path.join(process.cwd(), 'app', 'changelog', 'entries')
 
@@ -16,5 +16,5 @@ export async function getChangelogEntries() {
   )
 
   // newest first: the changelog is read from the top
-  return entries.sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug))
+  return sortChangelogEntries(entries)
 }

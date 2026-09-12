@@ -41,12 +41,15 @@ badge expires on its own instead of requiring a cleanup pass nobody performs.
 ### Changelog entries — `app/changelog/entries/YYYY-MM-DD-slug.md`
 
 The filename supplies the date and the slug, mirroring the timeline's
-filename-derives-date convention where a malformed name fails the build.
+filename-derives-date convention where a malformed name fails the build. A UTC
+timestamp supplies the exact newest-first order.
 
 Frontmatter:
 
 - `title` (required)
 - `kind` (required) — `feature`, `improvement`, or `fix`
+- `timestamp` (required) — canonical UTC with seconds; its Eastern date matches
+  the filename date
 - `features` (optional) — comma-separated help doc slugs this change touched
 
 Entries live inside `apps/my-app/` rather than repo-root `docs/changelog/`

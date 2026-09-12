@@ -17,7 +17,9 @@ site.
 ## how to use
 
 1. read from the top — newest entries come first
-2. each entry carries a date and a tag: feature, improvement, or fix
+2. each entry carries the date and time in your timezone plus a tag: feature,
+   improvement, or fix
 3. follow an entry's feature link to the doc for the thing it changed
 4. to add an entry, drop a markdown file in `app/changelog/entries/` named
-   `YYYY-MM-DD-slug.md`
+   `YYYY-MM-DD-slug.md` and give it a UTC `timestamp` in frontmatter whose eastern
+   date matches the filename

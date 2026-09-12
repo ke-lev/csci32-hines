@@ -2,6 +2,7 @@
 title: help docs and this changelog
 kind: feature
 features: help, changelog
+timestamp: 2026-09-11T23:31:52Z
 ---
 
 every page on the site now has a help doc explaining what it does and how to use
