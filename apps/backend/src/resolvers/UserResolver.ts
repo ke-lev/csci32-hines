@@ -18,6 +18,15 @@ class PublicUser {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => UserDTO, { nullable: true })
+  @Authorized(PermissionName.UserRead)
+  findUserById(
+    @Ctx() { userService }: Context,
+    @Arg('id', () => ID) id: string,
+  ) {
+    return userService.findById(id)
+  }
+
   @Query(() => [PublicUser])
   @Authorized(PermissionName.UserRead)
   findManyUsers(
