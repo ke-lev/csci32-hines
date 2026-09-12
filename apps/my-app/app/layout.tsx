@@ -30,8 +30,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-const description =
-  'a lowercase corner of the internet: small experiments, dumb games, procedural faces, and an honest semester devlog.'
+const description = 'beep boop'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://csci32-hines.vercel.app'),
