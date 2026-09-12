@@ -11,6 +11,17 @@ type ModalFrameProps = {
   onClose: () => void
 }
 
+export const modalFooterControlClasses =
+  'inline-flex min-h-7 cursor-pointer items-center rounded-xs border-0 bg-transparent p-0 font-mono text-[0.72rem] tracking-[0.08em] text-muted lowercase transition-colors duration-180 hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-footer disabled:hover:text-footer motion-reduce:transition-none'
+
+export function ModalFooter({ children }: { children: ReactNode }) {
+  return (
+    <footer className="flex shrink-0 items-center justify-between gap-4 border-t border-line px-6 py-4 sm:px-8">
+      {children}
+    </footer>
+  )
+}
+
 export function ModalFrame({ ariaDescribedBy, ariaLabelledBy, children, onClose }: ModalFrameProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
 

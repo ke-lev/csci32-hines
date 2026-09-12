@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { Button } from '@repo/ui/button'
 import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
-import { ModalFrame } from './modal-frame'
+import { ModalFooter, modalFooterControlClasses, ModalFrame } from './modal-frame'
 import { submitTipIdea } from './submit-tip-idea'
 
 type TipsView = 'menu' | 'ideas' | 'money'
@@ -167,33 +167,39 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
             </div>
           </div>
         ) : view === 'ideas' ? (
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-7 sm:px-8 sm:pt-8 sm:pb-8">
-            <div
-              aria-describedby="markdown-shortcuts"
-              aria-label="your suggestion"
-              aria-multiline="true"
-              autoFocus
-              className="min-h-36 w-full rounded-2xl border border-line bg-background px-4 py-3.5 text-[0.9rem] leading-6 text-foreground caret-accent outline-none transition-colors empty:before:content-[attr(data-placeholder)] empty:before:text-muted focus:border-muted max-[560px]:min-h-32"
-              contentEditable
-              data-placeholder="a game, an experiment, a strange button..."
-              onInput={(event) => {
-                setFeedbackText(event.currentTarget.innerText)
-                setSubmitStatus('idle')
-                setSubmitError('')
-              }}
-              ref={editorRef}
-              role="textbox"
-              spellCheck="true"
-              suppressContentEditableWarning
-              tabIndex={0}
-            />
+          <>
+            <div className="flex min-h-0 flex-1 flex-col px-6 py-6 sm:px-8 sm:py-8">
+              <div
+                aria-describedby="markdown-shortcuts"
+                aria-label="your suggestion"
+                aria-multiline="true"
+                autoFocus
+                className="min-h-32 w-full flex-1 overflow-y-auto overscroll-contain rounded-2xl border border-line bg-background px-4 py-3.5 text-[0.9rem] leading-6 text-foreground caret-accent outline-none transition-colors empty:before:content-[attr(data-placeholder)] empty:before:text-muted focus:border-muted"
+                contentEditable
+                data-placeholder="a game, an experiment, a strange button..."
+                onInput={(event) => {
+                  setFeedbackText(event.currentTarget.innerText)
+                  setSubmitStatus('idle')
+                  setSubmitError('')
+                }}
+                ref={editorRef}
+                role="textbox"
+                spellCheck="true"
+                suppressContentEditableWarning
+                tabIndex={0}
+              />
+            </div>
 
-            <div className="mt-7 flex items-center justify-between gap-4 border-t border-line pt-5">
-              <Button onClick={() => changeView('menu')} size={Size.MEDIUM} type="button" variant={Variant.TERTIARY}>
+            <ModalFooter>
+              <button className={modalFooterControlClasses} onClick={() => changeView('menu')} type="button">
                 &lt; back
-              </Button>
+              </button>
               <div className="flex items-center gap-3">
-                <span aria-live="polite" className="font-mono text-[0.6rem] text-foreground" role="status">
+                <span
+                  aria-live="polite"
+                  className="max-w-[18ch] text-right font-mono text-[0.6rem] text-foreground"
+                  role="status"
+                >
                   {submitStatus === 'submitted'
                     ? 'idea sent'
                     : submitStatus === 'error'
@@ -202,54 +208,44 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
                         ? 'sending...'
                         : ''}
                 </span>
-                <Button
-                  className="disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100"
+                <button
+                  className={modalFooterControlClasses}
                   disabled={!feedbackText.trim() || submitStatus === 'submitting'}
                   onClick={sendIdea}
-                  size={Size.MEDIUM}
                   type="button"
-                  variant={feedbackText.trim() ? Variant.PRIMARY : Variant.SECONDARY}
                 >
                   send idea
-                </Button>
+                </button>
               </div>
-            </div>
-          </div>
+            </ModalFooter>
+          </>
         ) : (
-          <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto overscroll-contain px-6 pt-6 pb-7 min-[360px]:grid-cols-[minmax(0,1fr)_144px] min-[360px]:items-end sm:grid-cols-[1fr_200px] sm:gap-7 sm:px-8 sm:pt-8 sm:pb-8">
-            <div>
+          <>
+            <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto overscroll-contain px-6 py-6 min-[360px]:grid-cols-[minmax(0,1fr)_144px] min-[360px]:items-center sm:grid-cols-[1fr_200px] sm:gap-7 sm:px-8 sm:py-8">
               <p className="m-0 max-w-[25ch] text-[0.86rem] leading-6 text-muted">
                 no pressure. the code goes straight to <span className="text-foreground">$ke1ev</span>
               </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt="Cash App QR code for $ke1ev"
+                className="aspect-square w-full rounded-2xl border border-line bg-black p-3"
+                height="288"
+                src={qrSrc}
+                width="288"
+              />
+            </div>
+
+            <ModalFooter>
+              <button className={modalFooterControlClasses} onClick={() => changeView('menu')} type="button">
+                &lt; back
+              </button>
               {paymentUrl ? (
-                <a
-                  className="mt-5 inline-flex rounded-full border border-foreground bg-foreground px-[15px] py-[9px] font-mono text-[0.66rem] leading-none font-semibold text-background transition duration-180 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent motion-reduce:transition-none"
-                  href={paymentUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
+                <a className={modalFooterControlClasses} href={paymentUrl} rel="noreferrer" target="_blank">
                   open Cash App ↗
                 </a>
               ) : null}
-              <Button
-                className="mt-8 sm:mt-16"
-                onClick={() => changeView('menu')}
-                size={Size.MEDIUM}
-                type="button"
-                variant={Variant.TERTIARY}
-              >
-                &lt; back
-              </Button>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt="Cash App QR code for $ke1ev"
-              className="aspect-square w-full rounded-2xl border border-line bg-black p-3"
-              height="288"
-              src={qrSrc}
-              width="288"
-            />
-          </div>
+            </ModalFooter>
+          </>
         )}
       </div>
     </ModalFrame>
