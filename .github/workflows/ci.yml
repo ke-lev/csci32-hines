@@ -34,3 +34,43 @@ jobs:
       - run: yarn workspace @repo/database db:validate
 
       - run: yarn build
+
+  # a feature is not finished until it is written down. internal work is exempt:
+  # put [skip changelog] in the pull request title.
+  changelog:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.title, '[skip changelog]')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: require a changelog entry for user-facing changes
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin "$BASE_REF"
+          base=$(git merge-base FETCH_HEAD HEAD)
+
+          user_facing=$(git diff --name-only "$base" HEAD \
+            | grep -E '^(apps/my-app/app/|packages/ui/src/)' \
+            | grep -vE '^apps/my-app/app/(help|changelog|generated)/' || true)
+
+          entries=$(git diff --name-only --diff-filter=A "$base" HEAD \
+            | grep -E '^apps/my-app/app/changelog/entries/.*\.md$' || true)
+
+          if [ -n "$user_facing" ] && [ -z "$entries" ]; then
+            echo "::error::This pull request changes user-facing code but adds no changelog entry."
+            echo ""
+            echo "Add apps/my-app/app/changelog/entries/$(date +%Y-%m-%d)-slug.md with title and"
+            echo "kind (feature, improvement, or fix), and a help doc if this adds a page."
+            echo ""
+            echo "If this is internal work — refactoring, infra, or dependencies — put"
+            echo "[skip changelog] in the pull request title."
+            echo ""
+            echo "Changed without an entry:"
+            echo "$user_facing" | sed 's/^/  /'
+            exit 1
+          fi
+
+          echo "changelog check passed"
