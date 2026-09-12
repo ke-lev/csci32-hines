@@ -5,6 +5,7 @@ type PageIntroProps = {
   children?: ReactNode
   isRevealed?: boolean
   subhead: ReactNode
+  subheadAs?: 'h2' | 'p'
   title: ReactNode
   titleId: string
 }
@@ -19,13 +20,23 @@ const titleClassName =
 const descriptionClassName =
   'mt-8 max-w-[530px] text-[clamp(1.1rem,1.5vw,1.4rem)] leading-[1.55] text-subhead text-balance'
 
-export function PageIntro({ body, children, isRevealed = true, subhead, title, titleId }: PageIntroProps) {
+export function PageIntro({
+  body,
+  children,
+  isRevealed = true,
+  subhead,
+  subheadAs: Subhead = 'p',
+  title,
+  titleId,
+}: PageIntroProps) {
   return (
     <div className="self-center">
       <h1 className={isRevealed ? `page-intro-title ${titleClassName}` : titleClassName} id={titleId}>
         {title}
       </h1>
-      <p className={isRevealed ? `page-intro-description ${descriptionClassName}` : descriptionClassName}>{subhead}</p>
+      <Subhead className={isRevealed ? `page-intro-description ${descriptionClassName}` : descriptionClassName}>
+        {subhead}
+      </Subhead>
       {body &&
         (typeof body === 'string' ? (
           <p className="mt-5 max-w-[52ch] whitespace-pre-line text-sm leading-[1.6] text-muted">{body}</p>
