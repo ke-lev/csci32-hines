@@ -43,11 +43,11 @@ export default async function ChangelogPage() {
           {entries.map((entry) => (
             <article
               className="border-b border-line px-[clamp(18px,2vw,28px)] py-6 last:border-b-0"
-              key={`${entry.date}-${entry.slug}`}
+              key={`${entry.timestamp}-${entry.slug}`}
             >
               <div className="flex flex-wrap items-center gap-2.5 font-mono text-[0.68rem] tracking-[0.08em] lowercase">
-                <time className="text-muted" dateTime={entry.date}>
-                  {entry.dateLabel}
+                <time className="text-muted tabular-nums" dateTime={entry.timestamp}>
+                  {entry.timestampLabel}
                 </time>
                 <span
                   className={`inline-flex rounded-full border px-2.5 py-[3px] leading-none font-[650] ${kindClassName[entry.kind]}`}

@@ -1,6 +1,7 @@
 ---
 title: the site can learn what works
 kind: improvement
+timestamp: 2026-09-12T23:16:43Z
 ---
 
 the site now sends page visits, sign-ins, key interactions, and client-side

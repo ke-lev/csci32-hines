@@ -2,6 +2,7 @@
 title: new tips send an email alert
 kind: improvement
 features: admin
+timestamp: 2026-09-12T20:15:31Z
 ---
 
 new ideas still land in the admin tip inbox, and configured deployments now send

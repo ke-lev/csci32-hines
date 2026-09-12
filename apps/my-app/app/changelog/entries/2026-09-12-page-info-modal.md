@@ -2,6 +2,7 @@
 title: every page explains itself from the footer
 kind: feature
 features: help
+timestamp: 2026-09-12T04:32:28Z
 ---
 
 the footer carries a small info button now. it opens the current page's doc in a
