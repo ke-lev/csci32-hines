@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import posthog from 'posthog-js'
 import { Button } from '@repo/ui/button'
 import { Variant } from '@repo/ui/variant'
 import { useAuth } from '../components/use-auth'
@@ -12,6 +13,9 @@ import { useProfile } from './use-profile'
 import { useRoom, type RoomLine } from './use-room'
 
 const MOTD = 'one room. be nice.'
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 // far enough from the floor that a reader who scrolled up on purpose is not dragged back down
 const PINNED_SLACK_PX = 80
 
@@ -143,6 +147,8 @@ export function Room({ canPost }: { canPost: boolean }) {
       setSendError(result.reason)
       return
     }
+
+    if (isPostHogConfigured) posthog.capture('room_message_sent')
 
     // whatever was typed while the request was in flight is the next message, not this one
     setDraft((current) => (current === sent ? '' : current))

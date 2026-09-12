@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import posthog from 'posthog-js'
 import { getButtonSizeStyles, Size } from '@repo/ui/size'
 import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
 import { ModalFooter, modalFooterControlClasses, ModalFrame } from './modal-frame'
@@ -10,6 +11,9 @@ type TipsView = 'menu' | 'ideas' | 'money'
 type SubmitStatus = 'idle' | 'submitting' | 'submitted' | 'error'
 
 const paymentUrl = process.env.NEXT_PUBLIC_TIPS_URL ?? ''
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 const qrSrc = '/$ke1ev-cashapp-qr.svg'
 
 const tipOptions = [
@@ -97,6 +101,7 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
       const result = await submitTipIdea(htmlToMarkdown(editor))
 
       if (result.ok) {
+        if (isPostHogConfigured) posthog.capture('tip_idea_submitted')
         setSubmitStatus('submitted')
         setFeedbackText('')
         editor.replaceChildren()

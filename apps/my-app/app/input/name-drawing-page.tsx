@@ -6,6 +6,7 @@ import { Size } from '@repo/ui/size'
 import { Variant } from '@repo/ui/variant'
 import Link from 'next/link'
 import { type FormEvent, useMemo, useRef, useState } from 'react'
+import posthog from 'posthog-js'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { normalizeFaceSeed } from './generate-face'
@@ -18,6 +19,10 @@ type DrawingName = {
   first: string
   last: string
 }
+
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 const initialName: DrawingName = {
   first: 'john',
@@ -140,6 +145,7 @@ export function NameDrawingPage() {
     setIsSigning(false)
 
     if (result.ok) {
+      if (isPostHogConfigured) posthog.capture('guestbook_signed', { drawing_kind: drawingKind })
       setSignedKey(`${result.seed}:${drawingKind}`)
       return
     }
@@ -150,6 +156,7 @@ export function NameDrawingPage() {
   function draw(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     drawName()
+    if (isPostHogConfigured) posthog.capture('portrait_drawn', { drawing_kind: drawingKind })
   }
 
   function fillLuckyName() {
@@ -203,6 +210,7 @@ export function NameDrawingPage() {
     document.body.appendChild(link)
     link.click()
     link.remove()
+    if (isPostHogConfigured) posthog.capture('portrait_downloaded', { drawing_kind: drawingKind })
     window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)
   }
 

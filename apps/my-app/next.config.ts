@@ -4,17 +4,29 @@ import type { NextConfig } from 'next'
 const isDevelopment = process.env.NODE_ENV === 'development'
 const __impeccableLiveDev = isDevelopment ? ' http://localhost:8400' : ''
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).origin : undefined
+const posthogCspSource = (() => {
+  const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
+  if (!posthogHost) return ''
+
+  try {
+    const domain = new URL(posthogHost).hostname.split('.').slice(-2).join('.')
+    return ` https://*.${domain}`
+  } catch {
+    return ''
+  }
+})()
 const connectSources = ["'self'", apiOrigin, isDevelopment ? 'ws:' : undefined].filter(Boolean).join(' ')
 
 // the App Router streams inline scripts and the theme bootstrap in layout.tsx runs inline, so
 // script-src keeps 'unsafe-inline' until there is a nonce path worth the complexity here.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}${__impeccableLiveDev}`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}${__impeccableLiveDev}${posthogCspSource}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://i.scdn.co",
   "font-src 'self' data:",
-  `connect-src ${connectSources}${__impeccableLiveDev}`,
+  `connect-src ${connectSources}${__impeccableLiveDev}${posthogCspSource}`,
+  "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

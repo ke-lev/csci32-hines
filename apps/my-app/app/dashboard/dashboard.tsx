@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import posthog from 'posthog-js'
 import { useRouter } from 'next/navigation'
 import { Button } from '@repo/ui/button'
 import { Variant } from '@repo/ui/variant'
@@ -25,6 +26,9 @@ function getDefaultIntro(username: string): IntroCopy {
 }
 
 const BLANK_INTRO: IntroCopy = { body: '', subhead: '', title: '' }
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 // the h1 sets leading-[0.84], so glyphs paint outside the line box and overflow-hidden would
 // clip ascenders and descenders. the padding gives them room; the negative margin takes that
@@ -132,6 +136,7 @@ export function Dashboard() {
       return
     }
 
+    if (isPostHogConfigured) posthog.capture('dashboard_intro_saved')
     setDraftIntro(null)
     setIntroMessage('intro saved')
   }

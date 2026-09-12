@@ -5,9 +5,14 @@ import { Button } from '@repo/ui/button'
 import { Input } from '@repo/ui/input'
 import { Variant } from '@repo/ui/variant'
 import { type FormEvent, useMemo, useState } from 'react'
+import posthog from 'posthog-js'
 import type { GameConfig } from './game-types'
 
 type Result = 'playing' | 'won' | 'lost'
+
+const isPostHogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 type RandomNumberGameProps = {
   config: GameConfig
@@ -62,6 +67,14 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
     setError('')
 
     if (parsedGuess === target) {
+      if (isPostHogConfigured) {
+        posthog.capture('number_guessing_game_completed', {
+          configured_range: config.max - config.min + 1,
+          guesses_used: nextGuesses.length,
+          max_guesses: config.maxGuesses,
+          outcome: 'won',
+        })
+      }
       setLowerBound(target)
       setUpperBound(target)
       setResult('won')
@@ -70,6 +83,14 @@ export function RandomNumberGame({ config, onNewGame }: RandomNumberGameProps) {
     }
 
     if (nextGuesses.length >= config.maxGuesses) {
+      if (isPostHogConfigured) {
+        posthog.capture('number_guessing_game_completed', {
+          configured_range: config.max - config.min + 1,
+          guesses_used: nextGuesses.length,
+          max_guesses: config.maxGuesses,
+          outcome: 'lost',
+        })
+      }
       setResult('lost')
       setMessage(`out of guesses — the number was ${target}`)
       return
