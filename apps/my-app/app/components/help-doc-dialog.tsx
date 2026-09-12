@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { loadHelpDocForPath, type HelpDocPayload } from './load-help-doc'
 
+const footerLinkClasses =
+  'inline-flex min-h-7 items-center rounded-xs font-mono text-[0.72rem] tracking-[0.08em] text-muted lowercase transition-colors duration-180 hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none'
+
 type HelpDocDialogProps = {
   onClose: () => void
   pathname: string
@@ -120,13 +123,12 @@ export function HelpDocDialog({ onClose, pathname }: HelpDocDialogProps) {
             >
               <ReactMarkdown>{state.doc.content}</ReactMarkdown>
             </article>
-            <footer className="shrink-0 border-t border-line px-6 py-4 sm:px-8">
-              <Link
-                className="inline-flex min-h-7 items-center rounded-xs font-mono text-[0.72rem] tracking-[0.08em] text-muted lowercase transition-colors duration-180 hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-reduce:transition-none"
-                href={`/help/${state.doc.slug}/`}
-                onClick={onClose}
-              >
-                open the full page →
+            <footer className="flex shrink-0 items-center justify-between gap-4 border-t border-line px-6 py-4 sm:px-8">
+              <Link className={footerLinkClasses} href="/changelog/" onClick={onClose}>
+                changelog
+              </Link>
+              <Link className={footerLinkClasses} href={`/help/${state.doc.slug}/`} onClick={onClose}>
+                open the full help doc →
               </Link>
             </footer>
           </>
