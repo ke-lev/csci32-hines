@@ -96,32 +96,46 @@ function splitLuckyName(fullName: string): DrawingName {
 
 export function NameDrawingPage() {
   const drawingSvgRef = useRef<SVGSVGElement>(null)
-  const luckyNameRef = useRef<DrawingName | null>(null)
   const [firstName, setFirstName] = useState(initialName.first)
   const [lastName, setLastName] = useState(initialName.last)
   const [drawingName, setDrawingName] = useState(initialName)
   const [drawRevision, setDrawRevision] = useState(0)
   const [catMode, setCatMode] = useState(false)
-  const seed = useMemo(() => normalizeFaceSeed(drawingName.first, drawingName.last), [drawingName])
-  const face = useMemo(() => generateSingleLineFace(seed), [seed])
+  const drawingSeed = useMemo(() => normalizeFaceSeed(drawingName.first, drawingName.last), [drawingName])
+  const currentSeed = useMemo(() => normalizeFaceSeed(firstName, lastName), [firstName, lastName])
+  const face = useMemo(() => generateSingleLineFace(drawingSeed), [drawingSeed])
   const drawingKind = catMode ? 'cat' : 'face'
-  const displayName = seed || 'anonymous visitor'
+  const drawingDisplayName = drawingSeed || 'anonymous visitor'
+  const displayName = currentSeed || 'anonymous visitor'
   const [isSigning, setIsSigning] = useState(false)
   const [signedKey, setSignedKey] = useState<string | null>(null)
   const [signError, setSignError] = useState<{ key: string; reason: string } | null>(null)
-  // keyed by what is actually on screen, so redrawing or flipping cat-mode resets the button
-  // without an effect: a different drawing is a different signature.
-  const signatureKey = `${seed}:${drawingKind}`
+  // The footer and signing state follow the fields live, so they always describe what the
+  // guestbook button will publish rather than the last name that happened to be drawn.
+  const signatureKey = `${currentSeed}:${drawingKind}`
   const isSigned = signedKey === signatureKey
   const failureReason = signError?.key === signatureKey ? signError.reason : null
+
+  function getName(): DrawingName {
+    return { first: firstName, last: lastName }
+  }
+
+  function drawName(name: DrawingName = getName()) {
+    setDrawingName(name)
+    setDrawRevision((revision) => revision + 1)
+  }
 
   async function signTheGuestbook() {
     if (isSigning || isSigned) return
 
+    const name = getName()
+    const signingKey = `${normalizeFaceSeed(name.first, name.last)}:${drawingKind}`
+
+    drawName(name)
     setIsSigning(true)
     setSignError(null)
 
-    const result = await signGuestbookAction(drawingName.first, drawingName.last, drawingKind)
+    const result = await signGuestbookAction(name.first, name.last, drawingKind)
 
     setIsSigning(false)
 
@@ -130,27 +144,25 @@ export function NameDrawingPage() {
       return
     }
 
-    setSignError({ key: signatureKey, reason: result.reason })
+    setSignError({ key: signingKey, reason: result.reason })
   }
 
   function draw(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setDrawingName(luckyNameRef.current ?? { first: firstName, last: lastName })
-    luckyNameRef.current = null
-    setDrawRevision((revision) => revision + 1)
+    drawName()
   }
 
   function fillLuckyName() {
     const luckyName = splitLuckyName(pickRandom(luckyNames))
 
-    luckyNameRef.current = luckyName
     setFirstName(luckyName.first)
     setLastName(luckyName.last)
+    drawName(luckyName)
   }
 
   function toggleCatMode() {
+    drawName()
     setCatMode((isCatMode) => !isCatMode)
-    setDrawRevision((revision) => revision + 1)
   }
 
   function downloadDrawing() {
@@ -257,7 +269,7 @@ export function NameDrawingPage() {
               <Button type="submit" variant={Variant.PRIMARY}>
                 draw me!
               </Button>
-              <Button onClick={fillLuckyName} type="submit" variant={Variant.SECONDARY}>
+              <Button onClick={fillLuckyName} type="button" variant={Variant.SECONDARY}>
                 i’m feeling lucky
               </Button>
               <Button
@@ -285,14 +297,14 @@ export function NameDrawingPage() {
               <SingleLineCat
                 config={face}
                 key={`${face.checksum}-cat-${drawRevision}`}
-                name={displayName}
+                name={drawingDisplayName}
                 svgRef={drawingSvgRef}
               />
             ) : (
               <SingleLineFace
                 config={face}
                 key={`${face.checksum}-${drawRevision}`}
-                name={displayName}
+                name={drawingDisplayName}
                 svgRef={drawingSvgRef}
               />
             )}
