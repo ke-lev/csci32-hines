@@ -1,9 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Button } from '@repo/ui/button'
-import { Size } from '@repo/ui/size'
-import { Variant } from '@repo/ui/variant'
+import { getButtonSizeStyles, Size } from '@repo/ui/size'
+import { getVariantBackgroundStyles, Variant } from '@repo/ui/variant'
 import { ModalFooter, modalFooterControlClasses, ModalFrame } from './modal-frame'
 import { submitTipIdea } from './submit-tip-idea'
 
@@ -12,6 +11,26 @@ type SubmitStatus = 'idle' | 'submitting' | 'submitted' | 'error'
 
 const paymentUrl = process.env.NEXT_PUBLIC_TIPS_URL ?? ''
 const qrSrc = '/$ke1ev-cashapp-qr.svg'
+
+const tipOptions = [
+  {
+    view: 'ideas',
+    title: 'an idea',
+    description: 'tell me what this site needs next',
+  },
+  {
+    view: 'money',
+    title: 'a buck',
+    description: 'keep the tiny machines running',
+  },
+] satisfies Array<{ view: Exclude<TipsView, 'menu'>; title: string; description: string }>
+
+const optionArrowClasses = [
+  'inline-flex shrink-0 items-center justify-center rounded-full border leading-none',
+  getButtonSizeStyles(Size.MEDIUM),
+  getVariantBackgroundStyles(Variant.PRIMARY),
+  'transition-transform duration-180 group-hover:-translate-x-1 group-focus-visible:-translate-x-1 motion-reduce:transition-none',
+].join(' ')
 
 const viewCopy = {
   menu: {
@@ -127,44 +146,24 @@ export function TipsDialog({ onClose }: TipsDialogProps) {
 
         {view === 'menu' ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
-            <div className="group flex min-h-28 w-full flex-1 items-center justify-between gap-6 border-b border-line px-6 py-5 text-left transition-colors duration-180 hover:bg-row-hover sm:px-8 motion-reduce:transition-none">
-              <span>
-                <span className="block text-[1rem] font-semibold tracking-[-0.02em]">an idea</span>
-                <span className="mt-1.5 block text-[0.78rem] leading-5 text-muted">
-                  tell me what this site needs next
+            {tipOptions.map((option) => (
+              <button
+                className="group flex min-h-28 w-full flex-1 cursor-pointer items-center justify-between gap-6 border-b border-line bg-transparent px-6 py-5 text-left text-foreground transition-colors duration-180 last:border-b-0 hover:bg-row-hover focus-visible:bg-row-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:px-8 motion-reduce:transition-none"
+                key={option.view}
+                onClick={() => changeView(option.view)}
+                type="button"
+              >
+                <span>
+                  <span className="block text-[1rem] font-semibold tracking-[-0.02em]">{option.title}</span>
+                  <span className="mt-1.5 block text-[0.78rem] leading-5 text-muted">{option.description}</span>
                 </span>
-              </span>
-              <Button
-                aria-label="gimme ideas"
-                className="shrink-0"
-                onClick={() => changeView('ideas')}
-                size={Size.MEDIUM}
-                type="button"
-                variant={Variant.PRIMARY}
-              >
-                <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 16 12" width="16">
-                  <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Button>
-            </div>
-            <div className="group flex min-h-28 w-full flex-1 items-center justify-between gap-6 px-6 py-5 text-left transition-colors duration-180 hover:bg-row-hover sm:px-8 motion-reduce:transition-none">
-              <span>
-                <span className="block text-[1rem] font-semibold tracking-[-0.02em]">a buck</span>
-                <span className="mt-1.5 block text-[0.78rem] leading-5 text-muted">keep the tiny machines running</span>
-              </span>
-              <Button
-                aria-label="gimme money"
-                className="shrink-0"
-                onClick={() => changeView('money')}
-                size={Size.MEDIUM}
-                type="button"
-                variant={Variant.PRIMARY}
-              >
-                <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 16 12" width="16">
-                  <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Button>
-            </div>
+                <span aria-hidden="true" className={optionArrowClasses}>
+                  <svg fill="none" height="12" viewBox="0 0 16 12" width="16">
+                    <path d="M1 6h13M10 1l5 5-5 5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </button>
+            ))}
           </div>
         ) : view === 'ideas' ? (
           <>
