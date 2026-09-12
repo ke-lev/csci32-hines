@@ -230,11 +230,7 @@ export function AdminConsole({ posts }: AdminConsoleProps) {
           titleId="admin-title"
           subhead={isGranted ? 'welcome root' : 'admin role required'}
           subheadAs={isGranted ? 'h2' : 'p'}
-          body={
-            isGranted
-              ? 'site overview\nuser lookup\ntips view\nchat moderation'
-              : 'this route expects an admin session.'
-          }
+          body={isGranted ? 'make yourself at home, chief' : 'this route expects an admin session.'}
         />
       }
       right={
