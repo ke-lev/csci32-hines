@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 }
 
 const kindClassName: Record<string, string> = {
-  feature: 'border-accent text-accent',
-  improvement: 'border-line text-foreground',
-  fix: 'border-line text-muted',
+  feature: 'border-success text-success',
+  improvement: 'border-accent text-accent',
+  fix: 'border-danger text-danger',
 }
 
 export default async function ChangelogPage() {
