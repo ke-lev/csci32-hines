@@ -21,7 +21,6 @@ describe('changelog entry frontmatter', () => {
       kind: 'feature',
       slug: 'admin-tips-inbox',
       timestamp: '2026-09-11T20:15:30Z',
-      timestampLabel: 'Sep 11, 2026, 4:15 PM EDT',
       title: 'admin tips inbox',
     })
   })

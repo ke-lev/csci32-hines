@@ -11,7 +11,6 @@ export type ChangelogEntry = {
   kind: ChangelogKind
   slug: string
   timestamp: string
-  timestampLabel: string
   title: string
 }
 
@@ -96,15 +95,6 @@ export function parseChangelogEntry(source: string, filename: string): Changelog
     kind,
     slug,
     timestamp,
-    timestampLabel: new Intl.DateTimeFormat('en-US', {
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      month: 'short',
-      timeZone: changelogTimeZone,
-      timeZoneName: 'short',
-      year: 'numeric',
-    }).format(timestampDate),
     title: data.title,
   }
 }

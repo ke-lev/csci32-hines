@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import { PageIntro } from '../components/page-intro'
 import { PageShell } from '../components/page-shell'
 import { getPublicHelpDocList } from '../help/docs'
+import { ChangelogTimestamp } from './changelog-timestamp'
 import { getChangelogEntries } from './entries'
 
 export const metadata: Metadata = {
@@ -46,9 +47,7 @@ export default async function ChangelogPage() {
               key={`${entry.timestamp}-${entry.slug}`}
             >
               <div className="flex flex-wrap items-center gap-2.5 font-mono text-[0.68rem] tracking-[0.08em] lowercase">
-                <time className="text-muted tabular-nums" dateTime={entry.timestamp}>
-                  {entry.timestampLabel}
-                </time>
+                <ChangelogTimestamp timestamp={entry.timestamp} />
                 <span
                   className={`inline-flex rounded-full border px-2.5 py-[3px] leading-none font-[650] ${kindClassName[entry.kind]}`}
                 >
