@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { getPublicHelpDocs, HOW_TO_USE_HEADING, parseHelpDoc, toRouteKey } from '../app/help/doc-schema'
-import { SITE_ROUTES } from '../app/lib/site-routes'
+import { hasHelpDocForPath, SITE_ROUTES } from '../app/lib/site-routes'
 
 const appDirectory = path.join(process.cwd(), 'app')
 const docsDirectory = path.join(appDirectory, 'help', 'docs')
@@ -52,6 +52,21 @@ describe('help doc coverage', () => {
       expect(doc.summary.length, `${doc.slug}.md summary`).toBeGreaterThan(0)
       expect(doc.content, `${doc.slug}.md`).toContain(HOW_TO_USE_HEADING)
     }
+  })
+
+  // the footer info button decides whether to render from hasHelpDocForPath alone, with no
+  // filesystem access. if that gate ever says yes for a path nothing documents, the button
+  // opens an empty modal — so tie the gate to the docs that actually exist on disk.
+  it('only promises a doc for paths a doc actually covers', async () => {
+    const documented = new Set((await loadDocs()).map((doc) => toRouteKey(doc.route)))
+
+    for (const route of SITE_ROUTES) {
+      expect(hasHelpDocForPath(route.href), `${route.href} gate`).toBe(true)
+      expect(documented.has(route.path), `${route.href} doc`).toBe(true)
+    }
+
+    expect(hasHelpDocForPath('/admin/')).toBe(true)
+    expect(documented.has('admin')).toBe(true)
   })
 
   // /admin is absent from the registry and noindex on purpose; its doc inherits that posture

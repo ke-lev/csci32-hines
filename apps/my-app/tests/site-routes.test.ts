@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getTerminalListing, getTerminalTree, resolveSiteRoute } from '../app/lib/site-routes'
+import { getTerminalListing, getTerminalTree, hasHelpDocForPath, resolveSiteRoute } from '../app/lib/site-routes'
 
 describe('terminal site routes', () => {
   it('resolves the routes exposed by the shell', () => {
@@ -29,5 +29,33 @@ describe('terminal site routes', () => {
     expect(resolveSiteRoute('dashboard', true)?.href).toBe('/dashboard/')
     expect(getTerminalListing(true)).toContain('dashboard/')
     expect(getTerminalTree(true)).toContain('dashboard/')
+  })
+})
+
+describe('help doc availability by path', () => {
+  // usePathname() reports "/buttons" while every href in the app is written "/buttons/",
+  // so both spellings have to land on the same answer or the button flickers in and out
+  it('accepts a registry route with or without its trailing slash', () => {
+    expect(hasHelpDocForPath('/buttons')).toBe(true)
+    expect(hasHelpDocForPath('/buttons/')).toBe(true)
+    expect(hasHelpDocForPath('/input/roll')).toBe(true)
+    expect(hasHelpDocForPath('/input/roll/')).toBe(true)
+  })
+
+  it('treats the bare root as the home doc', () => {
+    expect(hasHelpDocForPath('/')).toBe(true)
+    expect(hasHelpDocForPath('')).toBe(true)
+  })
+
+  // /admin is documented but deliberately absent from the registry
+  it('accepts the admin console', () => {
+    expect(hasHelpDocForPath('/admin/')).toBe(true)
+  })
+
+  // these are the pages that must NOT grow an info button, because nothing documents them
+  it('rejects paths no doc covers', () => {
+    expect(hasHelpDocForPath('/help/buttons/')).toBe(false)
+    expect(hasHelpDocForPath('/timeline/9-7/')).toBe(false)
+    expect(hasHelpDocForPath('/nope/')).toBe(false)
   })
 })
